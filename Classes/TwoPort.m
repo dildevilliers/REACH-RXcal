@@ -1,10 +1,12 @@
 classdef TwoPort
 
     properties
-        type(1,:) char {mustBeMember(type,{'S','ABCD'})} = 'S'
+        
     end
 
     properties (SetAccess = private)
+        type(1,:) char {mustBeMember(type,{'S','ABCD'})} = 'S'
+        
         freq(1,:) double % in fUnit
         fUnit(1,:) char {mustBeMember(fUnit,{'Hz','kHz','MHz','GHz','THz'})} = 'GHz' % Frequency unit 
         
