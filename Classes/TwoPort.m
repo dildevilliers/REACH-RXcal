@@ -231,6 +231,19 @@ classdef TwoPort
     end
 
     methods (Static = true)
+        function obj = readTouchStone(pathNameExt, NrPorts)
+            % READTOUCHSTONE reads a touchstone file
+            % ToDo: lots of checks to handle any type besides S (will crash with noise data)
+        
+            if nargin < 2
+                [S, freq] = touchread(pathNameExt);
+            else
+                [S, freq] = touchread(pathNameExt,NrPorts);
+            end
+            obj = TwoPort(S,freq./1e9,'S');
+
+        end
+        
         function obj = Cpar(C,f)
             % function obj = Cpar(L,f)
             % Shunt capacitance TwoPort object.

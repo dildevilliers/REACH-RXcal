@@ -35,25 +35,21 @@ fclose(fid);
 
 % Get all end-of-line indexes
 in2 = strfind(S,char([10]));     % for DOS: [13 10] 13 = carriage return; 10 = line feed for DOS (remember +2 in ln = )
-                                 % for UNIX: [10] (remember +1 in ln = )
+% for UNIX: [10] (remember +1 in ln = )
 
-if NrPorts == 0
-    
+[~,~,ext] = fileparts(file);
+n = sscanf(lower(ext),'.s%dp');
+if isempty(n)
+    % Try to find from the header
+    % This works for some TICRA files - add more when we find other versions
+    in1 = strfind(S,'[Number of Ports]');
 
-    [~,~,ext] = fileparts(file);
-    n = sscanf(lower(ext),'.s%dp');
-    if isempty(n)
-        % Try to find from the header
-        % This works for some TICRA files - add more when we find other versions
-        in1 = strfind(S,'[Number of Ports]');
+    ind = find(in2>in1); ind = ind(1);
+    ln = S(in1+17:in2(ind));
 
-        ind = find(in2>in1); ind = ind(1);
-        ln = S(in1+17:in2(ind));
-        
-        n = sscanf(ln,'%f');
+    n = sscanf(ln,'%f');
 
-        if isempty(n), error('Wrong extension, or provide number of ports'); end
-    end
+    if isempty(n), error('Wrong extension, or provide number of ports'); end
 end
 if NrPorts ~= 0, assert(NrPorts == n,'Input number of ports different from file extension - please check'); end
 

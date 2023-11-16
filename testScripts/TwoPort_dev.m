@@ -2,6 +2,13 @@ close all
 clear all
 
 %% 
+p = mfilename("fullpath");
+[pth] = [fileparts(p),'\'];
+dataPth = [pth,'..\data\S1P\'];
+filePathName = [dataPth,'69_Ohms.s1p'];
+[S69,freqData] = touchread(filePathName,1);
+
+
 load("EMconstants.mat")
 Z0 = 50;
 Nf = 501;
@@ -66,3 +73,8 @@ subplot 211
 T.plot11dB('r--')
 subplot 212
 T.plot11RI('r--')
+
+%% Measured data
+S11_69 = interp1(freqData,squeeze(S69(1,1,:)),freq,'linear');
+subplot 211
+plot(freq./1e6,dB20(squeeze(S11_69(1,1,:))),'b'), grid on, hold on
