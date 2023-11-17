@@ -6,7 +6,7 @@ classdef TwoPort
 
     properties (SetAccess = private)
         type(1,:) char {mustBeMember(type,{'S','ABCD'})} = 'S'
-        
+
         freq(1,:) double % in fUnit
         fUnit(1,:) char {mustBeMember(fUnit,{'Hz','kHz','MHz','GHz','THz'})} = 'GHz' % Frequency unit 
         
@@ -223,8 +223,28 @@ classdef TwoPort
             plot(real(obj.d11),imag(obj.d11),style), grid on, hold on
             xlabel(['real(',obj.nameMat{1,1}, ')'])
             ylabel(['imag(',obj.nameMat{1,1}, ')'])
-
         end
+
+        function plot21dB(obj,style)
+            % PLOT21dB plots the 21 parameter in dB
+
+            if nargin < 2 || isempty(style), style = 'k'; end
+
+            plot(obj.freq,dB20(obj.d21),style), grid on, hold on
+            xlabel(['Frequency (',obj.fUnit,')'])
+            ylabel([obj.nameMat{2,1}, '(dB)'])
+        end
+
+        function plot21phase(obj,style)
+            % PLOT21phase plots the 21 parameter in deg
+
+            if nargin < 2 || isempty(style), style = 'k'; end
+
+            plot(obj.freq,rad2deg(angle((obj.d21))),style), grid on, hold on
+            xlabel(['Frequency (',obj.fUnit,')'])
+            ylabel([obj.nameMat{2,1}, '(dB)'])
+        end
+
 
     end
 
@@ -282,14 +302,14 @@ classdef TwoPort
             obj = TwoPort(T,1e-9.*f,'ABCD');
         end
 
-        function obj = Tline(Z0,f,L,eps_r,tan_delta,R_prime)
-            % function obj = Tline(Z0,gamma,L)
+        function obj = Tline(Z0,L,f,eps_r,tan_delta,R_prime)
+            % function obj = Tline(Z0,L,f,eps_r,tan_delta,R_prime)
             % Transmission line TwoPort object
             %
             % Inputs:
             % Z0 - characteristic impedance in Ohm (can, in general, be function of frequency)
-            % f - frequency in Hz
             % L - Length in [m]
+            % f - frequency in Hz
             % eps_r - relative permittivity (can, in general, be function of frequency) [1]
             % tan_delta - loss tangent (can, in general, be function of frequency) [0]
             % R_prime - resistance per unit length in Ohm/m (can, in general, be function of frequency) [0]

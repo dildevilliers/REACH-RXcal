@@ -61,7 +61,7 @@ T_C1new = TwoPort.Cpar(C1.*1e-12,freq);
 T_L1new = TwoPort.Lser(L1.*1e-9,freq);
 T_C2new = TwoPort.Cpar(C2.*1e-12,freq);
 T_L2new = TwoPort.Lser(L2.*1e-9,freq);
-T_TX = TwoPort.Tline(A_Z0,freq,2.*A_len.*1e-3,A_epsr);
+T_TX = TwoPort.Tline(A_Z0,2.*A_len.*1e-3,freq,A_epsr);
 
 T = cascade([T_TX,T_C1new,T_L1new,T_C2new,T_L2new]);
 
@@ -77,4 +77,4 @@ T.plot11RI('r--')
 %% Measured data
 S11_69 = interp1(freqData,squeeze(S69(1,1,:)),freq,'linear');
 subplot 211
-plot(freq./1e6,dB20(squeeze(S11_69(1,1,:))),'b'), grid on, hold on
+plot(freq./1e6,dB20(S11_69),'b'), grid on, hold on
