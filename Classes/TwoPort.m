@@ -212,7 +212,27 @@ classdef TwoPort
 
             plot(obj.freq,dB20(obj.d11),style), grid on, hold on
             xlabel(['Frequency (',obj.fUnit,')'])
-            ylabel([obj.nameMat{1,1}, '(dB)'])
+            ylabel(['|',obj.nameMat{1,1}, '| (dB)'])
+        end
+
+        function plot11real(obj,style)
+            % PLOT11real plots the 11 parameter real part
+
+            if nargin < 2 || isempty(style), style = 'k'; end
+
+            plot(obj.freq,real(obj.d11),style), grid on, hold on
+            xlabel(['Frequency (',obj.fUnit,')'])
+            ylabel(['real(',obj.nameMat{1,1},')'])
+        end
+
+        function plot11imag(obj,style)
+            % PLOT11real plots the 11 parameter imaginary part
+
+            if nargin < 2 || isempty(style), style = 'k'; end
+
+            plot(obj.freq,imag(obj.d11),style), grid on, hold on
+            xlabel(['Frequency (',obj.fUnit,')'])
+            ylabel(['imag(',obj.nameMat{1,1},')'])
         end
 
         function plot11RI(obj,style)

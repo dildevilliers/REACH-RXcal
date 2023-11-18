@@ -3,9 +3,21 @@ clear all
 
 R = REACHcal;
 
-R.source_r36.getS.plot11dB
-hold on
 
 S11_36 = R.readSourceS11('c12r36');
-plot(R.freq,dB20(S11_36),'r')
 
+figure(1)
+subplot 221
+R.source_r36.getS.plot11dB
+hold on
+plot(R.freq,dB20(S11_36),'r--')
+
+subplot 223
+R.source_r36.getS.plot11real
+hold on
+plot(R.freq,real(S11_36),'r--')
+
+subplot 224
+R.source_r36.getS.plot11imag
+hold on
+plot(R.freq,imag(S11_36),'r--')

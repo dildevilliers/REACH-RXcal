@@ -56,6 +56,8 @@ classdef REACHcal
     properties (Dependent = true, Hidden = true)
         freqHz
 
+        err_source_r36
+
     end
 
     properties (Constant = true)
@@ -116,6 +118,12 @@ classdef REACHcal
             source_r36 = source_r36.getS([],obj.r36.Zport2);
         end
 
+        function err_source_r36 = get.err_source_r36(obj)
+            S11_meas = obj.readSourceS11('c12r36');
+            S11_model = obj.source_r36.getS.d11;
+            err_source_r36 = sqrt(sum(abs(S11_model(:) - S11_meas(:)).^2))./obj.Nf;
+        end
+
         % Measurement data
         function [S11,freq] = readSourceS11(obj,sourceName,interpFlag)
             % READSOURCES11 returns the measured source S11 in a vector
@@ -131,6 +139,25 @@ classdef REACHcal
                 freq = obj.freqHz;
             end
         end
+
+        % Optimization
+        function [obj] = tempOpt(obj)
+            options = optimoptions('fmincon','display','iter');
+            X0 = [obj.r36_vals,obj.c2_vals];
+            LB = [obj.r36_min,obj.c2_min];
+            UB = [obj.r36_max,obj.c2_max];
+            optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
+
+            obj.r36_vals = optVals(1:length(obj.r36_vals));
+            obj.c2_vals = optVals((length(obj.r36_vals)+1):end);
+        end
+
+        function err = errFunc(obj,x)
+            obj.r36_vals = x(1:length(obj.r36_vals));
+            obj.c2_vals = x((length(obj.r36_vals)+1):end);
+            err = obj.err_source_r36;
+        end
+
 
         % Plotting
         function plotCablePars(obj,cVals)
