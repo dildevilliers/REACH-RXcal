@@ -21,3 +21,11 @@ subplot 224
 R.source_r36.getS.plot11imag
 hold on
 plot(R.freq,imag(S11_36),'r--')
+
+
+%% Run optimization test
+R1 = R.tempOpt;
+
+subplot 221, R1.source_r36.getS.plot11dB('b--')
+subplot 223, R1.source_r36.getS.plot11real('b--')
+subplot 224, R1.source_r36.getS.plot11imag('b--')

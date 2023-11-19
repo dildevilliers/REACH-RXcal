@@ -12,7 +12,7 @@ classdef REACHcal
         fmax(1,1) double = 200 % in MHz
         
         % Resistors
-        r36_vals = [1,10,8,8,37];
+        r36_vals = [1.91,17.7,9.4,15.1,37.8];
         r36_types = {'Cpar','Lser','Cpar','Lser','Load'};
         r36_unitScales = [1e-12,1e-9,1e-12,1e-9,1];
         r36_max = [2,20,16,16,38];
@@ -56,7 +56,12 @@ classdef REACHcal
     properties (Dependent = true, Hidden = true)
         freqHz
 
+        optFlag
+        X0full
+        LBfull
+        UBfull
         err_source_r36
+
 
     end
 
@@ -122,7 +127,25 @@ classdef REACHcal
             S11_meas = obj.readSourceS11('c12r36');
             S11_model = obj.source_r36.getS.d11;
             err_source_r36 = sqrt(sum(abs(S11_model(:) - S11_meas(:)).^2))./obj.Nf;
+            err_source_r36 = 100.*err_source_r36 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(S11_meas(:))).^2))./obj.Nf;
         end
+
+        function optFlag = get.optFlag(obj)
+            optFlag = [obj.r36_optFlag,obj.c2_optFlag];
+        end
+
+        function X0full = get.X0full(obj)
+            X0full = [obj.r36_vals,obj.c2_vals];
+        end
+        
+        function LBfull = get.LBfull(obj)
+            LBfull = [obj.r36_min,obj.c2_min];
+        end
+        
+        function UBfull = get.UBfull(obj)
+            UBfull = [obj.r36_max,obj.c2_max];
+        end
+        
 
         % Measurement data
         function [S11,freq] = readSourceS11(obj,sourceName,interpFlag)
@@ -143,18 +166,25 @@ classdef REACHcal
         % Optimization
         function [obj] = tempOpt(obj)
             options = optimoptions('fmincon','display','iter');
-            X0 = [obj.r36_vals,obj.c2_vals];
-            LB = [obj.r36_min,obj.c2_min];
-            UB = [obj.r36_max,obj.c2_max];
+%             X0 = [obj.r36_vals,obj.c2_vals];
+%             LB = [obj.r36_min,obj.c2_min];
+%             UB = [obj.r36_max,obj.c2_max];
+            X0 = obj.X0full(find(obj.optFlag == 1));
+            LB = obj.LBfull(find(obj.optFlag == 1));
+            UB = obj.UBfull(find(obj.optFlag == 1));
             optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
 
-            obj.r36_vals = optVals(1:length(obj.r36_vals));
-            obj.c2_vals = optVals((length(obj.r36_vals)+1):end);
+%             obj.r36_vals = optVals(1:length(obj.r36_vals));
+%             obj.c2_vals = optVals((length(obj.r36_vals)+1):end);
+            [~,obj] = obj.errFunc(optVals);
+
         end
 
-        function err = errFunc(obj,x)
-            obj.r36_vals = x(1:length(obj.r36_vals));
-            obj.c2_vals = x((length(obj.r36_vals)+1):end);
+        function [err,obj] = errFunc(obj,x)
+            X = obj.X0full;
+            X(obj.optFlag == 1) = x;
+            obj.r36_vals = X(1:length(obj.r36_vals));
+            obj.c2_vals = X((length(obj.r36_vals)+1):end);
             err = obj.err_source_r36;
         end
 
