@@ -40,23 +40,30 @@ classdef REACHcal
         ms3_optFlag = [1,1,1];
 
         % Semi-ridged links
-        sr_mtsj2_vals = [50,30,2,0.01];
+        sr_mtsj2_vals = [50,30,2,0.0002];
         sr_mtsj2_unitScales = [1,1e-3,1,1];
-        sr_mtsj2_max = [52,50,3,0.1];
-        sr_mtsj2_min = [48,10,1,0];
+        sr_mtsj2_max = [52,50,2.1,0.0005];
+        sr_mtsj2_min = [48,10,1.9,0];
         sr_mtsj2_optFlag = [1,1,1,1];
+
+        sr_mtsj1_vals = [50,30,2,0.0002];
+        sr_mtsj1_unitScales = [1,1e-3,1,1];
+        sr_mtsj1_max = [52,50,2.1,0.0005];
+        sr_mtsj1_min = [48,10,1.9,0];
+        sr_mtsj1_optFlag = [1,1,1,1];
 
     end
 
     properties (Dependent = true)
         freq(1,:) double
-        r36(1,1) TwoPort
-        c2(1,1) TwoPort
-        ms1(1,1) TwoPort
-        ms3(1,1) TwoPort
-        sr_mtsj2(1,1) TwoPort
+        r36(1,1) struct
+        c2(1,1) struct
+        ms1(1,1) struct
+        ms3(1,1) struct
+        sr_mtsj2(1,1) struct
+        sr_mtsj1(1,1) struct
 
-        source_r36(1,1) TwoPort
+%         source_r36(1,1) TwoPort
 
         Sr36(1,1) struct
         
@@ -105,47 +112,43 @@ classdef REACHcal
         end
 
         function r36 = get.r36(obj)
-            r36 = REACHcal.buildResistor(obj.r36_types,obj.r36_vals,obj.r36_unitScales,obj.freqHz);
-            r36 = r36.freqChangeUnit(obj.freqUnit);    
+            r36.network = REACHcal.buildResistor(obj.r36_types,obj.r36_vals,obj.r36_unitScales,obj.freqHz);
+            r36.network = r36.network.freqChangeUnit(obj.freqUnit);    
+            r36.vals = obj.r36_vals;
+            r36.unitScales = obj.r36_unitScales;
+            r36.max = obj.r36_max;
+            r36.min = obj.r36_min;
+            r36.optFlag = obj.r36_optFlag;
+            r36.types = obj.r36_types;
         end
 
         function c2 = get.c2(obj)
-            [Z0,L,f,eps_r,tan_delta,r_prime] = obj.getCablePars('c2');
-            c2 = TwoPort.Tline(Z0,L,f,eps_r,tan_delta,r_prime);
-            c2 = c2.freqChangeUnit(obj.freqUnit);
+            c2 = obj.buildCableStruct('c2');
         end
 
         function ms1 = get.ms1(obj)
-            parVals = obj.ms1_vals.*obj.ms1_unitScales;
-            ms1 = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3));
-            ms1 = ms1.freqChangeUnit(obj.freqUnit);
+            ms1 = obj.buildMSstruct('ms1');
         end
 
         function ms3 = get.ms3(obj)
-            parVals = obj.ms3_vals.*obj.ms3_unitScales;
-            ms3 = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3));
-            ms3 = ms3.freqChangeUnit(obj.freqUnit);
+            ms3 = obj.buildMSstruct('ms3');
+        end
+
+        function sr_mtsj1 = get.sr_mtsj1(obj)
+            sr_mtsj1 = obj.buildSRstruct('sr_mtsj1');
         end
 
         function sr_mtsj2 = get.sr_mtsj2(obj)
-            parVals = obj.sr_mtsj2_vals.*obj.sr_mtsj2_unitScales;
-            sr_mtsj2 = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4));
-            sr_mtsj2 = sr_mtsj2.freqChangeUnit(obj.freqUnit);
-        end
-
-        function source_r36 = get.source_r36(obj)
-            source_r36 = cascade([obj.sr_mtsj2,obj.ms1,obj.c2,obj.ms3,obj.r36]);
-            source_r36 = source_r36.getS([],obj.r36.Zport2);
+            sr_mtsj2 = obj.buildSRstruct('sr_mtsj2');
         end
 
         function Sr36 = get.Sr36(obj)
-            Sr36.elements = {'sr_mtsj2','ms1','c2','r36'};
-
+            Sr36 = obj.buildSourceStruct({'sr_mtsj2','ms1','c2','ms3','r36'});
         end
 
         function err_source_r36 = get.err_source_r36(obj)
             S11_meas = obj.readSourceS11('c12r36');
-            S11_model = obj.source_r36.getS.d11;
+            S11_model = obj.Sr36.network.getS.d11;
             err_source_r36 = sqrt(sum(abs(S11_model(:) - S11_meas(:)).^2))./obj.Nf;
             err_source_r36 = 2.*err_source_r36 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(S11_meas(:))).^2))./obj.Nf;
         end
@@ -192,8 +195,8 @@ classdef REACHcal
             X0 = obj.X0full(find(obj.optFlag == 1));
             LB = obj.LBfull(find(obj.optFlag == 1));
             UB = obj.UBfull(find(obj.optFlag == 1));
-%             optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
-            optVals = ga(@(x) errFunc(obj,x),length(X0),[],[],[],[],LB,UB,[],options);
+            optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
+%             optVals = ga(@(x) errFunc(obj,x),length(X0),[],[],[],[],LB,UB,[],options);
 
 %             obj.r36_vals = optVals(1:length(obj.r36_vals));
 %             obj.c2_vals = optVals((length(obj.r36_vals)+1):end);
@@ -276,6 +279,75 @@ classdef REACHcal
             eps_r = cVals(3).*fn + cVals(4);
             tan_delta = cVals(5).*fn + cVals(6);
             r_prime = cVals(7).*fn + cVals(8);
+        end
+
+        function cable = buildCableStruct(obj,cableName)
+            % BUILDCABLESTRUCT builds a general cable structure
+
+            [Z0,L,f,eps_r,tan_delta,r_prime] = obj.getCablePars(cableName);
+            cable.network = TwoPort.Tline(Z0,L,f,eps_r,tan_delta,r_prime);
+            cable.network = cable.network.freqChangeUnit(obj.freqUnit);
+            cable.vals = obj.([cableName,'_vals']);
+            cable.unitScales = obj.([cableName,'_unitScales']);
+            cable.max = obj.([cableName,'_max']);
+            cable.min = obj.([cableName,'_max']);
+            cable.optFlag = obj.([cableName,'_optFlag']);
+        end
+
+        function sr = buildSRstruct(obj,srName)
+            % BUILDSRSTRUCT builds a general semi-rigid structure
+
+            sr.vals = obj.([srName,'_vals']);
+            sr.unitScales = obj.([srName,'_unitScales']);
+            sr.max = obj.([srName,'_max']);
+            sr.min = obj.([srName,'_max']);
+            sr.optFlag = obj.([srName,'_optFlag']);
+            parVals = sr.vals.*sr.unitScales;
+            sr.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4));
+            sr.network = sr.network.freqChangeUnit(obj.freqUnit);
+        end
+
+        function ms = buildMSstruct(obj,msName)
+            % BUILDMSSTRUCT builds a general mechanical switch structure
+
+            ms.vals = obj.([msName,'_vals']);
+            ms.unitScales = obj.([msName,'_unitScales']);
+            ms.max = obj.([msName,'_max']);
+            ms.min = obj.([msName,'_max']);
+            ms.optFlag = obj.([msName,'_optFlag']);
+            parVals = ms.vals.*ms.unitScales;
+            ms.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3));
+            ms.network = ms.network.freqChangeUnit(obj.freqUnit);
+        end
+
+        function S_struct = buildSourceStruct(obj,elementNameVect)
+            % BUILDSOURCESTRUCT builds a general source structure
+
+            S_struct.elements = elementNameVect;
+            Ne = length(S_struct.elements);
+            % First get the number of variables in the cascade
+            S_struct.Nvars = zeros(1,Ne);
+            networkVect = TwoPort.empty(0,Ne);
+            for ii = 1:Ne
+                S_struct.Nvars(ii) = length(obj.(S_struct.elements{ii}).vals);
+                networkVect(ii) = obj.(S_struct.elements{ii}).network;
+            end
+            % Run the loop again, and allocate the long vectors
+            valMat = zeros(5,sum(S_struct.Nvars));
+            for ii = 1:Ne
+                valMat(:,(sum(S_struct.Nvars(1:(ii-1)))+1):sum(S_struct.Nvars(1:ii))) = [obj.(S_struct.elements{ii}).vals; ...
+                                                                                        obj.(S_struct.elements{ii}).unitScales; ...
+                                                                                        obj.(S_struct.elements{ii}).max; ...
+                                                                                        obj.(S_struct.elements{ii}).min; ...
+                                                                                        obj.(S_struct.elements{ii}).optFlag];
+            end
+            S_struct.network = cascade(networkVect);
+            S_struct.network = S_struct.network.getS([],networkVect(Ne).Zport2);
+            S_struct.vals = valMat(1,:);
+            S_struct.unitScales = valMat(2,:);
+            S_struct.max = valMat(3,:);
+            S_struct.min = valMat(4,:);
+            S_struct.optFlag = valMat(5,:);
         end
 
     end
