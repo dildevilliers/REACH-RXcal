@@ -27,18 +27,24 @@ classdef REACHcal
         c2_optFlag = [1,1,1,1,1,1,1,1];
         
         % Mechanical switches
-        ms1_vals = [50,30,2];
+        ms1_vals = [50,25,2];
         ms1_unitScales = [1,1e-3,1];
         ms1_max = [52,33,10];
         ms1_min = [48,10,1];
         ms1_optFlag = [1,1,1];
 
+        ms3_vals = [50,25,2];
+        ms3_unitScales = [1,1e-3,1];
+        ms3_max = [52,33,10];
+        ms3_min = [48,10,1];
+        ms3_optFlag = [1,1,1];
+
         % Semi-ridged links
-        sr_mtsj2_vals = [50,30,2];
-        sr_mtsj2_unitScales = [1,1e-3,1];
-        sr_mtsj2_max = [52,50,3];
-        sr_mtsj2_min = [48,10,1];
-        sr_mtsj2_optFlag = [1,1,1];
+        sr_mtsj2_vals = [50,30,2,0.01];
+        sr_mtsj2_unitScales = [1,1e-3,1,1];
+        sr_mtsj2_max = [52,50,3,0.1];
+        sr_mtsj2_min = [48,10,1,0];
+        sr_mtsj2_optFlag = [1,1,1,1];
 
     end
 
@@ -47,6 +53,7 @@ classdef REACHcal
         r36(1,1) TwoPort
         c2(1,1) TwoPort
         ms1(1,1) TwoPort
+        ms3(1,1) TwoPort
         sr_mtsj2(1,1) TwoPort
 
         source_r36(1,1) TwoPort
@@ -112,14 +119,20 @@ classdef REACHcal
             ms1 = ms1.freqChangeUnit(obj.freqUnit);
         end
 
+        function ms3 = get.ms3(obj)
+            parVals = obj.ms3_vals.*obj.ms3_unitScales;
+            ms3 = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3));
+            ms3 = ms3.freqChangeUnit(obj.freqUnit);
+        end
+
         function sr_mtsj2 = get.sr_mtsj2(obj)
             parVals = obj.sr_mtsj2_vals.*obj.sr_mtsj2_unitScales;
-            sr_mtsj2 = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3));
+            sr_mtsj2 = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4));
             sr_mtsj2 = sr_mtsj2.freqChangeUnit(obj.freqUnit);
         end
 
         function source_r36 = get.source_r36(obj)
-            source_r36 = cascade([obj.sr_mtsj2,obj.ms1,obj.c2,obj.r36]);
+            source_r36 = cascade([obj.sr_mtsj2,obj.ms1,obj.c2,obj.ms3,obj.r36]);
             source_r36 = source_r36.getS([],obj.r36.Zport2);
         end
 
@@ -127,23 +140,23 @@ classdef REACHcal
             S11_meas = obj.readSourceS11('c12r36');
             S11_model = obj.source_r36.getS.d11;
             err_source_r36 = sqrt(sum(abs(S11_model(:) - S11_meas(:)).^2))./obj.Nf;
-            err_source_r36 = 100.*err_source_r36 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(S11_meas(:))).^2))./obj.Nf;
+            err_source_r36 = 2.*err_source_r36 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(S11_meas(:))).^2))./obj.Nf;
         end
 
         function optFlag = get.optFlag(obj)
-            optFlag = [obj.r36_optFlag,obj.c2_optFlag];
+            optFlag = [obj.r36_optFlag,obj.ms3_optFlag,obj.c2_optFlag,obj.ms1_optFlag,obj.sr_mtsj2_optFlag];
         end
 
         function X0full = get.X0full(obj)
-            X0full = [obj.r36_vals,obj.c2_vals];
+            X0full = [obj.r36_vals,obj.ms3_vals,obj.c2_vals,obj.ms1_vals,obj.sr_mtsj2_vals];
         end
         
         function LBfull = get.LBfull(obj)
-            LBfull = [obj.r36_min,obj.c2_min];
+            LBfull = [obj.r36_min,obj.ms3_min,obj.c2_min,obj.ms1_min,obj.sr_mtsj2_min];
         end
         
         function UBfull = get.UBfull(obj)
-            UBfull = [obj.r36_max,obj.c2_max];
+            UBfull = [obj.r36_max,obj.ms3_max,obj.c2_max,obj.ms1_max,obj.sr_mtsj2_max];
         end
         
 
@@ -172,7 +185,8 @@ classdef REACHcal
             X0 = obj.X0full(find(obj.optFlag == 1));
             LB = obj.LBfull(find(obj.optFlag == 1));
             UB = obj.UBfull(find(obj.optFlag == 1));
-            optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
+%             optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
+            optVals = ga(@(x) errFunc(obj,x),length(X0),[],[],[],[],LB,UB,[],options);
 
 %             obj.r36_vals = optVals(1:length(obj.r36_vals));
 %             obj.c2_vals = optVals((length(obj.r36_vals)+1):end);
@@ -183,8 +197,18 @@ classdef REACHcal
         function [err,obj] = errFunc(obj,x)
             X = obj.X0full;
             X(obj.optFlag == 1) = x;
-            obj.r36_vals = X(1:length(obj.r36_vals));
-            obj.c2_vals = X((length(obj.r36_vals)+1):end);
+            
+            Nr36 = length(obj.r36_vals);
+            Nms3 = length(obj.ms3_vals);
+            Nc2 = length(obj.c2_vals);
+            Nms1 = length(obj.ms1_vals);
+            Nsr_mtsj2 = length(obj.sr_mtsj2_vals);
+            
+            obj.r36_vals = X(1:Nr36);
+            obj.ms3_vals = X((Nr36+1):(Nr36+Nms3));
+            obj.c2_vals = X((Nr36+Nms3+1):(Nr36+Nms3+Nc2));
+            obj.ms1_vals = X((Nr36+Nms3+Nc2+1):(Nr36+Nms3+Nc2+Nms1));
+            obj.sr_mtsj2_vals = X((Nr36+Nms3+Nc2+Nms1+1):(Nr36+Nms3+Nc2+Nms1+Nsr_mtsj2));
             err = obj.err_source_r36;
         end
 
