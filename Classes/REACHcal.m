@@ -112,14 +112,7 @@ classdef REACHcal
         end
 
         function r36 = get.r36(obj)
-            r36.network = REACHcal.buildResistor(obj.r36_types,obj.r36_vals,obj.r36_unitScales,obj.freqHz);
-            r36.network = r36.network.freqChangeUnit(obj.freqUnit);    
-            r36.vals = obj.r36_vals;
-            r36.unitScales = obj.r36_unitScales;
-            r36.max = obj.r36_max;
-            r36.min = obj.r36_min;
-            r36.optFlag = obj.r36_optFlag;
-            r36.types = obj.r36_types;
+            r36 = obj.buildRstruct('r36');
         end
 
         function c2 = get.c2(obj)
@@ -154,21 +147,24 @@ classdef REACHcal
         end
 
         function optFlag = get.optFlag(obj)
-            optFlag = [obj.r36_optFlag,obj.ms3_optFlag,obj.c2_optFlag,obj.ms1_optFlag,obj.sr_mtsj2_optFlag];
+%             optFlag = [obj.r36_optFlag,obj.ms3_optFlag,obj.c2_optFlag,obj.ms1_optFlag,obj.sr_mtsj2_optFlag];
+            optFlag = obj.Sr36.optFlag;
         end
 
         function X0full = get.X0full(obj)
-            X0full = [obj.r36_vals,obj.ms3_vals,obj.c2_vals,obj.ms1_vals,obj.sr_mtsj2_vals];
+%             X0full = [obj.r36_vals,obj.ms3_vals,obj.c2_vals,obj.ms1_vals,obj.sr_mtsj2_vals];
+            X0full = obj.Sr36.vals;
         end
         
         function LBfull = get.LBfull(obj)
-            LBfull = [obj.r36_min,obj.ms3_min,obj.c2_min,obj.ms1_min,obj.sr_mtsj2_min];
+%             LBfull = [obj.r36_min,obj.ms3_min,obj.c2_min,obj.ms1_min,obj.sr_mtsj2_min];
+            LBfull = obj.Sr36.min;
         end
         
         function UBfull = get.UBfull(obj)
-            UBfull = [obj.r36_max,obj.ms3_max,obj.c2_max,obj.ms1_max,obj.sr_mtsj2_max];
+%             UBfull = [obj.r36_max,obj.ms3_max,obj.c2_max,obj.ms1_max,obj.sr_mtsj2_max];
+            UBfull = obj.Sr36.max;
         end
-
         
         % Measurement data
         function [S11,freq] = readSourceS11(obj,sourceName,interpFlag)
@@ -208,17 +204,24 @@ classdef REACHcal
             X = obj.X0full;
             X(obj.optFlag == 1) = x;
             
-            Nr36 = length(obj.r36_vals);
-            Nms3 = length(obj.ms3_vals);
-            Nc2 = length(obj.c2_vals);
-            Nms1 = length(obj.ms1_vals);
-            Nsr_mtsj2 = length(obj.sr_mtsj2_vals);
-            
-            obj.r36_vals = X(1:Nr36);
-            obj.ms3_vals = X((Nr36+1):(Nr36+Nms3));
-            obj.c2_vals = X((Nr36+Nms3+1):(Nr36+Nms3+Nc2));
-            obj.ms1_vals = X((Nr36+Nms3+Nc2+1):(Nr36+Nms3+Nc2+Nms1));
-            obj.sr_mtsj2_vals = X((Nr36+Nms3+Nc2+Nms1+1):(Nr36+Nms3+Nc2+Nms1+Nsr_mtsj2));
+%             Nr36 = length(obj.r36_vals);
+%             Nms3 = length(obj.ms3_vals);
+%             Nc2 = length(obj.c2_vals);
+%             Nms1 = length(obj.ms1_vals);
+%             Nsr_mtsj2 = length(obj.sr_mtsj2_vals);
+%             
+%             obj.r36_vals = X(1:Nr36);
+%             obj.ms3_vals = X((Nr36+1):(Nr36+Nms3));
+%             obj.c2_vals = X((Nr36+Nms3+1):(Nr36+Nms3+Nc2));
+%             obj.ms1_vals = X((Nr36+Nms3+Nc2+1):(Nr36+Nms3+Nc2+Nms1));
+%             obj.sr_mtsj2_vals = X((Nr36+Nms3+Nc2+Nms1+1):(Nr36+Nms3+Nc2+Nms1+Nsr_mtsj2));
+%             err = obj.err_source_r36;
+
+
+            Ne = length(obj.Sr36.elements);
+            for ii = 1:Ne
+                obj.([obj.Sr36.elements{ii},'_vals']) = X((sum(obj.Sr36.Nvars(1:(ii-1)))+1):sum(obj.Sr36.Nvars(1:ii)));
+            end
             err = obj.err_source_r36;
         end
 
@@ -290,8 +293,21 @@ classdef REACHcal
             cable.vals = obj.([cableName,'_vals']);
             cable.unitScales = obj.([cableName,'_unitScales']);
             cable.max = obj.([cableName,'_max']);
-            cable.min = obj.([cableName,'_max']);
+            cable.min = obj.([cableName,'_min']);
             cable.optFlag = obj.([cableName,'_optFlag']);
+        end
+
+        function r = buildRstruct(obj,rName)
+            % BUILDRSTRUCT builds a general resistor structure
+           
+            r.vals = obj.([rName,'_vals']);
+            r.unitScales = obj.([rName,'_unitScales']);
+            r.max = obj.([rName,'_max']);
+            r.min = obj.([rName,'_min']);
+            r.optFlag = obj.([rName,'_optFlag']);
+            r.types = obj.([rName,'_types']);
+            r.network = REACHcal.buildResistor(r.types,r.vals,r.unitScales,obj.freqHz);
+            r.network = r.network.freqChangeUnit(obj.freqUnit);    
         end
 
         function sr = buildSRstruct(obj,srName)
@@ -300,7 +316,7 @@ classdef REACHcal
             sr.vals = obj.([srName,'_vals']);
             sr.unitScales = obj.([srName,'_unitScales']);
             sr.max = obj.([srName,'_max']);
-            sr.min = obj.([srName,'_max']);
+            sr.min = obj.([srName,'_min']);
             sr.optFlag = obj.([srName,'_optFlag']);
             parVals = sr.vals.*sr.unitScales;
             sr.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4));
@@ -313,7 +329,7 @@ classdef REACHcal
             ms.vals = obj.([msName,'_vals']);
             ms.unitScales = obj.([msName,'_unitScales']);
             ms.max = obj.([msName,'_max']);
-            ms.min = obj.([msName,'_max']);
+            ms.min = obj.([msName,'_min']);
             ms.optFlag = obj.([msName,'_optFlag']);
             parVals = ms.vals.*ms.unitScales;
             ms.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3));
@@ -335,11 +351,12 @@ classdef REACHcal
             % Run the loop again, and allocate the long vectors
             valMat = zeros(5,sum(S_struct.Nvars));
             for ii = 1:Ne
-                valMat(:,(sum(S_struct.Nvars(1:(ii-1)))+1):sum(S_struct.Nvars(1:ii))) = [obj.(S_struct.elements{ii}).vals; ...
-                                                                                        obj.(S_struct.elements{ii}).unitScales; ...
-                                                                                        obj.(S_struct.elements{ii}).max; ...
-                                                                                        obj.(S_struct.elements{ii}).min; ...
-                                                                                        obj.(S_struct.elements{ii}).optFlag];
+                element_ = obj.(S_struct.elements{ii});
+                valMat(:,(sum(S_struct.Nvars(1:(ii-1)))+1):sum(S_struct.Nvars(1:ii))) = [element_.vals; ...
+                                                                                        element_.unitScales; ...
+                                                                                        element_.max; ...
+                                                                                        element_.min; ...
+                                                                                        element_.optFlag];
             end
             S_struct.network = cascade(networkVect);
             S_struct.network = S_struct.network.getS([],networkVect(Ne).Zport2);
