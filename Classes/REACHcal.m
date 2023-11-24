@@ -50,6 +50,8 @@ classdef REACHcal
         sr_mtsj2(1,1) TwoPort
 
         source_r36(1,1) TwoPort
+
+        Sr36(1,1) struct
         
     end
 
@@ -123,11 +125,16 @@ classdef REACHcal
             source_r36 = source_r36.getS([],obj.r36.Zport2);
         end
 
+        function Sr36 = get.Sr36(obj)
+            Sr36.elements = {'sr_mtsj2','ms1','c2','r36'};
+
+        end
+
         function err_source_r36 = get.err_source_r36(obj)
             S11_meas = obj.readSourceS11('c12r36');
             S11_model = obj.source_r36.getS.d11;
             err_source_r36 = sqrt(sum(abs(S11_model(:) - S11_meas(:)).^2))./obj.Nf;
-            err_source_r36 = 100.*err_source_r36 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(S11_meas(:))).^2))./obj.Nf;
+            err_source_r36 = 2.*err_source_r36 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(S11_meas(:))).^2))./obj.Nf;
         end
 
         function optFlag = get.optFlag(obj)
@@ -145,8 +152,8 @@ classdef REACHcal
         function UBfull = get.UBfull(obj)
             UBfull = [obj.r36_max,obj.c2_max];
         end
-        
 
+        
         % Measurement data
         function [S11,freq] = readSourceS11(obj,sourceName,interpFlag)
             % READSOURCES11 returns the measured source S11 in a vector
