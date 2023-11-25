@@ -24,7 +24,9 @@ plot(R.freq,imag(S11_36),'r--')
 
 
 %% Run optimization test
+tic
 R1 = R.tempOpt;
+toc
 
 subplot 221, R1.Sr36.network.getS.plot11dB('b--')
 subplot 223, R1.Sr36.network.getS.plot11real('b--')

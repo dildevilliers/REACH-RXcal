@@ -198,10 +198,11 @@ classdef TwoPort
                     obj.data(1,2,:) = ((conj(Z1) + S11.*Z1).*(conj(Z2) + S22.*Z2) - S12.*S21.*Z1.*Z2)./den;
                     obj.data(2,1,:) = ((1 - S11).*(1 - S22) - S12.*S21)./den;
                     obj.data(2,2,:) = ((1 - S11).*(conj(Z2) + S22.*Z2) + S12.*S21.*Z2)./den;
+                    obj.type = 'ABCD';
                 otherwise
                     error('I should not be here...')
             end
-            obj.type = 'ABCD';
+            
         end
 
         % Plotting

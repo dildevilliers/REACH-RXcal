@@ -52,6 +52,9 @@ classdef REACHcal
         sr_mtsj1_min = [48,10,1.9,0];
         sr_mtsj1_optFlag = [1,1,1,1];
 
+        % Measured Data
+        S11_meas_c12r36
+
     end
 
     properties (Dependent = true)
@@ -100,6 +103,9 @@ classdef REACHcal
                 obj.dataPath = dataPath;
             end
 
+            % Read the data
+            obj.S11_meas_c12r36 = obj.readSourceS11('c12r36');
+
         end
 
         % Dependent getters
@@ -117,23 +123,28 @@ classdef REACHcal
         end
 
         function c2 = get.c2(obj)
-            c2 = obj.buildCableStruct('c2');
+%             c2 = obj.buildCableStruct('c2');
+            c2 = obj.buildCableStruct(obj.c2_vals,obj.c2_unitScales,obj.c2_max,obj.c2_min,obj.c2_optFlag);
         end
 
         function ms1 = get.ms1(obj)
-            ms1 = obj.buildMSstruct('ms1');
+%             ms1 = obj.buildMSstruct('ms1');
+            ms1 = obj.buildMSstruct(obj.ms1_vals,obj.ms1_unitScales,obj.ms1_max,obj.ms1_min,obj.ms1_optFlag);
         end
 
         function ms3 = get.ms3(obj)
-            ms3 = obj.buildMSstruct('ms3');
+%             ms3 = obj.buildMSstruct('ms3');
+            ms3 = obj.buildMSstruct(obj.ms3_vals,obj.ms3_unitScales,obj.ms3_max,obj.ms3_min,obj.ms3_optFlag);
         end
 
         function sr_mtsj1 = get.sr_mtsj1(obj)
-            sr_mtsj1 = obj.buildSRstruct('sr_mtsj1');
+%             sr_mtsj1 = obj.buildSRstruct('sr_mtsj1');
+            sr_mtsj1 = obj.buildSRstruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
         end
 
         function sr_mtsj2 = get.sr_mtsj2(obj)
-            sr_mtsj2 = obj.buildSRstruct('sr_mtsj2');
+%             sr_mtsj2 = obj.buildSRstruct('sr_mtsj2');
+            sr_mtsj2 = obj.buildSRstruct(obj.sr_mtsj2_vals,obj.sr_mtsj2_unitScales,obj.sr_mtsj2_max,obj.sr_mtsj2_min,obj.sr_mtsj2_optFlag);
         end
 
         function Sr36 = get.Sr36(obj)
@@ -141,10 +152,10 @@ classdef REACHcal
         end
 
         function err_source_r36 = get.err_source_r36(obj)
-            S11_meas = obj.readSourceS11('c12r36');
+%             S11_meas = obj.readSourceS11('c12r36');
             S11_model = obj.Sr36.network.getS.d11;
-            err_source_r36 = sqrt(sum(abs(S11_model(:) - S11_meas(:)).^2))./obj.Nf;
-            err_source_r36 = 2.*err_source_r36 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(S11_meas(:))).^2))./obj.Nf;
+            err_source_r36 = sqrt(sum(abs(S11_model(:) - obj.S11_meas_c12r36(:)).^2))./obj.Nf;
+            err_source_r36 = 2.*err_source_r36 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(obj.S11_meas_c12r36(:))).^2))./obj.Nf;
         end
 
         function optFlag = get.optFlag(obj)
@@ -185,7 +196,7 @@ classdef REACHcal
 
         % Optimization
         function [obj] = tempOpt(obj)
-            options = optimoptions('fmincon','display','iter');
+            options = optimoptions('fmincon','display','iter','MaxIterations',5);
 %             X0 = [obj.r36_vals,obj.c2_vals];
 %             LB = [obj.r36_min,obj.c2_min];
 %             UB = [obj.r36_max,obj.c2_max];
@@ -260,20 +271,36 @@ classdef REACHcal
     end
 
     methods (Access = private)
-        function [Z0,L,freq,eps_r,tan_delta,r_prime] = getCablePars(obj,cableName)
+%         function [Z0,L,freq,eps_r,tan_delta,r_prime] = getCablePars(obj,cableName)
+%             % GETCABLEPARS Calculates the frequency dependent Tline parameters
+% 
+%             switch cableName
+%                 case 'c2'
+%                     cVals = obj.c2_vals;
+%                     cUnit = obj.c2_unitScales;
+%                 case 'c10'
+%                     cVals = obj.c10_vals;
+%                     cUnit = obj.c10_unitScales;
+%                 otherwise
+%                     error('Unknown cable name')
+%             end
+%             cVals = cVals.*cUnit;
+% 
+%             Z0 = cVals(1);
+%             L = cVals(2);
+%             freq = obj.freqHz;
+%             
+%             fn = (freq - min(freq))./(max(freq) - min(freq));
+%             eps_r = cVals(3).*fn + cVals(4);
+%             tan_delta = cVals(5).*fn + cVals(6);
+%             r_prime = cVals(7).*fn + cVals(8);
+%         end
+
+        function [Z0,L,freq,eps_r,tan_delta,r_prime] = getCablePars(obj,c_vals,c_unitScales)
             % GETCABLEPARS Calculates the frequency dependent Tline parameters
 
-            switch cableName
-                case 'c2'
-                    cVals = obj.c2_vals;
-                    cUnit = obj.c2_unitScales;
-                case 'c10'
-                    cVals = obj.c10_vals;
-                    cUnit = obj.c10_unitScales;
-                otherwise
-                    error('Unknown cable name')
-            end
-            cVals = cVals.*cUnit;
+           
+            cVals = c_vals.*c_unitScales;
 
             Z0 = cVals(1);
             L = cVals(2);
@@ -285,17 +312,30 @@ classdef REACHcal
             r_prime = cVals(7).*fn + cVals(8);
         end
 
-        function cable = buildCableStruct(obj,cableName)
+%         function cable = buildCableStruct(obj,cableName)
+%             % BUILDCABLESTRUCT builds a general cable structure
+% 
+%             [Z0,L,f,eps_r,tan_delta,r_prime] = obj.getCablePars(cableName);
+%             cable.network = TwoPort.Tline(Z0,L,f,eps_r,tan_delta,r_prime);
+%             cable.network = cable.network.freqChangeUnit(obj.freqUnit);
+%             cable.vals = obj.([cableName,'_vals']);
+%             cable.unitScales = obj.([cableName,'_unitScales']);
+%             cable.max = obj.([cableName,'_max']);
+%             cable.min = obj.([cableName,'_min']);
+%             cable.optFlag = obj.([cableName,'_optFlag']);
+%         end
+
+        function cable = buildCableStruct(obj,c_vals,c_unitScales,c_max,c_min,c_optFlag)
             % BUILDCABLESTRUCT builds a general cable structure
 
-            [Z0,L,f,eps_r,tan_delta,r_prime] = obj.getCablePars(cableName);
+            [Z0,L,f,eps_r,tan_delta,r_prime] = obj.getCablePars(c_vals,c_unitScales);
             cable.network = TwoPort.Tline(Z0,L,f,eps_r,tan_delta,r_prime);
             cable.network = cable.network.freqChangeUnit(obj.freqUnit);
-            cable.vals = obj.([cableName,'_vals']);
-            cable.unitScales = obj.([cableName,'_unitScales']);
-            cable.max = obj.([cableName,'_max']);
-            cable.min = obj.([cableName,'_min']);
-            cable.optFlag = obj.([cableName,'_optFlag']);
+            cable.vals = c_vals;
+            cable.unitScales = c_unitScales;
+            cable.max = c_max;
+            cable.min = c_min;
+            cable.optFlag = c_optFlag;
         end
 
 %         function r = buildRstruct(obj,rName)
@@ -324,27 +364,53 @@ classdef REACHcal
             r.network = r.network.freqChangeUnit(obj.freqUnit);    
         end
 
-        function sr = buildSRstruct(obj,srName)
+%         function sr = buildSRstruct(obj,srName)
+%             % BUILDSRSTRUCT builds a general semi-rigid structure
+% 
+%             sr.vals = obj.([srName,'_vals']);
+%             sr.unitScales = obj.([srName,'_unitScales']);
+%             sr.max = obj.([srName,'_max']);
+%             sr.min = obj.([srName,'_min']);
+%             sr.optFlag = obj.([srName,'_optFlag']);
+%             parVals = sr.vals.*sr.unitScales;
+%             sr.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4));
+%             sr.network = sr.network.freqChangeUnit(obj.freqUnit);
+%         end
+
+        function sr = buildSRstruct(obj,sr_vals,sr_unitScales,sr_max,sr_min,sr_optFlag)
             % BUILDSRSTRUCT builds a general semi-rigid structure
 
-            sr.vals = obj.([srName,'_vals']);
-            sr.unitScales = obj.([srName,'_unitScales']);
-            sr.max = obj.([srName,'_max']);
-            sr.min = obj.([srName,'_min']);
-            sr.optFlag = obj.([srName,'_optFlag']);
+            sr.vals = sr_vals;
+            sr.unitScales = sr_unitScales;
+            sr.max = sr_max;
+            sr.min = sr_min;
+            sr.optFlag = sr_optFlag;
             parVals = sr.vals.*sr.unitScales;
             sr.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4));
             sr.network = sr.network.freqChangeUnit(obj.freqUnit);
         end
 
-        function ms = buildMSstruct(obj,msName)
+%         function ms = buildMSstruct(obj,msName)
+%             % BUILDMSSTRUCT builds a general mechanical switch structure
+% 
+%             ms.vals = obj.([msName,'_vals']);
+%             ms.unitScales = obj.([msName,'_unitScales']);
+%             ms.max = obj.([msName,'_max']);
+%             ms.min = obj.([msName,'_min']);
+%             ms.optFlag = obj.([msName,'_optFlag']);
+%             parVals = ms.vals.*ms.unitScales;
+%             ms.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3));
+%             ms.network = ms.network.freqChangeUnit(obj.freqUnit);
+%         end
+
+        function ms = buildMSstruct(obj,ms_vals,ms_unitScales,ms_max,ms_min,ms_optFlag)
             % BUILDMSSTRUCT builds a general mechanical switch structure
 
-            ms.vals = obj.([msName,'_vals']);
-            ms.unitScales = obj.([msName,'_unitScales']);
-            ms.max = obj.([msName,'_max']);
-            ms.min = obj.([msName,'_min']);
-            ms.optFlag = obj.([msName,'_optFlag']);
+            ms.vals = ms_vals;
+            ms.unitScales = ms_unitScales;
+            ms.max = ms_max;
+            ms.min = ms_min;
+            ms.optFlag = ms_optFlag;
             parVals = ms.vals.*ms.unitScales;
             ms.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3));
             ms.network = ms.network.freqChangeUnit(obj.freqUnit);
