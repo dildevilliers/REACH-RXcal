@@ -112,7 +112,8 @@ classdef REACHcal
         end
 
         function r36 = get.r36(obj)
-            r36 = obj.buildRstruct('r36');
+%             r36 = obj.buildRstruct('r36');
+            r36 = obj.buildRstruct(obj.r36_vals,obj.r36_unitScales,obj.r36_max,obj.r36_min,obj.r36_optFlag,obj.r36_types);
         end
 
         function c2 = get.c2(obj)
@@ -297,15 +298,28 @@ classdef REACHcal
             cable.optFlag = obj.([cableName,'_optFlag']);
         end
 
-        function r = buildRstruct(obj,rName)
+%         function r = buildRstruct(obj,rName)
+%             % BUILDRSTRUCT builds a general resistor structure
+%            
+%             r.vals = obj.([rName,'_vals']);
+%             r.unitScales = obj.([rName,'_unitScales']);
+%             r.max = obj.([rName,'_max']);
+%             r.min = obj.([rName,'_min']);
+%             r.optFlag = obj.([rName,'_optFlag']);
+%             r.types = obj.([rName,'_types']);
+%             r.network = REACHcal.buildResistor(r.types,r.vals,r.unitScales,obj.freqHz);
+%             r.network = r.network.freqChangeUnit(obj.freqUnit);    
+%         end
+
+        function r = buildRstruct(obj,r_vals,r_unitScales,r_max,r_min,r_optFlag,r_types)
             % BUILDRSTRUCT builds a general resistor structure
            
-            r.vals = obj.([rName,'_vals']);
-            r.unitScales = obj.([rName,'_unitScales']);
-            r.max = obj.([rName,'_max']);
-            r.min = obj.([rName,'_min']);
-            r.optFlag = obj.([rName,'_optFlag']);
-            r.types = obj.([rName,'_types']);
+            r.vals = r_vals;
+            r.unitScales = r_unitScales;
+            r.max = r_max;
+            r.min = r_min;
+            r.optFlag = r_optFlag;
+            r.types = r_types;
             r.network = REACHcal.buildResistor(r.types,r.vals,r.unitScales,obj.freqHz);
             r.network = r.network.freqChangeUnit(obj.freqUnit);    
         end
