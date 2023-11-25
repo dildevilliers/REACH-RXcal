@@ -16,6 +16,10 @@ classdef TwoPort
         Zport2(1,:) = 50  % Port 2 impedances
     end
 
+    properties (SetAccess = private, Hidden = true)
+        
+    end
+
     properties (Dependent = true)
         Nf   % Number of frequencies
         
@@ -287,13 +291,18 @@ classdef TwoPort
 
         end
         
-        function obj = Cpar(C,f)
-            % function obj = Cpar(L,f)
+        function obj = Cpar(C,f,Zport1,Zport2)
+            % function obj = Cpar(L,f,Zport1,Zport2)
             % Shunt capacitance TwoPort object.
             %
             % Inputs:
             % C - Capacitence in F (can, in general, be function of frequency)
             % f - frequency in Hz
+            % Zport1 - Port 1 impedance (can generally be function of frequency)
+            % Zport2 - Port 2 impedance (can generally be function of frequency)
+
+            if nargin < 3 || isempty(Zport1), Zport1 = 50; end
+            if nargin < 4 || isempty(Zport2), Zport2 = 50; end
 
             f = f(:).';
             Nf = length(f);
@@ -302,16 +311,21 @@ classdef TwoPort
             T(1,2,:) = zeros(Nf,1);
             T(2,1,:) = 1i.*wC;
             T(2,2,:) = T(1,1,:);
-            obj = TwoPort(T,1e-9.*f,'ABCD');
+            obj = TwoPort(T,1e-9.*f,'ABCD',Zport1,Zport2);
         end
 
-        function obj = Lser(L,f)
-            % function obj = Lser(L,f)
+        function obj = Lser(L,f,Zport1,Zport2)
+            % function obj = Lser(L,f,Zport1,Zport2)
             % Series inductance TwoPort object
             %
             % Inputs:
             % L - Inductance in H (can, in general, be function of frequency)
             % f - frequency in Hz
+            % Zport1 - Port 1 impedance (can generally be function of frequency)
+            % Zport2 - Port 2 impedance (can generally be function of frequency)
+
+            if nargin < 3 || isempty(Zport1), Zport1 = 50; end
+            if nargin < 4 || isempty(Zport2), Zport2 = 50; end
 
             f = f(:).';
             Nf = length(f);
@@ -320,11 +334,41 @@ classdef TwoPort
             T(1,2,:) = 1i.*wL;
             T(2,1,:) = zeros(Nf,1);
             T(2,2,:) = T(1,1,:);
-            obj = TwoPort(T,1e-9.*f,'ABCD');
+            obj = TwoPort(T,1e-9.*f,'ABCD',Zport1,Zport2);
         end
 
-        function obj = Tline(Z0,L,f,eps_r,tan_delta,R_prime)
-            % function obj = Tline(Z0,L,f,eps_r,tan_delta,R_prime)
+        function obj = PI_CLC(C1,L,C2,f,Zport1,Zport2)
+            % function obj = PI_CLC(C1,L,C2,f,Zport1,Zport2)
+            % PI network with C1-L-C2 order TwoPort object
+            %
+            % Inputs:
+            % C1 - port 1 side capacitance in F (can, in general, be function of frequency)
+            % L - Inductance in H (can, in general, be function of frequency)
+            % C1 - port 2 side capacitance in F (can, in general, be function of frequency)
+            % f - frequency in Hz
+            % Zport1 - Port 1 impedance (can generally be function of frequency)
+            % Zport2 - Port 2 impedance (can generally be function of frequency)
+
+            if nargin < 5 || isempty(Zport1), Zport1 = 50; end
+            if nargin < 6 || isempty(Zport2), Zport2 = 50; end
+
+            f = f(:).';
+            Nf = length(f);
+            wC1 = 2.*pi.*f.*C1;
+            wL = 2.*pi.*f.*L;
+            wC2 = 2.*pi.*f.*C2;
+            Y1 = 1i.*wC1;
+            Y2 = 1i.*wC2;
+            Y3 = -1i./wL;
+            T(1,1,:) = ones(1,Nf) + Y2./Y3;
+            T(1,2,:) = 1./Y3;
+            T(2,1,:) = Y1 + Y2 + Y1.*Y2./Y3;
+            T(2,2,:) = 1 + Y1./Y3;
+            obj = TwoPort(T,1e-9.*f,'ABCD',Zport1,Zport2);
+        end
+
+        function obj = Tline(Z0,L,f,eps_r,tan_delta,R_prime,Zport1,Zport2)
+            % function obj = Tline(Z0,L,f,eps_r,tan_delta,R_prime,Zport1,Zport2)
             % Transmission line TwoPort object
             %
             % Inputs:
@@ -334,6 +378,8 @@ classdef TwoPort
             % eps_r - relative permittivity (can, in general, be function of frequency) [1]
             % tan_delta - loss tangent (can, in general, be function of frequency) [0]
             % R_prime - resistance per unit length in Ohm/m (can, in general, be function of frequency) [0]
+            % Zport1 - Port 1 impedance (can generally be function of frequency)
+            % Zport2 - Port 2 impedance (can generally be function of frequency)
 
             f = f(:).';
             Nf = length(f);
@@ -341,6 +387,8 @@ classdef TwoPort
             if nargin < 4 || isempty(eps_r), eps_r = 1; end
             if nargin < 5 || isempty(tan_delta), tan_delta = 0; end
             if nargin < 6 || isempty(R_prime), R_prime = 0; end
+            if nargin < 7 || isempty(Zport1), Zport1 = 50; end
+            if nargin < 8 || isempty(Zport2), Zport2 = 50; end
 
             eps_r = eps_r(:).';
             tan_delta = tan_delta(:).';
@@ -363,7 +411,7 @@ classdef TwoPort
             T(1,2,:) = Z0.*sinh(gL);
             T(2,1,:) = 1./Z0.*sinh(gL);
             T(2,2,:) = T(1,1,:);
-            obj = TwoPort(T,1e-9.*f(:).','ABCD');
+            obj = TwoPort(T,1e-9.*f(:).','ABCD',Zport1,Zport2);
         end
 
     end
