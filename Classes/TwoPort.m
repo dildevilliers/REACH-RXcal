@@ -28,6 +28,7 @@ classdef TwoPort
     properties (Dependent = true, Hidden = true)
         nameMat
         fScale              % Scaling factor from fUnit to Hz
+        freqHz
         d11
         d12
         d21
@@ -90,6 +91,10 @@ classdef TwoPort
             Nf = numel(obj.freq);
         end
 
+        function freqHz = get.freqHz(obj)
+            freqHz = obj.freq.*obj.fScale;
+        end
+
         function d11 = get.d11(obj)
             d11 = squeeze(obj.data(1,1,:));
         end
@@ -128,13 +133,28 @@ classdef TwoPort
             obj = transFun(obj);
         end
 
-        % Frequency scaling
+        % Frequency manipulation
         function obj = freqChangeUnit(obj,fUnit)
             % FREQCHANGEUNIT changes the frequency unit to fUnit
 
             freqHz = obj.freq.*obj.fScale;
             obj.fUnit = fUnit;
             obj.freq = freqHz./obj.fScale;
+        end
+
+        function obj = freqInterp(obj,freqInterp,interpMethod)
+            % FREQINTERP interpolates on the frequency axis
+            %
+            % Inputs:
+            % freqInterp - vector of frequencies where the data must be interpolated (in Hz)
+            % interpMethod - interpolation method (interp1 standards)
+
+            Di(1,1,:) = interp1(obj.freq.*obj.fScale,obj.d11,freqInterp,interpMethod);
+            Di(1,2,:) = interp1(obj.freq.*obj.fScale,obj.d12,freqInterp,interpMethod);
+            Di(2,1,:) = interp1(obj.freq.*obj.fScale,obj.d21,freqInterp,interpMethod);
+            Di(2,2,:) = interp1(obj.freq.*obj.fScale,obj.d22,freqInterp,interpMethod);
+            obj.freq = freqInterp./obj.fScale;
+            obj.data = Di;
         end
 
         % Transformations between types
@@ -270,6 +290,15 @@ classdef TwoPort
             ylabel([obj.nameMat{2,1}, '(dB)'])
         end
 
+        function plot21RI(obj,style)
+            % PLOT21RI plots the 21 parameter on the complex plane
+
+            if nargin < 2 || isempty(style), style = 'k'; end
+
+            plot(real(obj.d21),imag(obj.d21),style), grid on, hold on
+            xlabel(['real(',obj.nameMat{2,1}, ')'])
+            ylabel(['imag(',obj.nameMat{2,1}, ')'])
+        end
 
     end
 
@@ -278,17 +307,28 @@ classdef TwoPort
     end
 
     methods (Static = true)
-        function obj = readTouchStone(pathNameExt, NrPorts)
+        function obj = readTouchStone(pathNameExt, NrPorts, freqInterp)
             % READTOUCHSTONE reads a touchstone file
             % ToDo: lots of checks to handle any type besides S (will crash with noise data)
+            %
+            % Inputs:
+            % pathNameExt - path name and extension to file
+            % NrPort - number of ports, which is mostly left empty if it can be deduced from extension or header
+            % freqInterp - vector of frequencies where the data must be interpolated (in Hz) 
         
-            if nargin < 2
+            if nargin < 2 || isempty(NrPorts)
                 [S, freq] = touchread(pathNameExt);
             else
                 [S, freq] = touchread(pathNameExt,NrPorts);
             end
-            obj = TwoPort(S,freq./1e9,'S');
 
+            obj = TwoPort(S,freq./1e9,'S');
+            
+            if nargin > 2 && ~isempty(freqInterp)
+                obj = obj.freqInterp(freqInterp,'linear');
+            end
+
+            
         end
         
         function obj = Cpar(C,f,Zport1,Zport2)

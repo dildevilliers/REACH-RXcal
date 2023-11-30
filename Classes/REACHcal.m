@@ -6,80 +6,75 @@ classdef REACHcal
 
     properties (SetAccess = private)
         dataPath(1,:) char
+        dataPathMS3(1,:) char   % Path to the MS-3 2-port measured data
+        
 
         Nf(1,1) double = 101
         fmin(1,1) double = 50  % in MHz
         fmax(1,1) double = 200 % in MHz
 
         % Resistors
-%         r36_vals = [1.91,17.7,9.4,15.1,37.8];
-%         r36_types = {'Cpar','Lser','Cpar','Lser','Load'};
-%         r36_unitScales = [1e-12,1e-9,1e-12,1e-9,1];
-%         r36_max = [2,20,16,16,38];
-%         r36_min = [0,0,0,0,34];
-%         r36_optFlag = [1,1,1,1,1];
-
-        r36_vals = [1.6722 13.0374 0.7778 37.8561];
+        r36_vals = [4.6759 24.9711 7.2820 37.5758];
         r36_unitScales = [1e-12,1e-9,1e-12,1];
         r36_max = [20,40,20,38];
         r36_min = [0,0,0,34];
         r36_optFlag = [1,1,1,1];
 
-        r27_vals = [5.2696 28.0343 14.6029 28.6966];
+        r27_vals = [3.5919 23.8815 9.9348 28.5516];
         r27_unitScales = [1e-12,1e-9,1e-12,1];
         r27_max = [20,40,20,29];
         r27_min = [0,0,0,25];
         r27_optFlag = [1,1,1,1];
 
-        r69_vals = [8.4656 39.5327 4.1155 68.3281];
+        r69_vals = [7.6665 39.1113 4.7693 68.5770];
         r69_unitScales = [1e-12,1e-9,1e-12,1];
         r69_max = [20,60,20,72];
         r69_min = [0,0,0,66];
         r69_optFlag = [1,1,1,1];
 
-        r91_vals = [9.9574 59.8521 3.5705 89.1239];
+        r91_vals = [8.8027 55.4075 3.9754 89.6991];
         r91_unitScales = [1e-12,1e-9,1e-12,1];
         r91_max = [20,80,20,95];
         r91_min = [0,0,0,86];
         r91_optFlag = [1,1,1,1];
 
         % Cables
-        c2_vals = [49.0389 2.0596 -0.0593 2.0502 0.0281 8.0281e-04 -0.0626 1.0014];
+        c2_vals = [49.5165 1.9473 -0.0187 1.4388 0.0226 0.0018 0.0229 0.0423];
         c2_unitScales = [1,1,1,1,1,1,1,1];
-        c2_max = [52,2.1,0.1,2.1,0.1,0.01,0.1,2];
-        c2_min = [48,1.9,-0.1,1.9,-0.1,0,-0.1,0];
+        c2_max = [52,2.1,0.1,1.5,0.1,0.01,0.1,2];
+        c2_min = [48,1.9,-0.1,1.4,-0.1,0,-0.1,0];
         c2_optFlag = [1,1,1,1,1,1,1,1].*0;
 
         % Mechanical switches
-        ms1_vals = [51.9400 40.9106 1.6574];
-        ms1_unitScales = [1,1e-3,1];
-        ms1_max = [52,50,2.1];
-        ms1_min = [48,10,1];
-        ms1_optFlag = [1,1,1].*0;
+        ms1_vals = [48.0006 38.8854 1.7304 0 0];
+        ms1_unitScales = [1,1e-3,1,1,1];
+        ms1_max = [52,50,2.1,0.0005,2];
+        ms1_min = [48,5,1,0,0];
+        ms1_optFlag = [1,1,1,1,1].*0;
 
-        ms3_vals = [51.9954 26.0808 1.4634];
-        ms3_unitScales = [1,1e-3,1];
-        ms3_max = [52,50,2.1];
-        ms3_min = [48,10,1];
-        ms3_optFlag = [1,1,1].*0;
+        ms3_vals = [49.7381 32.0274 1.7637 0.0092 8.1946];
+        ms3_unitScales = [1,1e-3,1,1,1];
+        ms3_max = [52,35,2.1,0.01,10];
+        ms3_min = [48,30,1.5,0,0];
+        ms3_optFlag = [1,1,1,1,1].*1;
 
-        mts_vals = [48.7189 49.9950 2.0582];
-        mts_unitScales = [1,1e-3,1];
-        mts_max = [52,50,2.1];
-        mts_min = [48,10,1];
-        mts_optFlag = [1,1,1].*0;
+        mts_vals = [51.6461 39.2243 1.5635 0 0];
+        mts_unitScales = [1,1e-3,1,1,1];
+        mts_max = [52,50,2.1,0.0005,2];
+        mts_min = [48,5,1,0,0];
+        mts_optFlag = [1,1,1,1,1].*0;
 
         % Semi-ridged links
-        sr_mtsj2_vals = [50.7990 49.7718 2.0962 2.8649e-04 1];
+        sr_mtsj2_vals = [49.6240 126.6710 2.0521 2.4878e-04 0.4268];
         sr_mtsj2_unitScales = [1,1e-3,1,1,1];
-        sr_mtsj2_max = [52,50,2.1,0.0005,2];
-        sr_mtsj2_min = [48,10,1.9,0,0];
+        sr_mtsj2_max = [52,140,2.1,0.0005,2];
+        sr_mtsj2_min = [48,110,2.0,0,0];
         sr_mtsj2_optFlag = [1,1,1,1,1].*0;
 
-        sr_mtsj1_vals = [48.8573 49.9921 2.0956 3.8071e-04 1];
+        sr_mtsj1_vals = [49.4363 126.7525 2.0501 2.4880e-04 0.4887];
         sr_mtsj1_unitScales = [1,1e-3,1,1,1];
-        sr_mtsj1_max = [52,50,2.1,0.0005,2];
-        sr_mtsj1_min = [48,10,1.9,0,0];
+        sr_mtsj1_max = [52,140,2.1,0.0005,2];
+        sr_mtsj1_min = [48,110,2.0,0,0];
         sr_mtsj1_optFlag = [1,1,1,1,1].*0;
 
         % Measured Data
@@ -91,6 +86,11 @@ classdef REACHcal
         S11_meas_c12rShort
         S11_meas_c12r10
         S11_meas_c12r250
+
+        S_meas_MS3_J1
+        S_meas_MS3_J2
+        S_meas_MS3_J3
+        S_meas_MS3_J4
 
     end
 
@@ -140,6 +140,9 @@ classdef REACHcal
         err_source_r10
         err_source_r250
 
+        % Lower level error functions
+        err_ms3
+
 
     end
 
@@ -155,18 +158,35 @@ classdef REACHcal
         function obj = REACHcal(dataPath)
             % REACHcal constructor function
 
+            p = mfilename("fullpath");
             if nargin < 1 || isempty(dataPath)
-                p = mfilename("fullpath");
                 obj.dataPath = [fileparts(p),'\..\data\calibration\'];
             else
                 obj.dataPath = dataPath;
             end
+            % MS3 dataPath
+            obj.dataPathMS3 = [fileparts(p),'\..\data\MS-3\'];
 
             % Read the data
             obj.S11_meas_c12r36 = obj.readSourceS11('c12r36');
             obj.S11_meas_c12r27 = obj.readSourceS11('c12r27');
             obj.S11_meas_c12r69 = obj.readSourceS11('c12r69');
             obj.S11_meas_c12r91 = obj.readSourceS11('c12r91');
+
+            % Read the MS3 data - only for the active through paths
+            obj.S_meas_MS3_J1 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J1\J1_ON.s2p'],2,obj.freqHz);
+            obj.S_meas_MS3_J2 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J2\J2_ON.s2p'],2,obj.freqHz);
+            obj.S_meas_MS3_J3 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J3\J3_ON.s2p'],2,obj.freqHz);
+            obj.S_meas_MS3_J4 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J4\J4_ON.s2p'],2,obj.freqHz);
+%             obj.S_meas_MS3_J1 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J1\J1_ON.s2p']);
+%             obj.S_meas_MS3_J2 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J2\J2_ON.s2p']);
+%             obj.S_meas_MS3_J3 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J3\J3_ON.s2p']);
+%             obj.S_meas_MS3_J4 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J4\J4_ON.s2p']);
+            obj.S_meas_MS3_J1 = obj.S_meas_MS3_J1.freqChangeUnit(obj.freqUnit);
+            obj.S_meas_MS3_J2 = obj.S_meas_MS3_J2.freqChangeUnit(obj.freqUnit);
+            obj.S_meas_MS3_J3 = obj.S_meas_MS3_J3.freqChangeUnit(obj.freqUnit);
+            obj.S_meas_MS3_J4 = obj.S_meas_MS3_J4.freqChangeUnit(obj.freqUnit);
+
 
         end
 
@@ -259,6 +279,15 @@ classdef REACHcal
             err_source_r91 = 2.*err_source_r91 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(obj.S11_meas_c12r91(:))).^2))./obj.Nf;
         end
 
+        function err_ms3 = get.err_ms3(obj)
+%             obj.Nf = length(obj.S_meas_MS3_J1.freq);
+%             obj.fmin = min(obj.S_meas_MS3_J1.freqHz)./1e6;
+%             obj.fmax = max(obj.S_meas_MS3_J1.freqHz)./1e6;
+            meas21 = obj.S_meas_MS3_J1.d21;
+            mod21 = obj.ms3.network.getS.d21;
+            err_ms3 = sqrt(sum(abs(meas21 - mod21).^2))./obj.Nf;
+        end
+
         function optFlag = get.optFlag(obj)
 %             optFlag = obj.Sr36.optFlag;
 %             optFlag = obj.Sr27.optFlag;
@@ -343,12 +372,28 @@ classdef REACHcal
 %             err = obj.err_source_r91;
         end
 
+        function obj = fitMS3(obj)
+            % FITMS3 is a componennt-level function to fit the MS3 model
+
+            X0 = obj.ms3_vals;
+            LB = obj.ms3_min;
+            UB = obj.ms3_max;
+            options = optimoptions('fmincon','display','iter','MaxIterations',1000);
+            optVals = fmincon(@(x) errFuncMS3(obj,x),X0,[],[],[],[],LB,UB,[],options);
+            [~,obj] = errFuncMS3(obj,optVals);
+
+            function [err, obj] = errFuncMS3(obj,x)
+                obj.ms3_vals = x;
+                err = obj.err_ms3;
+            end
+        end
+
 
         % Plotting
-        function plotCablePars(obj,cVals)
+        function plotCablePars(obj,cVals,cUnitScales)
             % PLOTCABLEPARS Plots the requested cable parameters over frequency
 
-            [Z0,L,~,eps_r,tan_delta,r_prime] = getCablePars(obj,cVals);
+            [Z0,L,~,eps_r,tan_delta,r_prime] = getCablePars(obj,cVals,cUnitScales);
 
             figure
             subplot 411
@@ -463,7 +508,7 @@ classdef REACHcal
             ms.min = ms_min;
             ms.optFlag = ms_optFlag;
             parVals = ms.vals.*ms.unitScales;
-            ms.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3));
+            ms.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4),parVals(5));
             ms.network = ms.network.freqChangeUnit(obj.freqUnit);
         end
 
