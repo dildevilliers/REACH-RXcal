@@ -150,8 +150,11 @@ classdef REACHcal
         sourceNames = {'cold','hot','r25','r100','c12r27','c12r36','c12r69','c12r91','c25open','c25short','c25r10','c25r250'}
         freqUnit = 'MHz'
 
-        rVarNames = {'C1','L1','C2','L2','R'};
+        rVarNames = {'C1','L1','C2','R'};
         cVarNames = {'Z0','L','eps_r_slope','eps_r_const','tan_d_slope','tan_d_const','r_prime_slope','r_prime_const'};
+        cShortVarNames = {'Z0','L','epr_r','tan_d','r_prime'};
+
+        optVectElements = {'r36','r27','r69','r91','ms1','ms3','mts','sr_mtsj1','sr_mtsj2','c2'};
     end
 
     methods
