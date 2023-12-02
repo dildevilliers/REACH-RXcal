@@ -446,6 +446,10 @@ classdef REACHcal
     end
 
     methods (Access = private)
+
+        function obj = unpackOptVect(obj)
+
+        end
        
         function [Z0,L,freq,eps_r,tan_delta,r_prime] = getCablePars(obj,c_vals,c_unitScales)
             % GETCABLEPARS Calculates the frequency dependent Tline parameters
