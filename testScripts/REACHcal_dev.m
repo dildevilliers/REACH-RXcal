@@ -61,11 +61,17 @@ R.ms3.network.getS.plot21RI('c')
 
 %% Run optimization test
 tic
-R1 = R.tempOpt;
+R1 = R.fitParams;
 toc
 R1.plotSourceModels
 
-% % subplot 221, R1.Sr36.network.getS.plot11dB('b--')
+
+% tic
+% R1 = R.tempOpt;
+% toc
+% R1.plotSourceModels
+% 
+% % % subplot 221, R1.Sr36.network.getS.plot11dB('b--')
 % % subplot 223, R1.Sr36.network.getS.plot11real('b--')
 % % subplot 224, R1.Sr36.network.getS.plot11imag('b--')
 % 

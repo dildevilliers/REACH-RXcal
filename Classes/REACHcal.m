@@ -92,6 +92,16 @@ classdef REACHcal
         S_meas_MS3_J3
         S_meas_MS3_J4
 
+        
+
+    end
+
+    properties (SetAccess = private, Hidden = true)
+        % Optimization book-keeping
+        optVect_Nvars(1,:) double {mustBeInteger,mustBeNonnegative}
+        optVect_Ne(1,1) double {mustBeInteger,mustBePositive} = 10
+        optW_RIA(1,2) double {mustBeNonnegative} = [2 1]   % Weights of the real-imag and dB20 differences in the error functions
+        optW(1,:) double {mustBeNonnegative} = [1 1 1 1]
     end
 
     properties (Dependent = true)
@@ -127,10 +137,7 @@ classdef REACHcal
     properties (Dependent = true, Hidden = true)
         freqHz
 
-        optFlag
-        X0full
-        LBfull
-        UBfull
+        optStruct
         err_source_r36
         err_source_r27
         err_source_r69
@@ -155,6 +162,7 @@ classdef REACHcal
         cShortVarNames = {'Z0','L','epr_r','tan_d','r_prime'};
 
         optVectElements = {'r36','r27','r69','r91','ms1','ms3','mts','sr_mtsj1','sr_mtsj2','c2'};
+        optErrElements = {'r36','r27','r69','r91'};
     end
 
     methods
@@ -191,6 +199,17 @@ classdef REACHcal
             obj.S_meas_MS3_J4 = obj.S_meas_MS3_J4.freqChangeUnit(obj.freqUnit);
 
 
+
+            % Set up optimization preliminaries
+            obj.optVect_Ne = length(obj.optVectElements);
+            % First get the number of variables in the full vector
+            obj.optVect_Nvars = zeros(1,obj.optVect_Ne);
+            for ii = 1:obj.optVect_Ne
+                obj.optVect_Nvars(ii) = length(obj.(obj.optVectElements{ii}).vals);
+            end 
+            
+%             % Testing
+%             obj = obj.unpackOptVect;
         end
 
         % Dependent getters
@@ -259,27 +278,19 @@ classdef REACHcal
         end
 
         function err_source_r36 = get.err_source_r36(obj)
-            S11_model = obj.Sr36.network.getS.d11;
-            err_source_r36 = sqrt(sum(abs(S11_model(:) - obj.S11_meas_c12r36(:)).^2))./obj.Nf;
-            err_source_r36 = 2.*err_source_r36 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(obj.S11_meas_c12r36(:))).^2))./obj.Nf;
+            err_source_r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sr36.network.getS.d11);
         end
 
         function err_source_r27 = get.err_source_r27(obj)
-            S11_model = obj.Sr27.network.getS.d11;
-            err_source_r27 = sqrt(sum(abs(S11_model(:) - obj.S11_meas_c12r27(:)).^2))./obj.Nf;
-            err_source_r27 = 2.*err_source_r27 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(obj.S11_meas_c12r27(:))).^2))./obj.Nf;
+            err_source_r27 = obj.errRIA(obj.S11_meas_c12r27,obj.Sr27.network.getS.d11);
         end
 
         function err_source_r69 = get.err_source_r69(obj)
-            S11_model = obj.Sr69.network.getS.d11;
-            err_source_r69 = sqrt(sum(abs(S11_model(:) - obj.S11_meas_c12r69(:)).^2))./obj.Nf;
-            err_source_r69 = 2.*err_source_r69 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(obj.S11_meas_c12r69(:))).^2))./obj.Nf;
+            err_source_r69 = obj.errRIA(obj.S11_meas_c12r69,obj.Sr69.network.getS.d11);
         end
 
         function err_source_r91 = get.err_source_r91(obj)
-            S11_model = obj.Sr91.network.getS.d11;
-            err_source_r91 = sqrt(sum(abs(S11_model(:) - obj.S11_meas_c12r91(:)).^2))./obj.Nf;
-            err_source_r91 = 2.*err_source_r91 + sqrt(sum(abs(dB20(S11_model(:)) - dB20(obj.S11_meas_c12r91(:))).^2))./obj.Nf;
+            err_source_r91 = obj.errRIA(obj.S11_meas_c12r91,obj.Sr91.network.getS.d11);
         end
 
         function err_ms3 = get.err_ms3(obj)
@@ -291,32 +302,19 @@ classdef REACHcal
             err_ms3 = sqrt(sum(abs(meas21 - mod21).^2))./obj.Nf;
         end
 
-        function optFlag = get.optFlag(obj)
-%             optFlag = obj.Sr36.optFlag;
-%             optFlag = obj.Sr27.optFlag;
-            optFlag = obj.Sr69.optFlag;
-%             optFlag = obj.Sr91.optFlag;
-        end
-
-        function X0full = get.X0full(obj)
-%             X0full = obj.Sr36.vals;
-%             X0full = obj.Sr27.vals;
-            X0full = obj.Sr69.vals;
-%             X0full = obj.Sr91.vals;
-        end
-
-        function LBfull = get.LBfull(obj)
-%             LBfull = obj.Sr36.min;
-%             LBfull = obj.Sr27.min;
-            LBfull = obj.Sr69.min;
-%             LBfull = obj.Sr91.min;
-        end
-
-        function UBfull = get.UBfull(obj)
-%             UBfull = obj.Sr36.max;
-%             UBfull = obj.Sr27.max;
-            UBfull = obj.Sr69.max;
-%             UBfull = obj.Sr91.max;
+        function optStruct = get.optStruct(obj)
+            valMat = zeros(4,sum(obj.optVect_Nvars));
+            for ii = 1:obj.optVect_Ne
+                element_ = obj.(obj.optVectElements{ii});
+                valMat(:,(sum(obj.optVect_Nvars(1:(ii-1)))+1):sum(obj.optVect_Nvars(1:ii))) = [element_.vals; ...
+                    element_.max; ...
+                    element_.min; ...
+                    element_.optFlag];
+            end
+            optStruct.vals = valMat(1,:);
+            optStruct.max = valMat(2,:);
+            optStruct.min = valMat(3,:);
+            optStruct.optFlag = valMat(4,:);
         end
 
         % Measurement data
@@ -335,44 +333,54 @@ classdef REACHcal
             end
         end
 
-        % Optimization
-        function [obj] = tempOpt(obj)
-            %             X0 = [obj.r36_vals,obj.c2_vals];
-            %             LB = [obj.r36_min,obj.c2_min];
-            %             UB = [obj.r36_max,obj.c2_max];
-            X0 = obj.X0full(find(obj.optFlag == 1));
-            LB = obj.LBfull(find(obj.optFlag == 1));
-            UB = obj.UBfull(find(obj.optFlag == 1));
-            options = optimoptions('fmincon','display','iter','MaxIterations',1000);
-            optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
-%             options = optimoptions('ga','display','iter');
-%             optVals = ga(@(x) errFunc(obj,x),length(X0),[],[],[],[],LB,UB,[],options);
+        function obj = fitParams(obj,solver,options)
+            % FITPARAMS is the main fitting optimization function
 
-            %             obj.r36_vals = optVals(1:length(obj.r36_vals));
-            %             obj.c2_vals = optVals((length(obj.r36_vals)+1):end);
+            if nargin < 2 || isempty(solver), solver = 'fmincon'; end
+
+            idx = find(obj.optStruct.optFlag == 1);
+            X0 = obj.optStruct.vals(idx);
+            LB = obj.optStruct.min(idx);
+            UB = obj.optStruct.max(idx);
+
+            switch solver
+                case 'fmincon'
+                    if nargin < 3 || isempty(options), options = optimoptions('fmincon','display','iter','MaxIterations',1000); end
+                    optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
+                case 'ga'
+                    if nargin < 3 || isempty(options), options = optimoptions('ga','display','iter'); end
+                    optVals = ga(@(x) errFunc(obj,x),length(X0),[],[],[],[],LB,UB,[],options);
+                otherwise
+                    error(['Unknown solver: ',solver]);
+            end
+
             [~,obj] = obj.errFunc(optVals);
-
         end
 
         function [err,obj] = errFunc(obj,x)
-            X = obj.X0full;
-            X(obj.optFlag == 1) = x;
+            % ERRFUNC is the fitting optimization error function
 
-            
-%             Ne = length(obj.Sr36.elements);
-%             Ne = length(obj.Sr27.elements);
-            Ne = length(obj.Sr69.elements);
-%             Ne = length(obj.Sr91.elements);
-            for ii = 1:Ne
-%                 obj.([obj.Sr36.elements{ii},'_vals']) = X((sum(obj.Sr36.Nvars(1:(ii-1)))+1):sum(obj.Sr36.Nvars(1:ii)));
-%                 obj.([obj.Sr27.elements{ii},'_vals']) = X((sum(obj.Sr27.Nvars(1:(ii-1)))+1):sum(obj.Sr27.Nvars(1:ii)));
-                obj.([obj.Sr69.elements{ii},'_vals']) = X((sum(obj.Sr69.Nvars(1:(ii-1)))+1):sum(obj.Sr69.Nvars(1:ii)));
-%                 obj.([obj.Sr91.elements{ii},'_vals']) = X((sum(obj.Sr91.Nvars(1:(ii-1)))+1):sum(obj.Sr91.Nvars(1:ii)));
+            X = obj.optStruct.vals;
+            X(obj.optStruct.optFlag == 1) = x;
+
+            for ii = 1:obj.optVect_Ne
+                obj.([obj.optVectElements{ii},'_vals']) = X((sum(obj.optVect_Nvars(1:(ii-1)))+1):sum(obj.optVect_Nvars(1:ii)));
             end
-%             err = obj.err_source_r36;
-%             err = obj.err_source_r27;
-            err = obj.err_source_r69;
-%             err = obj.err_source_r91;
+
+            Ne = length(obj.optW);
+            eV = zeros(Ne,1);
+            for ii = 1:Ne
+                eV(ii) = obj.(['err_source_',obj.optErrElements{ii}]);
+            end
+            
+            w = obj.optW./norm(obj.optW,1);
+            err = w*eV;
+
+%             err = obj.err_source_r69;
+% %             err = obj.err_source_r36;
+% %             err = obj.err_source_r27;
+%             err = obj.err_source_r69;
+% %             err = obj.err_source_r91;
         end
 
         function obj = fitMS3(obj)
@@ -446,14 +454,17 @@ classdef REACHcal
     end
 
     methods (Access = private)
+        function err = errRIA(obj,S11meas,S11model)
+            % ERRRIA combines the real-imag and absolute parts of the difference error
 
-        function obj = unpackOptVect(obj)
-
+            w = obj.optW_RIA./norm(obj.optW_RIA,1);
+            err_ri = sqrt(sum(abs(S11meas(:) - S11model(:)).^2));
+            err_a = sqrt(sum(abs(dB20(S11meas(:)) - dB20(S11model(:))).^2));
+            err = w*[err_ri;err_a]./obj.Nf; 
         end
-       
+
         function [Z0,L,freq,eps_r,tan_delta,r_prime] = getCablePars(obj,c_vals,c_unitScales)
             % GETCABLEPARS Calculates the frequency dependent Tline parameters
-
 
             cVals = c_vals.*c_unitScales;
 
