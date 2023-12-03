@@ -4,6 +4,8 @@ clear all
 R = REACHcal;
 figure(1)
 R.plotSourceAllS11(3,{'r','k'})
+figure(2)
+R.plotAllParameters('k*')
 
 figure
 subplot(2,2,1)
@@ -61,25 +63,22 @@ R.ms3.network.getS.plot21RI('c')
 
 
 %% Run optimization test
-tic
-R = R.optimConfig('custom',{'r36','ms3','c2'},{'r36'});
-% R = R.optimConfig('ms3set');
-R1 = R.fitParams('fmincon');
+% tic
+% R = R.optimConfig('custom',{'r36','ms3','c2'},{'r36'});
+% % R = R.optimConfig('ms3set');
+% R1 = R.fitParams('fmincon');
+% % R1 = R.fitParams('ga');
+% toc
+% figure(1)
+% R1.plotSourceAllS11(1,{'b'})
+
+R36 = R.optimConfig('custom',{'r36','ms3','a_ms3','c2','a_ms2j7'},{'r36'});
+% R36 = R.optimConfig('r36');
+R36 = R36.fitParams('fmincon');
 % R1 = R.fitParams('ga');
 toc
 figure(1)
-R1.plotSourceAllS11(1,{'b'})
+R36.plotSourceAllS11(1,{'b'})
 
-
-% tic
-% R1 = R.tempOpt;
-% toc
-% R1.plotSourceModels
-% 
-% % % subplot 221, R1.Sr36.network.getS.plot11dB('b--')
-% % subplot 223, R1.Sr36.network.getS.plot11real('b--')
-% % subplot 224, R1.Sr36.network.getS.plot11imag('b--')
-% 
-% subplot 221, R1.Sr27.network.getS.plot11dB('b--')
-% subplot 223, R1.Sr27.network.getS.plot11real('b--')
-% subplot 224, R1.Sr27.network.getS.plot11imag('b--')
+figure(2)
+R36.plotAllParameters('r*')

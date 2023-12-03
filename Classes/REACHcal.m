@@ -114,6 +114,19 @@ classdef REACHcal
         sr_mtsj1_min = [48,110,2.0,0,0];
         sr_mtsj1_optFlag = [1,1,1,1,1];
 
+        % Adaptors
+        a_ms3_vals = [1.2110 0.0845 0.6999];
+        a_ms3_unitScales = [1e-12 1e-9 1e-12];
+        a_ms3_max = [3 1 2];
+        a_ms3_min = [0 0 0];
+        a_ms3_optFlag = [1 1 1];
+
+        a_ms2j7_vals = [1.2110 0.0845 0.6999];
+        a_ms2j7_unitScales = [1e-12 1e-9 1e-12];
+        a_ms2j7_max = [3 1 2];
+        a_ms2j7_min = [0 0 0];
+        a_ms2j7_optFlag = [1 1 1];
+
         % Measured Data
         S11_meas_c12r36
         S11_meas_c12r27
@@ -160,6 +173,8 @@ classdef REACHcal
         mts(1,1) struct
         sr_mtsj2(1,1) struct
         sr_mtsj1(1,1) struct
+        a_ms3(1,1) struct
+        a_ms2j7(1,1) struct
 
         Sr36(1,1) struct
         Sr27(1,1) struct
@@ -198,8 +213,9 @@ classdef REACHcal
         rVarNames = {'C1','L1','C2','R'};
         cVarNames = {'Z0','L','eps_r_slope','eps_r_const','tan_d_slope','tan_d_const','r_prime_slope','r_prime_const'};
         cShortVarNames = {'Z0','L','eps_r','tan_d','r_prime'};
+        adaptVarNames = {'C1','L1','C2'};
 
-        optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','c2','c10'};
+        optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','c2','c10','a_ms3','a_ms2j7'};
         optErrElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250'};
     end
 
@@ -325,8 +341,16 @@ classdef REACHcal
             sr_mtsj2 = obj.buildShortCablestruct(obj.sr_mtsj2_vals,obj.sr_mtsj2_unitScales,obj.sr_mtsj2_max,obj.sr_mtsj2_min,obj.sr_mtsj2_optFlag);
         end
 
+        function a_ms3 = get.a_ms3(obj)
+            a_ms3 = obj.buildAdaptStruct(obj.a_ms3_vals,obj.a_ms3_unitScales,obj.a_ms3_max,obj.a_ms3_min,obj.a_ms3_optFlag);
+        end
+
+        function a_ms2j7 = get.a_ms2j7(obj)
+            a_ms2j7 = obj.buildAdaptStruct(obj.a_ms2j7_vals,obj.a_ms2j7_unitScales,obj.a_ms2j7_max,obj.a_ms2j7_min,obj.a_ms2j7_optFlag);
+        end
+        
         function Sr36 = get.Sr36(obj)
-            Sr36 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r36'});
+            Sr36 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','a_ms2j7','c2','a_ms3','ms3','r36'});
         end
 
         function Sr27 = get.Sr27(obj)
@@ -442,7 +466,7 @@ classdef REACHcal
 
             switch lower(configName)
                 case {'r36'}
-                    optElements = {'r36','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = {'r36','ms3','a_ms3','c2','a_ms2j7','ms1','sr_mtsj2','mts','sr_mtsj1'};
                     errElements = {'r36'};
                 case {'r27'}
                     optElements = {'r27','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
@@ -661,6 +685,8 @@ classdef REACHcal
                         labels = obj.cShortVarNames;
                     case 'c'
                         labels = obj.cVarNames;
+                    case 'a'
+                        labels = obj.adaptVarNames;
                 end
 
                 for jj = 1:length(labels)
@@ -772,6 +798,20 @@ classdef REACHcal
             sc.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4),parVals(5));
             sc.network = sc.network.freqChangeUnit(obj.freqUnit);
         end
+
+        function a = buildAdaptStruct(obj,a_vals,a_unitScales,a_max,a_min,a_optFlag)
+            % BUILDADAPTSTRUCT builds an adaptor struct
+
+            a.vals = a_vals;
+            a.unitScales = a_unitScales;
+            a.max = a_max;
+            a.min = a_min;
+            a.optFlag = a_optFlag;
+            parVals = a.vals.*a.unitScales;
+            a.network = TwoPort.PI_CLC(parVals(1),parVals(2),parVals(3),obj.freqHz);
+            a.network = a.network.freqChangeUnit(obj.freqUnit);
+        end
+        
 
         function S_struct = buildSourceStruct(obj,elementNameVect)
             % BUILDSOURCESTRUCT builds a general source structure
