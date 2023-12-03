@@ -2,7 +2,8 @@ close all
 clear all
 
 R = REACHcal;
-R.plotSourceModels;
+figure(1)
+R.plotSourceAllS11(3,{'r','k'})
 
 figure
 subplot(2,2,1)
@@ -61,9 +62,13 @@ R.ms3.network.getS.plot21RI('c')
 
 %% Run optimization test
 tic
-R1 = R.fitParams;
+R = R.optimConfig('custom',{'r36','ms3','c2'},{'r36'});
+% R = R.optimConfig('ms3set');
+R1 = R.fitParams('fmincon');
+% R1 = R.fitParams('ga');
 toc
-R1.plotSourceModels
+figure(1)
+R1.plotSourceAllS11(1,{'b'})
 
 
 % tic

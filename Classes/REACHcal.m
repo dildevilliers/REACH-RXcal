@@ -9,83 +9,120 @@ classdef REACHcal
         dataPathMS3(1,:) char   % Path to the MS-3 2-port measured data
         
 
-        Nf(1,1) double = 101
+        Nf(1,1) double = 201
         fmin(1,1) double = 50  % in MHz
         fmax(1,1) double = 200 % in MHz
 
         % Resistors
-        r36_vals = [4.6759 24.9711 7.2820 37.5758];
+        r36_vals = [4.9021 24.8778 7.4953 36.8851];
         r36_unitScales = [1e-12,1e-9,1e-12,1];
         r36_max = [20,40,20,38];
         r36_min = [0,0,0,34];
         r36_optFlag = [1,1,1,1];
 
-        r27_vals = [3.5919 23.8815 9.9348 28.5516];
+        r27_vals = [3.9375 23.7124 10.1346 27.4922];
         r27_unitScales = [1e-12,1e-9,1e-12,1];
         r27_max = [20,40,20,29];
         r27_min = [0,0,0,25];
         r27_optFlag = [1,1,1,1];
 
-        r69_vals = [7.6665 39.1113 4.7693 68.5770];
+        r69_vals = [8.0502 38.9937 5.0036 69.7672];
         r69_unitScales = [1e-12,1e-9,1e-12,1];
         r69_max = [20,60,20,72];
         r69_min = [0,0,0,66];
         r69_optFlag = [1,1,1,1];
 
-        r91_vals = [8.8027 55.4075 3.9754 89.6991];
+        r91_vals = [9.3354 55.2766 3.9424 90.9550];
         r91_unitScales = [1e-12,1e-9,1e-12,1];
         r91_max = [20,80,20,95];
         r91_min = [0,0,0,86];
         r91_optFlag = [1,1,1,1];
 
+        rOpen_vals = [0.0019 82.4339 5.9742 13.3562];
+        rOpen_unitScales = [1e-12,1e-9,1e-12,1e6];
+        rOpen_max = [20,150,20,1000];
+        rOpen_min = [0,0,0,5];
+        rOpen_optFlag = [1,1,1,1];
+
+        rShort_vals = [30.1277 16.4172 6.6485 2.5985e-06];
+        rShort_unitScales = [1e-12,1e-9,1e-12,1];
+        rShort_max = [50,80,20,2];
+        rShort_min = [0,0,0,0];
+        rShort_optFlag = [1,1,1,1];
+
+        r10_vals = [8.3657 46.7493 9.8084 9.9575];
+        r10_unitScales = [1e-12,1e-9,1e-12,1];
+        r10_max = [20,80,20,11];
+        r10_min = [0,0,0,9];
+        r10_optFlag = [1,1,1,1];
+
+        r250_vals = [11.9117 77.1549 0.1963 263.6909];
+        r250_unitScales = [1e-12,1e-9,1e-12,1];
+        r250_max = [20,80,20,270];
+        r250_min = [0,0,0,240];
+        r250_optFlag = [1,1,1,1];
+
+
         % Cables
-        c2_vals = [49.5165 1.9473 -0.0187 1.4388 0.0226 0.0018 0.0229 0.0423];
+        c2_vals = [49.4592 1.9490 -0.0307 1.4387 0.0170 0.0052 -1.0603e-04 0.7298];
         c2_unitScales = [1,1,1,1,1,1,1,1];
         c2_max = [52,2.1,0.1,1.5,0.1,0.01,0.1,2];
         c2_min = [48,1.9,-0.1,1.4,-0.1,0,-0.1,0];
         c2_optFlag = [1,1,1,1,1,1,1,1].*0;
 
-        % Mechanical switches
-        ms1_vals = [48.0006 38.8854 1.7304 0 0];
-        ms1_unitScales = [1,1e-3,1,1,1];
-        ms1_max = [52,50,2.1,0.0005,2];
-        ms1_min = [48,5,1,0,0];
-        ms1_optFlag = [1,1,1,1,1].*0;
+        c10_vals = [50.1403 9.9632 -0.0540 1.4231 0.0031 0.0047 1.4934e-04 0.7853];
+        c10_unitScales = [1,1,1,1,1,1,1,1];
+        c10_max = [52,10.1,0.1,1.5,0.1,0.01,0.1,2];
+        c10_min = [48,9.9,-0.1,1.4,-0.1,0,-0.1,0];
+        c10_optFlag = [1,1,1,1,1,1,1,1];
 
-        ms3_vals = [49.7381 32.0274 1.7637 0.0092 8.1946];
+        % Mechanical switches
+        ms1_vals = [48.9111 38.6761 1.8037 0.0050 7.2115];
+        ms1_unitScales = [1,1e-3,1,1,1];
+        ms1_max = [52,50,2.1,0.01,10];
+        ms1_min = [48,5,1.5,0,0];
+        ms1_optFlag = [1,1,1,1,1];
+
+        ms3_vals = [49.9764 32.3109 1.7905 0.0050 7.2209];
         ms3_unitScales = [1,1e-3,1,1,1];
         ms3_max = [52,35,2.1,0.01,10];
         ms3_min = [48,30,1.5,0,0];
-        ms3_optFlag = [1,1,1,1,1].*1;
+        ms3_optFlag = [1,1,1,1,1];
 
-        mts_vals = [51.6461 39.2243 1.5635 0 0];
+        ms4_vals = [50.0073 32.4624 1.7959 0.0050 4.9821];
+        ms4_unitScales = [1,1e-3,1,1,1];
+        ms4_max = [52,35,2.1,0.01,10];
+        ms4_min = [48,30,1.5,0,0];
+        ms4_optFlag = [1,1,1,1,1];
+
+        mts_vals = [50.1832 39.0195 1.8095 0.0050 7.2137];
         mts_unitScales = [1,1e-3,1,1,1];
-        mts_max = [52,50,2.1,0.0005,2];
-        mts_min = [48,5,1,0,0];
-        mts_optFlag = [1,1,1,1,1].*0;
+        mts_max = [52,50,2.1,0.01,10];
+        mts_min = [48,5,1.5,0,0];
+        mts_optFlag = [1,1,1,1,1];
 
         % Semi-ridged links
-        sr_mtsj2_vals = [49.6240 126.6710 2.0521 2.4878e-04 0.4268];
+        sr_mtsj2_vals = [49.6571 126.5863 2.0492 2.5003e-04 1.1782];
         sr_mtsj2_unitScales = [1,1e-3,1,1,1];
         sr_mtsj2_max = [52,140,2.1,0.0005,2];
         sr_mtsj2_min = [48,110,2.0,0,0];
-        sr_mtsj2_optFlag = [1,1,1,1,1].*0;
+        sr_mtsj2_optFlag = [1,1,1,1,1];
 
-        sr_mtsj1_vals = [49.4363 126.7525 2.0501 2.4880e-04 0.4887];
+        sr_mtsj1_vals = [49.7989 126.6664 2.0493 2.5002e-04 1.1940];
         sr_mtsj1_unitScales = [1,1e-3,1,1,1];
         sr_mtsj1_max = [52,140,2.1,0.0005,2];
         sr_mtsj1_min = [48,110,2.0,0,0];
-        sr_mtsj1_optFlag = [1,1,1,1,1].*0;
+        sr_mtsj1_optFlag = [1,1,1,1,1];
 
         % Measured Data
         S11_meas_c12r36
         S11_meas_c12r27
         S11_meas_c12r69
         S11_meas_c12r91
-        S11_meas_c12rOpen
-        S11_meas_c12rShort
-        S11_meas_c12r10
-        S11_meas_c12r250
+        S11_meas_c25open
+        S11_meas_c25short
+        S11_meas_c25r10
+        S11_meas_c25r250
 
         S_meas_MS3_J1
         S_meas_MS3_J2
@@ -101,7 +138,8 @@ classdef REACHcal
         optVect_Nvars(1,:) double {mustBeInteger,mustBeNonnegative}
         optVect_Ne(1,1) double {mustBeInteger,mustBePositive} = 10
         optW_RIA(1,2) double {mustBeNonnegative} = [2 1]   % Weights of the real-imag and dB20 differences in the error functions
-        optW(1,:) double {mustBeNonnegative} = [1 1 1 1]
+        optW(1,:) double {mustBeNonnegative} = [1 1 1 1 1 1 1 1]
+        
     end
 
     properties (Dependent = true)
@@ -115,13 +153,13 @@ classdef REACHcal
         r10(1,1) struct
         r250(1,1) struct
         c2(1,1) struct
+        c10(1,1) struct
         ms1(1,1) struct
         ms3(1,1) struct
+        ms4(1,1) struct
         mts(1,1) struct
         sr_mtsj2(1,1) struct
         sr_mtsj1(1,1) struct
-
-        %         source_r36(1,1) TwoPort
 
         Sr36(1,1) struct
         Sr27(1,1) struct
@@ -159,10 +197,10 @@ classdef REACHcal
 
         rVarNames = {'C1','L1','C2','R'};
         cVarNames = {'Z0','L','eps_r_slope','eps_r_const','tan_d_slope','tan_d_const','r_prime_slope','r_prime_const'};
-        cShortVarNames = {'Z0','L','epr_r','tan_d','r_prime'};
+        cShortVarNames = {'Z0','L','eps_r','tan_d','r_prime'};
 
-        optVectElements = {'r36','r27','r69','r91','ms1','ms3','mts','sr_mtsj1','sr_mtsj2','c2'};
-        optErrElements = {'r36','r27','r69','r91'};
+        optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','c2','c10'};
+        optErrElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250'};
     end
 
     methods
@@ -183,6 +221,10 @@ classdef REACHcal
             obj.S11_meas_c12r27 = obj.readSourceS11('c12r27');
             obj.S11_meas_c12r69 = obj.readSourceS11('c12r69');
             obj.S11_meas_c12r91 = obj.readSourceS11('c12r91');
+            obj.S11_meas_c25r10 = obj.readSourceS11('c25r10');
+            obj.S11_meas_c25r250 = obj.readSourceS11('c25r250');
+            obj.S11_meas_c25open = obj.readSourceS11('c25open');
+            obj.S11_meas_c25short = obj.readSourceS11('c25short');
 
             % Read the MS3 data - only for the active through paths
             obj.S_meas_MS3_J1 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J1\J1_ON.s2p'],2,obj.freqHz);
@@ -208,8 +250,6 @@ classdef REACHcal
                 obj.optVect_Nvars(ii) = length(obj.(obj.optVectElements{ii}).vals);
             end 
             
-%             % Testing
-%             obj = obj.unpackOptVect;
         end
 
         % Dependent getters
@@ -237,28 +277,52 @@ classdef REACHcal
             r91 = obj.buildRstruct(obj.r91_vals,obj.r91_unitScales,obj.r91_max,obj.r91_min,obj.r91_optFlag);
         end
 
+        function rOpen = get.rOpen(obj)
+            rOpen = obj.buildRstruct(obj.rOpen_vals,obj.rOpen_unitScales,obj.rOpen_max,obj.rOpen_min,obj.rOpen_optFlag);
+        end
+
+        function rShort = get.rShort(obj)
+            rShort = obj.buildRstruct(obj.rShort_vals,obj.rShort_unitScales,obj.rShort_max,obj.rShort_min,obj.rShort_optFlag);
+        end
+
+        function r10 = get.r10(obj)
+            r10 = obj.buildRstruct(obj.r10_vals,obj.r10_unitScales,obj.r10_max,obj.r10_min,obj.r10_optFlag);
+        end
+
+        function r250 = get.r250(obj)
+            r250 = obj.buildRstruct(obj.r250_vals,obj.r250_unitScales,obj.r250_max,obj.r250_min,obj.r250_optFlag);
+        end
+
         function c2 = get.c2(obj)
             c2 = obj.buildCableStruct(obj.c2_vals,obj.c2_unitScales,obj.c2_max,obj.c2_min,obj.c2_optFlag);
         end
 
+        function c10 = get.c10(obj)
+            c10 = obj.buildCableStruct(obj.c10_vals,obj.c10_unitScales,obj.c10_max,obj.c10_min,obj.c10_optFlag);
+        end
+
         function ms1 = get.ms1(obj)
-            ms1 = obj.buildMSstruct(obj.ms1_vals,obj.ms1_unitScales,obj.ms1_max,obj.ms1_min,obj.ms1_optFlag);
+            ms1 = obj.buildShortCablestruct(obj.ms1_vals,obj.ms1_unitScales,obj.ms1_max,obj.ms1_min,obj.ms1_optFlag);
         end
 
         function ms3 = get.ms3(obj)
-            ms3 = obj.buildMSstruct(obj.ms3_vals,obj.ms3_unitScales,obj.ms3_max,obj.ms3_min,obj.ms3_optFlag);
+            ms3 = obj.buildShortCablestruct(obj.ms3_vals,obj.ms3_unitScales,obj.ms3_max,obj.ms3_min,obj.ms3_optFlag);
+        end
+
+        function ms4 = get.ms4(obj)
+            ms4 = obj.buildShortCablestruct(obj.ms4_vals,obj.ms4_unitScales,obj.ms4_max,obj.ms4_min,obj.ms4_optFlag);
         end
 
         function mts = get.mts(obj)
-            mts = obj.buildMSstruct(obj.mts_vals,obj.mts_unitScales,obj.mts_max,obj.mts_min,obj.mts_optFlag);
+            mts = obj.buildShortCablestruct(obj.mts_vals,obj.mts_unitScales,obj.mts_max,obj.mts_min,obj.mts_optFlag);
         end
 
         function sr_mtsj1 = get.sr_mtsj1(obj)
-            sr_mtsj1 = obj.buildSRstruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
+            sr_mtsj1 = obj.buildShortCablestruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
         end
 
         function sr_mtsj2 = get.sr_mtsj2(obj)
-            sr_mtsj2 = obj.buildSRstruct(obj.sr_mtsj2_vals,obj.sr_mtsj2_unitScales,obj.sr_mtsj2_max,obj.sr_mtsj2_min,obj.sr_mtsj2_optFlag);
+            sr_mtsj2 = obj.buildShortCablestruct(obj.sr_mtsj2_vals,obj.sr_mtsj2_unitScales,obj.sr_mtsj2_max,obj.sr_mtsj2_min,obj.sr_mtsj2_optFlag);
         end
 
         function Sr36 = get.Sr36(obj)
@@ -277,6 +341,22 @@ classdef REACHcal
             Sr91 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r91'});
         end
 
+        function SrOpen = get.SrOpen(obj)
+            SrOpen = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','rOpen'});
+        end
+
+        function SrShort = get.SrShort(obj)
+            SrShort = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','rShort'});
+        end
+
+        function Sr10 = get.Sr10(obj)
+            Sr10 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','r10'});
+        end
+
+        function Sr250 = get.Sr250(obj)
+            Sr250 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','r250'});
+        end
+
         function err_source_r36 = get.err_source_r36(obj)
             err_source_r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sr36.network.getS.d11);
         end
@@ -291,6 +371,22 @@ classdef REACHcal
 
         function err_source_r91 = get.err_source_r91(obj)
             err_source_r91 = obj.errRIA(obj.S11_meas_c12r91,obj.Sr91.network.getS.d11);
+        end
+
+        function err_source_rOpen = get.err_source_rOpen(obj)
+            err_source_rOpen = obj.errRIA(obj.S11_meas_c25open,obj.SrOpen.network.getS.d11);
+        end
+
+        function err_source_rShort = get.err_source_rShort(obj)
+            err_source_rShort = obj.errRIA(obj.S11_meas_c25short,obj.SrShort.network.getS.d11);
+        end
+
+        function err_source_r10 = get.err_source_r10(obj)
+            err_source_r10 = obj.errRIA(obj.S11_meas_c25r10,obj.Sr10.network.getS.d11);
+        end
+
+        function err_source_r250 = get.err_source_r250(obj)
+            err_source_r250 = obj.errRIA(obj.S11_meas_c25r250,obj.Sr250.network.getS.d11);
         end
 
         function err_ms3 = get.err_ms3(obj)
@@ -331,6 +427,66 @@ classdef REACHcal
                 S11 = interp1(freq,S11,obj.freqHz,'linear');
                 freq = obj.freqHz;
             end
+        end
+
+        % Optimization
+        function obj = optimConfig(obj,configName,optElements,errElements)
+            % OPTIMCONFIG configures the optimization routine settings
+
+            % Start with all false
+            optFlagVect = zeros(1,sum(obj.optVect_Nvars));
+            for ii = 1:obj.optVect_Ne
+                obj.([obj.optVectElements{ii},'_optFlag']) = optFlagVect((sum(obj.optVect_Nvars(1:(ii-1)))+1):sum(obj.optVect_Nvars(1:ii)));
+            end
+            obj.optW = obj.optW.*0;
+
+            switch lower(configName)
+                case {'r36'}
+                    optElements = {'r36','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'r36'};
+                case {'r27'}
+                    optElements = {'r27','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'r27'};
+                case {'r69'}
+                    optElements = {'r69','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'r69'};
+                case {'r91'}
+                    optElements = {'r91','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'r91'};
+                case {'ropen','open'}
+                    optElements = {'rOpen','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'rOpen'};
+                case {'rshort','short'}
+                    optElements = {'rShort','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'rShort'};
+                case {'r10'}
+                    optElements = {'r10','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'r10'};
+                case {'r250'}
+                    optElements = {'r250','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'r250'};
+                case {'ms3set'}
+                    optElements = {'r36','r27','r69','r91','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'r36','r27','r69','r91'};
+                case {'ms4set'}
+                    optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    errElements = {'rOpen','rShort','r10','r250'};
+                case 'custom'
+                    assert(all(contains(optElements,obj.optVectElements)),'Found unknown optElement - please check')
+                    assert(all(contains(errElements,obj.optErrElements)),'Found unknown errElement - please check')
+                otherwise
+                    error(['Unknown configName: ',configName])
+            end
+
+            for ii = 1:length(optElements)
+                obj.([optElements{ii},'_optFlag']) = ones(1,length(obj.([optElements{ii},'_optFlag'])));
+            end
+
+            for jj = 1:length(errElements)
+                obj.optW = obj.optW | strcmp(errElements{jj},obj.optErrElements);
+            end
+           
+
         end
 
         function obj = fitParams(obj,solver,options)
@@ -375,12 +531,6 @@ classdef REACHcal
             
             w = obj.optW./norm(obj.optW,1);
             err = w*eV;
-
-%             err = obj.err_source_r69;
-% %             err = obj.err_source_r36;
-% %             err = obj.err_source_r27;
-%             err = obj.err_source_r69;
-% %             err = obj.err_source_r91;
         end
 
         function obj = fitMS3(obj)
@@ -429,26 +579,106 @@ classdef REACHcal
             ylabel("R' (\Omega/m)")
         end
 
-        function plotSourceModels(obj)
-            % plotSOurceModels plots all the current source models with measured data
+%         function plotSourceModels(obj)
+%             % PLOTSOURCEMODELS plots all the current source models with measured data
+% 
+%             Svect = [obj.Sr36,obj.Sr27,obj.Sr69,obj.Sr91];
+%             measVect = {obj.S11_meas_c12r36,obj.S11_meas_c12r27,obj.S11_meas_c12r69,obj.S11_meas_c12r91};
+%             nameVect = {'r36','r27','r69','r91'};
+% 
+%             for ii = 1:length(Svect)
+%                 figure
+%                 subplot(2,2,1:2)
+%                 Svect(ii).network.getS.plot11dB
+%                 plot(obj.freq,dB20(measVect{ii}),'r--')
+%                 title(nameVect{ii})
+%                 subplot(2,2,3)
+%                 Svect(ii).network.getS.plot11real
+%                 plot(obj.freq,real(measVect{ii}),'r--')
+%                 subplot(2,2,4)
+%                 Svect(ii).network.getS.plot11imag
+%                 plot(obj.freq,imag(measVect{ii}),'r--')
+%             end
+%         end
 
-            Svect = [obj.Sr36,obj.Sr27,obj.Sr69,obj.Sr91];
-            measVect = {obj.S11_meas_c12r36,obj.S11_meas_c12r27,obj.S11_meas_c12r69,obj.S11_meas_c12r91};
-            nameVect = {'r36','r27','r69','r91'};
+        function plotSourceAllS11(obj,plotFlag,style)
+            % PLOTSOURCEALLS11 plots all the S11 responses on the current figure
+
+            % plotFlag: 1 = model; 2 = measure; 3 = both
+
+            if nargin < 2 || isempty(plotFlag), plotFlag = 3; end
+            if nargin < 3 || isempty(style), style = 'k'; end
+
+            Svect = [obj.Sr36,obj.Sr27,obj.Sr69,obj.Sr91,...
+                    obj.SrOpen,obj.SrShort,obj.Sr10,obj.Sr250];
+            measVect = {obj.S11_meas_c12r36,obj.S11_meas_c12r27,obj.S11_meas_c12r69,obj.S11_meas_c12r91,...
+                obj.S11_meas_c25open,obj.S11_meas_c25short,obj.S11_meas_c25r10,obj.S11_meas_c25r250};
+            nameVect = {'r36','r27','r69','r91','Open','Short','r10','r250'};
+
+            if ~iscell(style), style = {style,style}; end
+            if plotFlag == 3, style = {'r','k'}; end
 
             for ii = 1:length(Svect)
-                figure
-                subplot(2,2,1:2)
-                Svect(ii).network.getS.plot11dB
-                plot(obj.freq,dB20(measVect{ii}),'r--')
+                row1 = floor((ii-1)/4);
+                col1 = mod((ii-1),4);
+                subplot(8,8,(2*row1*8 + [1:2] + 2*col1))
+                grid on, hold on
+                if mod(plotFlag,2) ~= 0, Svect(ii).network.getS.plot11dB(style{1}); end
+                if plotFlag > 1, plot(obj.freq,dB20(measVect{ii}),style{2}); end
                 title(nameVect{ii})
-                subplot(2,2,3)
-                Svect(ii).network.getS.plot11real
-                plot(obj.freq,real(measVect{ii}),'r--')
-                subplot(2,2,4)
-                Svect(ii).network.getS.plot11imag
-                plot(obj.freq,imag(measVect{ii}),'r--')
+                subplot(8,8,((2*row1+1)*8 + 1 + 2*col1))
+                grid on, hold on
+                if mod(plotFlag,2) ~= 0, Svect(ii).network.getS.plot11real(style{1}); end
+                if plotFlag > 1, plot(obj.freq,real(measVect{ii}),style{2}); end
+                subplot(8,8,((2*row1+1)*8 + 2 + 2*col1))
+                grid on, hold on
+                if mod(plotFlag,2) ~= 0, Svect(ii).network.getS.plot11imag(style{1}); end
+                if plotFlag > 1, plot(obj.freq,imag(measVect{ii}),style{2}); end
             end
+        end
+
+        function plotAllParameters(obj,style)
+            % PLOTALLPARAMETERS plots the full set of normalised model parameters
+
+            if nargin < 2 || isempty(style), style = 'k*'; end
+
+            y = (obj.optStruct.vals - obj.optStruct.min)./(obj.optStruct.max - obj.optStruct.min);
+            plot(y,style), grid on, hold on
+
+            xTicLab = cell(1,sum(obj.optVect_Nvars));
+            for ii = 1:obj.optVect_Ne
+                if mod(ii,2) == 0, cScale = 0.8; else, cScale = 0.2; end 
+                x_start = sum(obj.optVect_Nvars(1:ii-1)) + 0.5;
+                x_stop = sum(obj.optVect_Nvars(1:ii)) + 0.5;
+                p = patch([x_start x_stop x_stop x_start],[0 0 1 1],[1 1 1].*cScale);
+                p.FaceAlpha = 0.3;
+                p.EdgeColor = 'none';
+
+                switch lower(obj.optVectElements{ii}(1))
+                    case 'r'
+                        labels = obj.rVarNames;
+                    case {'m','s'}
+                        labels = obj.cShortVarNames;
+                    case 'c'
+                        labels = obj.cVarNames;
+                end
+
+                for jj = 1:length(labels)
+                    labels{jj} = strrep(labels{jj},'_','\_');
+                end
+
+                xTicLab(x_start+0.5:x_stop-0.5) = labels;
+
+                text(x_start+0.5,1.02,strrep(obj.optVectElements{ii},'_','\_'));
+            end
+
+            ylabel('Normalised Value')
+
+            xtickangle(90);
+            xticks([1:sum(obj.optVect_Nvars)]);
+            xticklabels(xTicLab);
+
+            
         end
 
     end
@@ -504,30 +734,43 @@ classdef REACHcal
             r.network = r.network.freqChangeUnit(obj.freqUnit);
         end
 
-        function sr = buildSRstruct(obj,sr_vals,sr_unitScales,sr_max,sr_min,sr_optFlag)
-            % BUILDSRSTRUCT builds a general semi-rigid structure
+%         function sr = buildSRstruct(obj,sr_vals,sr_unitScales,sr_max,sr_min,sr_optFlag)
+%             % BUILDSRSTRUCT builds a general semi-rigid structure
+% 
+%             sr.vals = sr_vals;
+%             sr.unitScales = sr_unitScales;
+%             sr.max = sr_max;
+%             sr.min = sr_min;
+%             sr.optFlag = sr_optFlag;
+%             parVals = sr.vals.*sr.unitScales;
+%             sr.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4),parVals(5));
+%             sr.network = sr.network.freqChangeUnit(obj.freqUnit);
+%         end
+% 
+%         function ms = buildMSstruct(obj,ms_vals,ms_unitScales,ms_max,ms_min,ms_optFlag)
+%             % BUILDMSSTRUCT builds a general mechanical switch structure
+% 
+%             ms.vals = ms_vals;
+%             ms.unitScales = ms_unitScales;
+%             ms.max = ms_max;
+%             ms.min = ms_min;
+%             ms.optFlag = ms_optFlag;
+%             parVals = ms.vals.*ms.unitScales;
+%             ms.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4),parVals(5));
+%             ms.network = ms.network.freqChangeUnit(obj.freqUnit);
+%         end
 
-            sr.vals = sr_vals;
-            sr.unitScales = sr_unitScales;
-            sr.max = sr_max;
-            sr.min = sr_min;
-            sr.optFlag = sr_optFlag;
-            parVals = sr.vals.*sr.unitScales;
-            sr.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4),parVals(5));
-            sr.network = sr.network.freqChangeUnit(obj.freqUnit);
-        end
+        function sc = buildShortCablestruct(obj,sc_vals,sc_unitScales,sc_max,sc_min,sc_optFlag)
+            % BUILDMSSTRUCT builds a general short cable structure
 
-        function ms = buildMSstruct(obj,ms_vals,ms_unitScales,ms_max,ms_min,ms_optFlag)
-            % BUILDMSSTRUCT builds a general mechanical switch structure
-
-            ms.vals = ms_vals;
-            ms.unitScales = ms_unitScales;
-            ms.max = ms_max;
-            ms.min = ms_min;
-            ms.optFlag = ms_optFlag;
-            parVals = ms.vals.*ms.unitScales;
-            ms.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4),parVals(5));
-            ms.network = ms.network.freqChangeUnit(obj.freqUnit);
+            sc.vals = sc_vals;
+            sc.unitScales = sc_unitScales;
+            sc.max = sc_max;
+            sc.min = sc_min;
+            sc.optFlag = sc_optFlag;
+            parVals = sc.vals.*sc.unitScales;
+            sc.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4),parVals(5));
+            sc.network = sc.network.freqChangeUnit(obj.freqUnit);
         end
 
         function S_struct = buildSourceStruct(obj,elementNameVect)
