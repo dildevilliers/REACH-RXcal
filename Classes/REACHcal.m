@@ -14,49 +14,49 @@ classdef REACHcal
         fmax(1,1) double = 200 % in MHz
 
         % Resistors
-        r36_vals = [5.2365 24.9697 7.4356 36.8663];
+        r36_vals = [3.8492 21.0167 4.5243 36.8479];
         r36_unitScales = [1e-12,1e-9,1e-12,1];
-        r36_max = [20,40,20,38];
+        r36_max = [20,40,10,38];
         r36_min = [0,0,0,34];
         r36_optFlag = [1,1,1,1];
 
-        r27_vals = [4.4718 23.7619 10.1960 27.6257];
+        r27_vals = [4.4148 24.1903 9.0568 27.3331];
         r27_unitScales = [1e-12,1e-9,1e-12,1];
         r27_max = [20,40,20,29];
         r27_min = [0,0,0,25];
         r27_optFlag = [1,1,1,1];
 
-        r69_vals = [7.7809 39.0358 5.0640 69.6613];
+        r69_vals = [7.2883 36.4569 4.6570 69.9235];
         r69_unitScales = [1e-12,1e-9,1e-12,1];
         r69_max = [20,60,20,72];
         r69_min = [0,0,0,66];
         r69_optFlag = [1,1,1,1];
 
-        r91_vals = [9.1248 55.0709 4.3232 92.4470];
+        r91_vals = [8.3539 49.6584 3.7671 93.1463];
         r91_unitScales = [1e-12,1e-9,1e-12,1];
         r91_max = [20,80,20,95];
         r91_min = [0,0,0,86];
         r91_optFlag = [1,1,1,1];
 
-        rOpen_vals = [0.0019 82.4339 5.9742 13.3562];
+        rOpen_vals = [3.3378 52.2454 3.7027 391.5123];
         rOpen_unitScales = [1e-12,1e-9,1e-12,1e6];
         rOpen_max = [20,150,20,1000];
         rOpen_min = [0,0,0,5];
         rOpen_optFlag = [1,1,1,1];
 
-        rShort_vals = [30.1277 16.4172 6.6485 2.5985e-06];
+        rShort_vals = [7.9373 18.6394 9.9928 0.3677];
         rShort_unitScales = [1e-12,1e-9,1e-12,1];
         rShort_max = [50,80,20,2];
         rShort_min = [0,0,0,0];
         rShort_optFlag = [1,1,1,1];
 
-        r10_vals = [8.3657 46.7493 9.8084 9.9575];
+        r10_vals = [5.3058 20.9861 10.7688 10.3533];
         r10_unitScales = [1e-12,1e-9,1e-12,1];
         r10_max = [20,80,20,11];
         r10_min = [0,0,0,9];
         r10_optFlag = [1,1,1,1];
 
-        r250_vals = [11.9117 77.1549 0.1963 263.6909];
+        r250_vals = [4.5536 21.6320 3.5899 254.1647];
         r250_unitScales = [1e-12,1e-9,1e-12,1];
         r250_max = [20,80,20,270];
         r250_min = [0,0,0,240];
@@ -64,55 +64,67 @@ classdef REACHcal
 
 
         % Cables
-        c2_vals = [49.4478 1.9514 -0.0332 1.4395 0.0130 0.0044 6.6391e-04 0.7111];
+        c2_vals = [49.4791 1.9407 0.0214 1.3723 0.0088 0.0093 0.0323 0.6720];
         c2_unitScales = [1,1,1,1,1,1,1,1];
-        c2_max = [52,2.1,0.1,1.5,0.1,0.01,0.1,2];
-        c2_min = [48,1.9,-0.1,1.4,-0.1,0,-0.1,0];
+        c2_max = [52,2.1,0.1,1.9,0.1,0.01,0.1,2];
+        c2_min = [48,1.9,-0.1,1.3,-0.1,0,-0.1,0];
         c2_optFlag = [1,1,1,1,1,1,1,1].*0;
 
-        c10_vals = [50.1403 9.9632 -0.0540 1.4231 0.0031 0.0047 1.4934e-04 0.7853];
+        c10_vals = [49.7610 9.9198 -0.0118 1.4059 -0.0014 0.0068 0.0074 0.4267];
         c10_unitScales = [1,1,1,1,1,1,1,1];
         c10_max = [52,10.1,0.1,1.5,0.1,0.01,0.1,2];
         c10_min = [48,9.9,-0.1,1.4,-0.1,0,-0.1,0];
         c10_optFlag = [1,1,1,1,1,1,1,1];
 
         % Mechanical switches
-        ms1_vals = [49.3715 38.3106 1.8051 0.0050 6.1724];
+        ms1_vals = [51.7101 13.3335 1.7260 0.0052 4.4804];
         ms1_unitScales = [1,1e-3,1,1,1];
-        ms1_max = [52,50,2.1,0.01,10];
-        ms1_min = [48,5,1.5,0,0];
+        ms1_max = [52,18,1.9,0.01,10];
+        ms1_min = [48,9,1.5,0,0];
         ms1_optFlag = [1,1,1,1,1];
 
-        ms3_vals = [50.0873 32.4722 1.7890 0.0050 6.1894];
+        ms3_vals = [50.0232 13.3749 1.6933 0.0051 4.4749];
         ms3_unitScales = [1,1e-3,1,1,1];
-        ms3_max = [52,35,2.1,0.01,10];
-        ms3_min = [48,30,1.5,0,0];
+        ms3_max = [52,18,1.9,0.01,10];
+        ms3_min = [48,9,1.5,0,0];
         ms3_optFlag = [1,1,1,1,1];
 
-        ms4_vals = [50.0073 32.4624 1.7959 0.0050 4.9821];
+        ms4_vals = [50.0232 13.3749 1.6933 0.0051 4.4749];
         ms4_unitScales = [1,1e-3,1,1,1];
-        ms4_max = [52,35,2.1,0.01,10];
-        ms4_min = [48,30,1.5,0,0];
+        ms4_max = [53,20,1.9,0.01,10];
+        ms4_min = [47,9,1.5,0,0];
         ms4_optFlag = [1,1,1,1,1];
 
-        mts_vals = [50.5571 38.6234 1.8152 0.0050 6.1763];
+        mts_vals = [50.9304 113.2259 1.6351 0.0059 3.9662];
         mts_unitScales = [1,1e-3,1,1,1];
-        mts_max = [52,50,2.1,0.01,10];
-        mts_min = [48,5,1.5,0,0];
+        mts_max = [52,140,1.9,0.01,10];
+        mts_min = [48,100,1.5,0,0];
         mts_optFlag = [1,1,1,1,1];
 
         % Semi-ridged links
-        sr_mtsj2_vals = [49.4475 126.4238 2.0493 2.4988e-04 0.9350];
+        sr_mtsj2_vals = [48.4377 125.1712 2.0504 2.5188e-04 0.9629];
         sr_mtsj2_unitScales = [1,1e-3,1,1,1];
-        sr_mtsj2_max = [52,140,2.1,0.0005,2];
-        sr_mtsj2_min = [48,110,2.0,0,0];
+        sr_mtsj2_max = [52,130,2.1,0.0005,2];
+        sr_mtsj2_min = [48,120,2.0,0,0];
         sr_mtsj2_optFlag = [1,1,1,1,1];
 
-        sr_mtsj1_vals = [49.8246 126.5042 2.0492 2.4987e-04 0.9325];
+        sr_mtsj1_vals = [49.2178 124.9098 2.0459 2.5273e-04 1.0101];
         sr_mtsj1_unitScales = [1,1e-3,1,1,1];
-        sr_mtsj1_max = [52,140,2.1,0.0005,2];
-        sr_mtsj1_min = [48,110,2.0,0,0];
+        sr_mtsj1_max = [52,130,2.1,0.0005,2];
+        sr_mtsj1_min = [48,120,2.0,0,0];
         sr_mtsj1_optFlag = [1,1,1,1,1];
+
+%         sr_mtsj2_vals = [48.8300 125.1396 0.0015 2.0486 -5.7059e-04 2.5002e-04 -9.5231e-05 0.9733];
+%         sr_mtsj2_unitScales = [1,1e-3,1,1,1,1,1,1];
+%         sr_mtsj2_max = [52,140,0.1,2.1,0.1,0.0005,0.1,2];
+%         sr_mtsj2_min = [48,110,-0.1,2.0,-0.1,0,-0.1,0];
+%         sr_mtsj2_optFlag = [1,1,1,1,1,1,1,1];
+% 
+%         sr_mtsj1_vals = [49.4063 125.0864 -8.4874e-04 2.0482 -0.0069 2.5001e-04 -7.5998e-05 0.9702];
+%         sr_mtsj1_unitScales = [1,1e-3,1,1,1,1,1,1];
+%         sr_mtsj1_max = [52,140,0.1,2.1,0.1,0.0005,0.1,2];
+%         sr_mtsj1_min = [48,110,-0.1,2.0,-0.1,0,-0.1,0];
+%         sr_mtsj1_optFlag = [1,1,1,1,1,1,1,1];
 
         % Adaptors (not used at present)
         a_ms3_vals = [1.2110 0.0845 0.6999];
@@ -156,7 +168,7 @@ classdef REACHcal
         % Optimization book-keeping
         optVect_Nvars(1,:) double {mustBeInteger,mustBeNonnegative}
         optVect_Ne(1,1) double {mustBeInteger,mustBePositive} = 10
-        optW_RIA(1,2) double {mustBeNonnegative} = [0 1]   % Weights of the real-imag and dB20 differences in the error functions
+        optW_RIA(1,2) double {mustBeNonnegative} = [2 1]   % Weights of the real-imag and dB20 differences in the error functions
         optW(1,:) double {mustBeNonnegative} = [1 1 1 1 1 1 1 1]
         
     end
@@ -325,27 +337,29 @@ classdef REACHcal
         end
 
         function ms1 = get.ms1(obj)
-            ms1 = obj.buildShortCablestruct(obj.ms1_vals,obj.ms1_unitScales,obj.ms1_max,obj.ms1_min,obj.ms1_optFlag);
+            ms1 = obj.buildShortCableStruct(obj.ms1_vals,obj.ms1_unitScales,obj.ms1_max,obj.ms1_min,obj.ms1_optFlag);
         end
 
         function ms3 = get.ms3(obj)
-            ms3 = obj.buildShortCablestruct(obj.ms3_vals,obj.ms3_unitScales,obj.ms3_max,obj.ms3_min,obj.ms3_optFlag);
+            ms3 = obj.buildShortCableStruct(obj.ms3_vals,obj.ms3_unitScales,obj.ms3_max,obj.ms3_min,obj.ms3_optFlag);
         end
 
         function ms4 = get.ms4(obj)
-            ms4 = obj.buildShortCablestruct(obj.ms4_vals,obj.ms4_unitScales,obj.ms4_max,obj.ms4_min,obj.ms4_optFlag);
+            ms4 = obj.buildShortCableStruct(obj.ms4_vals,obj.ms4_unitScales,obj.ms4_max,obj.ms4_min,obj.ms4_optFlag);
         end
 
         function mts = get.mts(obj)
-            mts = obj.buildShortCablestruct(obj.mts_vals,obj.mts_unitScales,obj.mts_max,obj.mts_min,obj.mts_optFlag);
+            mts = obj.buildShortCableStruct(obj.mts_vals,obj.mts_unitScales,obj.mts_max,obj.mts_min,obj.mts_optFlag);
         end
 
         function sr_mtsj1 = get.sr_mtsj1(obj)
-            sr_mtsj1 = obj.buildShortCablestruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
+            sr_mtsj1 = obj.buildShortCableStruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
+%             sr_mtsj1 = obj.buildCableStruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
         end
 
         function sr_mtsj2 = get.sr_mtsj2(obj)
-            sr_mtsj2 = obj.buildShortCablestruct(obj.sr_mtsj2_vals,obj.sr_mtsj2_unitScales,obj.sr_mtsj2_max,obj.sr_mtsj2_min,obj.sr_mtsj2_optFlag);
+            sr_mtsj2 = obj.buildShortCableStruct(obj.sr_mtsj2_vals,obj.sr_mtsj2_unitScales,obj.sr_mtsj2_max,obj.sr_mtsj2_min,obj.sr_mtsj2_optFlag);
+%             sr_mtsj2 = obj.buildCableStruct(obj.sr_mtsj2_vals,obj.sr_mtsj2_unitScales,obj.sr_mtsj2_max,obj.sr_mtsj2_min,obj.sr_mtsj2_optFlag);
         end
 
         function a_ms3 = get.a_ms3(obj)
@@ -503,9 +517,18 @@ classdef REACHcal
                 case {'ms3set'}
                     optElements = {'r36','r27','r69','r91','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
                     errElements = {'r36','r27','r69','r91'};
+                case {'ms3set_lim'}
+                    optElements = {'r36','r27','r69','r91','ms3','c2'};
+                    errElements = {'r36','r27','r69','r91'};
                 case {'ms4set'}
                     optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
                     errElements = {'rOpen','rShort','r10','r250'};
+                case {'ms4set_lim'}
+                    optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1'};
+                    errElements = {'rOpen','rShort','r10','r250'};
+                case {'ms4set_lim_10_250'}
+                    optElements = {'r10','r250','ms4','c10'};
+                    errElements = {'r10','r250'};
                 case 'custom'
                     assert(all(contains(optElements,obj.optVectElements)),'Found unknown optElement - please check')
                     assert(all(contains(errElements,obj.optErrElements)),'Found unknown errElement - please check')
@@ -536,7 +559,7 @@ classdef REACHcal
 
             switch solver
                 case 'fmincon'
-                    if nargin < 3 || isempty(options), options = optimoptions('fmincon','display','iter','MaxIterations',1000); end
+                    if nargin < 3 || isempty(options), options = optimoptions('fmincon','display','iter','MaxFunctionEvaluations',10000); end
                     optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
                 case 'ga'
                     if nargin < 3 || isempty(options), options = optimoptions('ga','display','iter'); end
@@ -694,7 +717,7 @@ classdef REACHcal
                         labels = obj.rVarNames;
                     case {'m','s'}
                         labels = obj.cShortVarNames;
-                    case 'c'
+                    case {'c'}
                         labels = obj.cVarNames;
                     case 'a'
                         labels = obj.adaptVarNames;
@@ -797,7 +820,7 @@ classdef REACHcal
 %             ms.network = ms.network.freqChangeUnit(obj.freqUnit);
 %         end
 
-        function sc = buildShortCablestruct(obj,sc_vals,sc_unitScales,sc_max,sc_min,sc_optFlag)
+        function sc = buildShortCableStruct(obj,sc_vals,sc_unitScales,sc_max,sc_min,sc_optFlag)
             % BUILDMSSTRUCT builds a general short cable structure
 
             sc.vals = sc_vals;

@@ -70,13 +70,14 @@ R.ms3.network.getS.plot21RI('c')
 % Rms3.plotSourceAllS11(1,{'b'})
 % figure(2)
 % Rms3.plotAllParameters('b*')
-% 
-% Rms4 = R.optimConfig('ms4set');
-% Rms4 = Rms4.fitParams('fmincon');
-% figure(1)
-% Rms4.plotSourceAllS11(1,{'m'})
-% figure(2)
-% Rms4.plotAllParameters('m*')
+
+% % 
+Rms4 = R.optimConfig('ms4set_lim_10_250');
+Rms4 = Rms4.fitParams('ga');
+figure(1)
+Rms4.plotSourceAllS11(1,{'m'})
+figure(2)
+Rms4.plotAllParameters('m*')
 
 % Ropen = R.optimConfig('rOpen');
 % Ropen = Ropen.fitParams('fmincon');
@@ -94,14 +95,17 @@ R.ms3.network.getS.plot21RI('c')
 % toc
 % figure(1)
 % R1.plotSourceAllS11(1,{'b'})
+% 
+% R36 = R.optimConfig('custom',{'r36'},{'r36'});
+% % R36 = R.optimConfig('r36');
+% R36 = R36.fitParams('fmincon');
+% figure(1)
+% R36.plotSourceAllS11(1,{'b'})
+% figure(2)
+% R36.plotAllParameters('b*')
 
-% % R36 = R.optimConfig('custom',{'r36','ms3','a_ms3','c2','a_ms1j7','a_ms1'},{'r36'});
-R36 = R.optimConfig('r36');
-R36 = R36.fitParams('fmincon');
-figure(1)
-R36.plotSourceAllS11(1,{'b'})
-figure(2)
-R36.plotAllParameters('b*')
+
+
 % 
 % 
 % R69 = R.optimConfig('r69');
@@ -110,6 +114,22 @@ R36.plotAllParameters('b*')
 % R69.plotSourceAllS11(1,{'m'})
 % figure(2)
 % R69.plotAllParameters('m*')
+
+
+% R27 = R.optimConfig('r27');
+% R27 = R27.fitParams('fmincon');
+% figure(1)
+% R27.plotSourceAllS11(1,{'m'})
+% figure(2)
+% R27.plotAllParameters('m*')
+
+% R91 = R.optimConfig('r91');
+% R91 = R91.fitParams('fmincon');
+% figure(1)
+% R91.plotSourceAllS11(1,{'m'})
+% figure(2)
+% R91.plotAllParameters('m*')
+
 % 
 % R3769 = R.optimConfig('custom',{'r36','r69','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'},{'r36','r69'});
 % R3769 = R3769.fitParams('fmincon');
