@@ -14,25 +14,25 @@ classdef REACHcal
         fmax(1,1) double = 200 % in MHz
 
         % Resistors
-        r36_vals = [4.9021 24.8778 7.4953 36.8851];
+        r36_vals = [5.2365 24.9697 7.4356 36.8663];
         r36_unitScales = [1e-12,1e-9,1e-12,1];
         r36_max = [20,40,20,38];
         r36_min = [0,0,0,34];
         r36_optFlag = [1,1,1,1];
 
-        r27_vals = [3.9375 23.7124 10.1346 27.4922];
+        r27_vals = [4.4718 23.7619 10.1960 27.6257];
         r27_unitScales = [1e-12,1e-9,1e-12,1];
         r27_max = [20,40,20,29];
         r27_min = [0,0,0,25];
         r27_optFlag = [1,1,1,1];
 
-        r69_vals = [8.0502 38.9937 5.0036 69.7672];
+        r69_vals = [7.7809 39.0358 5.0640 69.6613];
         r69_unitScales = [1e-12,1e-9,1e-12,1];
         r69_max = [20,60,20,72];
         r69_min = [0,0,0,66];
         r69_optFlag = [1,1,1,1];
 
-        r91_vals = [9.3354 55.2766 3.9424 90.9550];
+        r91_vals = [9.1248 55.0709 4.3232 92.4470];
         r91_unitScales = [1e-12,1e-9,1e-12,1];
         r91_max = [20,80,20,95];
         r91_min = [0,0,0,86];
@@ -64,7 +64,7 @@ classdef REACHcal
 
 
         % Cables
-        c2_vals = [49.4592 1.9490 -0.0307 1.4387 0.0170 0.0052 -1.0603e-04 0.7298];
+        c2_vals = [49.4478 1.9514 -0.0332 1.4395 0.0130 0.0044 6.6391e-04 0.7111];
         c2_unitScales = [1,1,1,1,1,1,1,1];
         c2_max = [52,2.1,0.1,1.5,0.1,0.01,0.1,2];
         c2_min = [48,1.9,-0.1,1.4,-0.1,0,-0.1,0];
@@ -77,13 +77,13 @@ classdef REACHcal
         c10_optFlag = [1,1,1,1,1,1,1,1];
 
         % Mechanical switches
-        ms1_vals = [48.9111 38.6761 1.8037 0.0050 7.2115];
+        ms1_vals = [49.3715 38.3106 1.8051 0.0050 6.1724];
         ms1_unitScales = [1,1e-3,1,1,1];
         ms1_max = [52,50,2.1,0.01,10];
         ms1_min = [48,5,1.5,0,0];
         ms1_optFlag = [1,1,1,1,1];
 
-        ms3_vals = [49.9764 32.3109 1.7905 0.0050 7.2209];
+        ms3_vals = [50.0873 32.4722 1.7890 0.0050 6.1894];
         ms3_unitScales = [1,1e-3,1,1,1];
         ms3_max = [52,35,2.1,0.01,10];
         ms3_min = [48,30,1.5,0,0];
@@ -95,37 +95,43 @@ classdef REACHcal
         ms4_min = [48,30,1.5,0,0];
         ms4_optFlag = [1,1,1,1,1];
 
-        mts_vals = [50.1832 39.0195 1.8095 0.0050 7.2137];
+        mts_vals = [50.5571 38.6234 1.8152 0.0050 6.1763];
         mts_unitScales = [1,1e-3,1,1,1];
         mts_max = [52,50,2.1,0.01,10];
         mts_min = [48,5,1.5,0,0];
         mts_optFlag = [1,1,1,1,1];
 
         % Semi-ridged links
-        sr_mtsj2_vals = [49.6571 126.5863 2.0492 2.5003e-04 1.1782];
+        sr_mtsj2_vals = [49.4475 126.4238 2.0493 2.4988e-04 0.9350];
         sr_mtsj2_unitScales = [1,1e-3,1,1,1];
         sr_mtsj2_max = [52,140,2.1,0.0005,2];
         sr_mtsj2_min = [48,110,2.0,0,0];
         sr_mtsj2_optFlag = [1,1,1,1,1];
 
-        sr_mtsj1_vals = [49.7989 126.6664 2.0493 2.5002e-04 1.1940];
+        sr_mtsj1_vals = [49.8246 126.5042 2.0492 2.4987e-04 0.9325];
         sr_mtsj1_unitScales = [1,1e-3,1,1,1];
         sr_mtsj1_max = [52,140,2.1,0.0005,2];
         sr_mtsj1_min = [48,110,2.0,0,0];
         sr_mtsj1_optFlag = [1,1,1,1,1];
 
-        % Adaptors
+        % Adaptors (not used at present)
         a_ms3_vals = [1.2110 0.0845 0.6999];
         a_ms3_unitScales = [1e-12 1e-9 1e-12];
         a_ms3_max = [3 1 2];
         a_ms3_min = [0 0 0];
         a_ms3_optFlag = [1 1 1];
 
-        a_ms2j7_vals = [1.2110 0.0845 0.6999];
-        a_ms2j7_unitScales = [1e-12 1e-9 1e-12];
-        a_ms2j7_max = [3 1 2];
-        a_ms2j7_min = [0 0 0];
-        a_ms2j7_optFlag = [1 1 1];
+        a_ms1j7_vals = [1.2110 0.0845 0.6999];
+        a_ms1j7_unitScales = [1e-12 1e-9 1e-12];
+        a_ms1j7_max = [3 1 2];
+        a_ms1j7_min = [0 0 0];
+        a_ms1j7_optFlag = [1 1 1];
+
+        a_ms1_vals = [0 0 0] + eps;
+        a_ms1_unitScales = [1e-12 1e-9 1e-12];
+        a_ms1_max = [3 1 2];
+        a_ms1_min = [0 0 0];
+        a_ms1_optFlag = [1 1 1];
 
         % Measured Data
         S11_meas_c12r36
@@ -150,7 +156,7 @@ classdef REACHcal
         % Optimization book-keeping
         optVect_Nvars(1,:) double {mustBeInteger,mustBeNonnegative}
         optVect_Ne(1,1) double {mustBeInteger,mustBePositive} = 10
-        optW_RIA(1,2) double {mustBeNonnegative} = [2 1]   % Weights of the real-imag and dB20 differences in the error functions
+        optW_RIA(1,2) double {mustBeNonnegative} = [0 1]   % Weights of the real-imag and dB20 differences in the error functions
         optW(1,:) double {mustBeNonnegative} = [1 1 1 1 1 1 1 1]
         
     end
@@ -174,7 +180,8 @@ classdef REACHcal
         sr_mtsj2(1,1) struct
         sr_mtsj1(1,1) struct
         a_ms3(1,1) struct
-        a_ms2j7(1,1) struct
+        a_ms1j7(1,1) struct
+        a_ms1(1,1) struct
 
         Sr36(1,1) struct
         Sr27(1,1) struct
@@ -215,7 +222,7 @@ classdef REACHcal
         cShortVarNames = {'Z0','L','eps_r','tan_d','r_prime'};
         adaptVarNames = {'C1','L1','C2'};
 
-        optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','c2','c10','a_ms3','a_ms2j7'};
+        optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','c2','c10'};
         optErrElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250'};
     end
 
@@ -345,12 +352,16 @@ classdef REACHcal
             a_ms3 = obj.buildAdaptStruct(obj.a_ms3_vals,obj.a_ms3_unitScales,obj.a_ms3_max,obj.a_ms3_min,obj.a_ms3_optFlag);
         end
 
-        function a_ms2j7 = get.a_ms2j7(obj)
-            a_ms2j7 = obj.buildAdaptStruct(obj.a_ms2j7_vals,obj.a_ms2j7_unitScales,obj.a_ms2j7_max,obj.a_ms2j7_min,obj.a_ms2j7_optFlag);
+        function a_ms1j7 = get.a_ms1j7(obj)
+            a_ms1j7 = obj.buildAdaptStruct(obj.a_ms1j7_vals,obj.a_ms1j7_unitScales,obj.a_ms1j7_max,obj.a_ms1j7_min,obj.a_ms1j7_optFlag);
+        end
+
+        function a_ms1 = get.a_ms1(obj)
+            a_ms1 = obj.buildAdaptStruct(obj.a_ms1_vals,obj.a_ms1_unitScales,obj.a_ms1_max,obj.a_ms1_min,obj.a_ms1_optFlag);
         end
         
         function Sr36 = get.Sr36(obj)
-            Sr36 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','a_ms2j7','c2','a_ms3','ms3','r36'});
+            Sr36 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r36'});
         end
 
         function Sr27 = get.Sr27(obj)
@@ -466,28 +477,28 @@ classdef REACHcal
 
             switch lower(configName)
                 case {'r36'}
-                    optElements = {'r36','ms3','a_ms3','c2','a_ms2j7','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = obj.Sr36.elements;
                     errElements = {'r36'};
                 case {'r27'}
-                    optElements = {'r27','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = obj.Sr27.elements;
                     errElements = {'r27'};
                 case {'r69'}
-                    optElements = {'r69','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = obj.Sr69.elements;
                     errElements = {'r69'};
                 case {'r91'}
-                    optElements = {'r91','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = obj.Sr91.elements;
                     errElements = {'r91'};
                 case {'ropen','open'}
-                    optElements = {'rOpen','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = obj.SrOpen.elements;
                     errElements = {'rOpen'};
                 case {'rshort','short'}
-                    optElements = {'rShort','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = obj.SrShort.elements;
                     errElements = {'rShort'};
                 case {'r10'}
-                    optElements = {'r10','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = obj.Sr10.elements;
                     errElements = {'r10'};
                 case {'r250'}
-                    optElements = {'r250','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = obj.Sr250.elements;
                     errElements = {'r250'};
                 case {'ms3set'}
                     optElements = {'r36','r27','r69','r91','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
