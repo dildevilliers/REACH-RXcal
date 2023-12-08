@@ -72,12 +72,12 @@ R.ms3.network.getS.plot21RI('c')
 % Rms3.plotAllParameters('b*')
 
 % % 
-Rms4 = R.optimConfig('ms4set_lim_10_250');
-Rms4 = Rms4.fitParams('ga');
-figure(1)
-Rms4.plotSourceAllS11(1,{'m'})
-figure(2)
-Rms4.plotAllParameters('m*')
+% Rms4 = R.optimConfig('ms4set_lim_10_250');
+% Rms4 = Rms4.fitParams('ga');
+% figure(1)
+% Rms4.plotSourceAllS11(1,{'m'})
+% figure(2)
+% Rms4.plotAllParameters('m*')
 
 % Ropen = R.optimConfig('rOpen');
 % Ropen = Ropen.fitParams('fmincon');
@@ -85,6 +85,13 @@ Rms4.plotAllParameters('m*')
 % Ropen.plotSourceAllS11(1,{'m'})
 % figure(2)
 % Ropen.plotAllParameters('m*')
+% 
+% R100 = R.optimConfig('custom',{'r100'},{'r100'});
+% R100 = R100.fitParams('fmincon');
+% figure(1)
+% R100.plotSourceAllS11(1,{'m'})
+% figure(2)
+% R100.plotAllParameters('m*')
 
 
 % tic
