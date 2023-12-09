@@ -188,6 +188,35 @@ classdef REACHcal
         S11_meas_hot
         S11_meas_r25
         S11_meas_r100
+        S11_meas_ant
+
+        T_meas_c12r36
+        T_meas_c12r27
+        T_meas_c12r69
+        T_meas_c12r91
+        T_meas_c25open
+        T_meas_c25short
+        T_meas_c25r10
+        T_meas_c25r250
+        T_meas_cold
+        T_meas_hot
+        T_meas_r25
+        T_meas_r100
+        T_meas_ant
+
+        PSD_meas_c12r36
+        PSD_meas_c12r27
+        PSD_meas_c12r69
+        PSD_meas_c12r91
+        PSD_meas_c25open
+        PSD_meas_c25short
+        PSD_meas_c25r10
+        PSD_meas_c25r250
+        PSD_meas_cold
+        PSD_meas_hot
+        PSD_meas_r25
+        PSD_meas_r100
+        PSD_meas_ant
 
         S_meas_MS3_J1
         S_meas_MS3_J2
@@ -234,16 +263,16 @@ classdef REACHcal
         a_ms1j7(1,1) struct
         a_ms1(1,1) struct
 
-        Sr36(1,1) struct
-        Sr27(1,1) struct
-        Sr69(1,1) struct
-        Sr91(1,1) struct
-        SrOpen(1,1) struct
-        SrShort(1,1) struct
-        Sr10(1,1) struct
-        Sr250(1,1) struct
-        SrCold(1,1) struct
-        SrHot(1,1) struct
+        Sc12r36(1,1) struct
+        Sc12r27(1,1) struct
+        Sc12r69(1,1) struct
+        Sc12r91(1,1) struct
+        Sc25open(1,1) struct
+        Sc25short(1,1) struct
+        Sc25r10(1,1) struct
+        Sc25r250(1,1) struct
+        Scold(1,1) struct
+        Shot(1,1) struct
         Sr25(1,1) struct
         Sr100(1,1) struct
 
@@ -253,16 +282,16 @@ classdef REACHcal
         freqHz
 
         optStruct
-        err_source_r36
-        err_source_r27
-        err_source_r69
-        err_source_r91
-        err_source_rOpen
-        err_source_rShort
-        err_source_r10
-        err_source_r250
-        err_source_rCold
-        err_source_rHot
+        err_source_c12r36
+        err_source_c12r27
+        err_source_c12r69
+        err_source_c12r91
+        err_source_c25open
+        err_source_c25short
+        err_source_c25r10
+        err_source_c25r250
+        err_source_cold
+        err_source_hot
         err_source_r25
         err_source_r100
 
@@ -273,7 +302,7 @@ classdef REACHcal
     end
 
     properties (Constant = true)
-        sourceNames = {'cold','hot','r25','r100','c12r27','c12r36','c12r69','c12r91','c25open','c25short','c25r10','c25r250'}
+        sourceNames = {'cold','hot','r25','r100','c12r27','c12r36','c12r69','c12r91','c25open','c25short','c25r10','c25r250','ant'}
         freqUnit = 'MHz'
 
         rVarNames = {'C1','L1','C2','R'};
@@ -282,7 +311,7 @@ classdef REACHcal
         adaptVarNames = {'C1','L1','C2'};
 
         optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','sr_ms1j2','c2','c10'};
-        optErrElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100'};
+        optErrElements = {'c12r36','c12r27','c12r69','c12r91','c25open','c25short','c25r10','c25r250','cold','hot','r25','r100'};
     end
 
     methods
@@ -299,18 +328,9 @@ classdef REACHcal
             obj.dataPathMS3 = [fileparts(p),'\..\data\MS-3\'];
 
             % Read the data
-            obj.S11_meas_c12r36 = obj.readSourceS11('c12r36');
-            obj.S11_meas_c12r27 = obj.readSourceS11('c12r27');
-            obj.S11_meas_c12r69 = obj.readSourceS11('c12r69');
-            obj.S11_meas_c12r91 = obj.readSourceS11('c12r91');
-            obj.S11_meas_c25r10 = obj.readSourceS11('c25r10');
-            obj.S11_meas_c25r250 = obj.readSourceS11('c25r250');
-            obj.S11_meas_c25open = obj.readSourceS11('c25open');
-            obj.S11_meas_c25short = obj.readSourceS11('c25short');
-            obj.S11_meas_cold = obj.readSourceS11('cold');
-            obj.S11_meas_hot = obj.readSourceS11('hot');
-            obj.S11_meas_r25 = obj.readSourceS11('r25');
-            obj.S11_meas_r100 = obj.readSourceS11('r100');
+            obj = obj.readS11data;
+            obj = obj.readTempData;
+            obj = obj.readPSDdata;
 
             % Read the MS3 data - only for the active through paths
             obj.S_meas_MS3_J1 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J1\J1_ON.s2p'],2,obj.freqHz);
@@ -445,44 +465,44 @@ classdef REACHcal
             a_ms1 = obj.buildAdaptStruct(obj.a_ms1_vals,obj.a_ms1_unitScales,obj.a_ms1_max,obj.a_ms1_min,obj.a_ms1_optFlag);
         end
         
-        function Sr36 = get.Sr36(obj)
-            Sr36 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r36'});
+        function Sc12r36 = get.Sc12r36(obj)
+            Sc12r36 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r36'});
         end
 
-        function Sr27 = get.Sr27(obj)
-            Sr27 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r27'});
+        function Sc12r27 = get.Sc12r27(obj)
+            Sc12r27 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r27'});
         end
 
-        function Sr69 = get.Sr69(obj)
-            Sr69 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r69'});
+        function Sc12r69 = get.Sc12r69(obj)
+            Sc12r69 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r69'});
         end
 
-        function Sr91 = get.Sr91(obj)
-            Sr91 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r91'});
+        function Sc12r91 = get.Sc12r91(obj)
+            Sc12r91 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r91'});
         end
 
-        function SrOpen = get.SrOpen(obj)
-            SrOpen = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','rOpen'});
+        function Sc25open = get.Sc25open(obj)
+            Sc25open = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','rOpen'});
         end
 
-        function SrShort = get.SrShort(obj)
-            SrShort = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','rShort'});
+        function Sc25short = get.Sc25short(obj)
+            Sc25short = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','rShort'});
         end
 
-        function Sr10 = get.Sr10(obj)
-            Sr10 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','r10'});
+        function Sc25r10 = get.Sc25r10(obj)
+            Sc25r10 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','r10'});
         end
 
-        function Sr250 = get.Sr250(obj)
-            Sr250 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','r250'});
+        function Sc25r250 = get.Sc25r250(obj)
+            Sc25r250 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c10','ms4','r250'});
         end
 
-        function SrCold = get.SrCold(obj)
-            SrCold = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','rCold'});
+        function Scold = get.Scold(obj)
+            Scold = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','rCold'});
         end
 
-        function SrHot = get.SrHot(obj)
-            SrHot = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','sr_ms1j2','rHot'});
+        function Shot = get.Shot(obj)
+            Shot = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','sr_ms1j2','rHot'});
         end
 
         function Sr25 = get.Sr25(obj)
@@ -493,44 +513,44 @@ classdef REACHcal
             Sr100 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','r100'});
         end
 
-        function err_source_r36 = get.err_source_r36(obj)
-            err_source_r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sr36.network.getS.d11);
+        function err_source_c12r36 = get.err_source_c12r36(obj)
+            err_source_c12r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
         end
 
-        function err_source_r27 = get.err_source_r27(obj)
-            err_source_r27 = obj.errRIA(obj.S11_meas_c12r27,obj.Sr27.network.getS.d11);
+        function err_source_c12r27 = get.err_source_c12r27(obj)
+            err_source_c12r27 = obj.errRIA(obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
         end
 
-        function err_source_r69 = get.err_source_r69(obj)
-            err_source_r69 = obj.errRIA(obj.S11_meas_c12r69,obj.Sr69.network.getS.d11);
+        function err_source_c12r69 = get.err_source_c12r69(obj)
+            err_source_c12r69 = obj.errRIA(obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
         end
 
-        function err_source_r91 = get.err_source_r91(obj)
-            err_source_r91 = obj.errRIA(obj.S11_meas_c12r91,obj.Sr91.network.getS.d11);
+        function err_source_c12r91 = get.err_source_c12r91(obj)
+            err_source_c12r91 = obj.errRIA(obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
         end
 
-        function err_source_rOpen = get.err_source_rOpen(obj)
-            err_source_rOpen = obj.errRIA(obj.S11_meas_c25open,obj.SrOpen.network.getS.d11);
+        function err_source_c25open = get.err_source_c25open(obj)
+            err_source_c25open = obj.errRIA(obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
         end
 
-        function err_source_rShort = get.err_source_rShort(obj)
-            err_source_rShort = obj.errRIA(obj.S11_meas_c25short,obj.SrShort.network.getS.d11);
+        function err_source_c25short = get.err_source_c25short(obj)
+            err_source_c25short = obj.errRIA(obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
         end
 
-        function err_source_r10 = get.err_source_r10(obj)
-            err_source_r10 = obj.errRIA(obj.S11_meas_c25r10,obj.Sr10.network.getS.d11);
+        function err_source_c25r10 = get.err_source_c25r10(obj)
+            err_source_c25r10 = obj.errRIA(obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
         end
 
-        function err_source_r250 = get.err_source_r250(obj)
-            err_source_r250 = obj.errRIA(obj.S11_meas_c25r250,obj.Sr250.network.getS.d11);
+        function err_source_c25r250 = get.err_source_c25r250(obj)
+            err_source_c25r250 = obj.errRIA(obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
         end
 
-        function err_source_rCold = get.err_source_rCold(obj)
-            err_source_rCold = obj.errRIA(obj.S11_meas_cold,obj.SrCold.network.getS.d11);
+        function err_source_cold = get.err_source_cold(obj)
+            err_source_cold = obj.errRIA(obj.S11_meas_cold,obj.Scold.network.getS.d11);
         end
 
-        function err_source_rHot = get.err_source_rHot(obj)
-            err_source_rHot = obj.errRIA(obj.S11_meas_hot,obj.SrHot.network.getS.d11);
+        function err_source_hot = get.err_source_hot(obj)
+            err_source_hot = obj.errRIA(obj.S11_meas_hot,obj.Shot.network.getS.d11);
         end
 
         function err_source_r25 = get.err_source_r25(obj)
@@ -566,6 +586,14 @@ classdef REACHcal
         end
 
         % Measurement data
+        function obj = readS11data(obj)
+            % READS11DATA read the set of S11 measurements
+
+            for ii = 1:length(obj.sourceNames)
+                obj.(['S11_meas_',obj.sourceNames{ii}]) = obj.readSourceS11(obj.sourceNames{ii});
+            end
+        end
+
         function [S11,freq] = readSourceS11(obj,sourceName,interpFlag)
             % READSOURCES11 returns the measured source S11 in a vector
             % Also interpolates onto the object frequencies
@@ -578,6 +606,68 @@ classdef REACHcal
             if interpFlag
                 S11 = interp1(freq,S11,obj.freqHz,'linear');
                 freq = obj.freqHz;
+            end
+        end
+
+        function obj = readTempData(obj)
+            % READTEMPDATA reads the temperature data
+
+            for ii = 1:length(obj.sourceNames)
+                fid = fopen([obj.dataPath,obj.sourceNames{ii},'\temperature.txt'], 'r');
+                T = fscanf(fid, '%f');
+                fclose(fid);
+                obj.(['T_meas_',obj.sourceNames{ii}]) = T;
+            end
+        end
+
+        function obj = readPSDdata(obj)
+            % READPSDDATA read the set of PSD measurements
+
+            for ii = 1:length(obj.sourceNames)
+                obj.(['PSD_meas_',obj.sourceNames{ii}]) = obj.readSourcePSD(obj.sourceNames{ii});
+            end
+        end
+
+        function PSDstruct = readSourcePSD(obj,sourceName)
+            % READSOURCEPSD reads the PSD data into the structure format
+
+            assert(ismember(sourceName,obj.sourceNames),'Unknown source name - check REACHcal.sourceNames')
+
+            fileNames = {'load','noise','source'};
+            
+            for ii = 1:length(fileNames)
+                fid = fopen([obj.dataPath,sourceName,'\psd_',fileNames{ii},'.txt'], 'r');
+                S = fscanf(fid, '%c');
+                fclose(fid);
+
+                % Get all end-of-line indexes
+                in2 = strfind(S,char([10]));
+
+                % Get timestamp
+                timeStr = '# Timestamp:';
+                in1 = strfind(S,timeStr);
+                ind = find(in2>in1); ind = ind(1);
+                ln = S(in1+length(timeStr):in2(ind));
+                ts = sscanf(ln,'%f');
+                % Get frequencies
+                freqStr = '# Frequencies:';
+                in1 = strfind(S,freqStr);
+                ind = find(in2>in1); ind = ind(1);
+                ln = S(in1+length(freqStr):in2(ind));
+                frequency = double(split(string(ln),',')).';
+                frequency = frequency(frequency >= 50);
+                % Get PSD values
+                ln = S(in2(ind)+1:in2(end));
+                PSD = double(split(string(ln),',')).';
+                
+                PSDstruct.(['timestamp_',fileNames{ii}]) = ts;
+                PSDstruct.(['PSD_',fileNames{ii}]) = PSD;
+                PSDstruct.(['freq_',fileNames{ii}]) = frequency;
+            end
+            assert(all(PSDstruct.freq_noise == PSDstruct.freq_source) && all(PSDstruct.freq_source == PSDstruct.freq_load),'Frequencies not consistant in PSDs')
+            PSDstruct.freq = PSDstruct.freq_noise;
+            for ii = 1:length(fileNames)
+                PSDstruct = rmfield(PSDstruct,['freq_',fileNames{ii}]);
             end
         end
 
@@ -594,35 +684,35 @@ classdef REACHcal
 
             switch lower(configName)
                 case {'r36'}
-                    optElements = obj.Sr36.elements;
-                    errElements = {'r36'};
+                    optElements = obj.Sc12r36.elements;
+                    errElements = {'c12r36'};
                 case {'r27'}
-                    optElements = obj.Sr27.elements;
-                    errElements = {'r27'};
+                    optElements = obj.Sc12r27.elements;
+                    errElements = {'c12r27'};
                 case {'r69'}
-                    optElements = obj.Sr69.elements;
-                    errElements = {'r69'};
+                    optElements = obj.Sc12r69.elements;
+                    errElements = {'c12r69'};
                 case {'r91'}
-                    optElements = obj.Sr91.elements;
-                    errElements = {'r91'};
+                    optElements = obj.Sc12r91.elements;
+                    errElements = {'c12r91'};
                 case {'ropen','open'}
-                    optElements = obj.SrOpen.elements;
-                    errElements = {'rOpen'};
+                    optElements = obj.Sc25open.elements;
+                    errElements = {'c25open'};
                 case {'rshort','short'}
-                    optElements = obj.SrShort.elements;
-                    errElements = {'rShort'};
+                    optElements = obj.Sc25short.elements;
+                    errElements = {'c25short'};
                 case {'r10'}
-                    optElements = obj.Sr10.elements;
-                    errElements = {'r10'};
+                    optElements = obj.Sc25r10.elements;
+                    errElements = {'c25r10'};
                 case {'r250'}
-                    optElements = obj.Sr250.elements;
-                    errElements = {'r250'};
+                    optElements = obj.Sc25r250.elements;
+                    errElements = {'c25r250'};
                 case {'rcold'}
-                    optElements = obj.SrCold.elements;
-                    errElements = {'rCold'};
+                    optElements = obj.Scold.elements;
+                    errElements = {'cold'};
                 case {'rhot'}
-                    optElements = obj.SrHot.elements;
-                    errElements = {'rHot'};
+                    optElements = obj.Shot.elements;
+                    errElements = {'hot'};
                 case {'r25'}
                     optElements = obj.Sr25.elements;
                     errElements = {'r25'};
@@ -631,16 +721,16 @@ classdef REACHcal
                     errElements = {'r100'};
                 case {'ms3set'}
                     optElements = {'r36','r27','r69','r91','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
-                    errElements = {'r36','r27','r69','r91'};
+                    errElements = {'c12r36','c12r27','c12r69','c12r91'};
                 case {'ms3set_lim'}
                     optElements = {'r36','r27','r69','r91','ms3','c2'};
-                    errElements = {'r36','r27','r69','r91'};
+                    errElements = {'c12r36','c12r27','c12r69','c12r91'};
                 case {'ms4set'}
                     optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
-                    errElements = {'rOpen','rShort','r10','r250'};
+                    errElements = {'c25open','c25short','c25r10','c25r250'};
                 case {'ms4set_lim'}
                     optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1'};
-                    errElements = {'rOpen','rShort','r10','r250'};
+                    errElements = {'c25open','c25short','c25r10','c25r250'};
                 case {'ms4set_lim_10_250'}
                     optElements = {'r10','r250','ms4','c10'};
                     errElements = {'r10','r250'};
@@ -783,34 +873,29 @@ classdef REACHcal
             if nargin < 2 || isempty(plotFlag), plotFlag = 3; end
             if nargin < 3 || isempty(style), style = 'k'; end
 
-            Svect = [obj.Sr36,obj.Sr27,obj.Sr69,obj.Sr91,...
-                    obj.SrOpen,obj.SrShort,obj.Sr10,obj.Sr250,...
-                    obj.SrCold,obj.SrHot,obj.Sr25,obj.Sr100];
-            measVect = {obj.S11_meas_c12r36,obj.S11_meas_c12r27,obj.S11_meas_c12r69,obj.S11_meas_c12r91,...
-                obj.S11_meas_c25open,obj.S11_meas_c25short,obj.S11_meas_c25r10,obj.S11_meas_c25r250,...
-                obj.S11_meas_cold,obj.S11_meas_hot,obj.S11_meas_r25,obj.S11_meas_r100};
-            nameVect = {'r36','r27','r69','r91','Open','Short','r10','r250','cold','hot','r25','r100'};
-
             if ~iscell(style), style = {style,style}; end
             if plotFlag == 3, style = {'r','k'}; end
 
-            for ii = 1:length(Svect)
+            for ii = 1:length(obj.sourceNames)
+                measVals = obj.(['S11_meas_',obj.sourceNames{ii}]);
+                if ii < length(obj.sourceNames), Smod = obj.(['S',obj.sourceNames{ii}]); end   
                 row1 = floor((ii-1)/4);
                 col1 = mod((ii-1),4);
                 subplot(8,8,(2*row1*8 + [1:2] + 2*col1))
                 grid on, hold on
-                if mod(plotFlag,2) ~= 0, Svect(ii).network.getS.plot11dB(style{1}); end
-                if plotFlag > 1, plot(obj.freq,dB20(measVect{ii}),style{2}); end
-                title(nameVect{ii})
+                if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11dB(style{1}); end
+                if plotFlag > 1, plot(obj.freq,dB20(measVals),style{2}); end
+                title([obj.sourceNames{ii},'; T = ',num2str(obj.(['T_meas_',obj.sourceNames{ii}])), ' K'])
                 subplot(8,8,((2*row1+1)*8 + 1 + 2*col1))
                 grid on, hold on
-                if mod(plotFlag,2) ~= 0, Svect(ii).network.getS.plot11real(style{1}); end
-                if plotFlag > 1, plot(obj.freq,real(measVect{ii}),style{2}); end
+                if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11real(style{1}); end
+                if plotFlag > 1, plot(obj.freq,real(measVals),style{2}); end
                 subplot(8,8,((2*row1+1)*8 + 2 + 2*col1))
                 grid on, hold on
-                if mod(plotFlag,2) ~= 0, Svect(ii).network.getS.plot11imag(style{1}); end
-                if plotFlag > 1, plot(obj.freq,imag(measVect{ii}),style{2}); end
+                if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11imag(style{1}); end
+                if plotFlag > 1, plot(obj.freq,imag(measVals),style{2}); end
             end
+
         end
 
         function plotAllParameters(obj,style)
