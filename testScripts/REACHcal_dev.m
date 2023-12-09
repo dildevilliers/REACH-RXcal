@@ -7,32 +7,32 @@ R.plotSourceAllS11(3,{'r','k'})
 figure(2)
 R.plotAllParameters('k*')
 
-figure
-subplot(2,2,1)
-R.S_meas_MS3_J1.plot11dB('k'), grid on, hold on
-R.S_meas_MS3_J2.plot11dB('b'), grid on, hold on
-R.S_meas_MS3_J3.plot11dB('r'), grid on, hold on
-R.S_meas_MS3_J4.plot11dB('g'), grid on, hold on
-R.ms3.network.getS.plot11dB('c')
-title('MS-3')
-subplot(2,2,2)
-R.S_meas_MS3_J1.plot11RI('k'), grid on, hold on
-R.S_meas_MS3_J2.plot11RI('b'), grid on, hold on
-R.S_meas_MS3_J3.plot11RI('r'), grid on, hold on
-R.S_meas_MS3_J4.plot11RI('g'), grid on, hold on
-R.ms3.network.getS.plot11RI('c')
-subplot(2,2,3)
-R.S_meas_MS3_J1.plot21dB('k'), grid on, hold on
-R.S_meas_MS3_J2.plot21dB('b'), grid on, hold on
-R.S_meas_MS3_J3.plot21dB('r'), grid on, hold on
-R.S_meas_MS3_J4.plot21dB('g'), grid on, hold on
-R.ms3.network.getS.plot21dB('c')
-subplot(2,2,4)
-R.S_meas_MS3_J1.plot21RI('k'), grid on, hold on
-R.S_meas_MS3_J2.plot21RI('b'), grid on, hold on
-R.S_meas_MS3_J3.plot21RI('r'), grid on, hold on
-R.S_meas_MS3_J4.plot21RI('g'), grid on, hold on
-R.ms3.network.getS.plot21RI('c')
+% figure
+% subplot(2,2,1)
+% R.S_meas_MS3_J1.plot11dB('k'), grid on, hold on
+% R.S_meas_MS3_J2.plot11dB('b'), grid on, hold on
+% R.S_meas_MS3_J3.plot11dB('r'), grid on, hold on
+% R.S_meas_MS3_J4.plot11dB('g'), grid on, hold on
+% R.ms3.network.getS.plot11dB('c')
+% title('MS-3')
+% subplot(2,2,2)
+% R.S_meas_MS3_J1.plot11RI('k'), grid on, hold on
+% R.S_meas_MS3_J2.plot11RI('b'), grid on, hold on
+% R.S_meas_MS3_J3.plot11RI('r'), grid on, hold on
+% R.S_meas_MS3_J4.plot11RI('g'), grid on, hold on
+% R.ms3.network.getS.plot11RI('c')
+% subplot(2,2,3)
+% R.S_meas_MS3_J1.plot21dB('k'), grid on, hold on
+% R.S_meas_MS3_J2.plot21dB('b'), grid on, hold on
+% R.S_meas_MS3_J3.plot21dB('r'), grid on, hold on
+% R.S_meas_MS3_J4.plot21dB('g'), grid on, hold on
+% R.ms3.network.getS.plot21dB('c')
+% subplot(2,2,4)
+% R.S_meas_MS3_J1.plot21RI('k'), grid on, hold on
+% R.S_meas_MS3_J2.plot21RI('b'), grid on, hold on
+% R.S_meas_MS3_J3.plot21RI('r'), grid on, hold on
+% R.S_meas_MS3_J4.plot21RI('g'), grid on, hold on
+% R.ms3.network.getS.plot21RI('c')
 
 
 
@@ -92,6 +92,13 @@ R.ms3.network.getS.plot21RI('c')
 % R100.plotSourceAllS11(1,{'m'})
 % figure(2)
 % R100.plotAllParameters('m*')
+
+% Rhot = R.optimConfig('custom',{'rHot','sr_ms1j2'},{'rHot'});
+% Rhot = Rhot.fitParams('fmincon');
+% figure(1)
+% Rhot.plotSourceAllS11(1,{'m'})
+% figure(2)
+% Rhot.plotAllParameters('m*')
 
 
 % tic

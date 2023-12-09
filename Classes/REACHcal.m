@@ -62,6 +62,18 @@ classdef REACHcal
         r250_min = [0,0,0,240];
         r250_optFlag = [1,1,1,1];
 
+        rCold_vals = [0.3876 2.0638 0.0537 50.2550];
+        rCold_unitScales = [1e-12,1e-9,1e-12,1];
+        rCold_max = [1,5,1,51];
+        rCold_min = [0,0,0,49];
+        rCold_optFlag = [1,1,1,1];
+
+        rHot_vals = [3.7886 9.7978 0.9865 50.8162];
+        rHot_unitScales = [1e-12,1e-9,1e-12,1];
+        rHot_max = [10,20,10,51];
+        rHot_min = [0,0,0,49];
+        rHot_optFlag = [1,1,1,1];
+
         r25_vals = [16.1297 9.6251 5.2162 25.1860];
         r25_unitScales = [1e-12,1e-9,1e-12,1];
         r25_max = [20,80,20,27];
@@ -73,12 +85,6 @@ classdef REACHcal
         r100_max = [5,100,5,103];
         r100_min = [0,0,0,97];
         r100_optFlag = [1,1,1,1];
-
-        rCold_vals = [0.3876 2.0638 0.0537 50.2550];
-        rCold_unitScales = [1e-12,1e-9,1e-12,1];
-        rCold_max = [1,5,1,51];
-        rCold_min = [0,0,0,49];
-        rCold_optFlag = [1,1,1,1];
 
 
         % Cables
@@ -132,6 +138,12 @@ classdef REACHcal
         sr_mtsj1_min = [48,120,2.0,0,0];
         sr_mtsj1_optFlag = [1,1,1,1,1];
 
+        sr_ms1j2_vals = [54.4476 114.7614 2.0523 2.9177e-04 1.0598];
+        sr_ms1j2_unitScales = [1,1e-3,1,1,1];
+        sr_ms1j2_max = [55,130,2.1,0.0005,2];
+        sr_ms1j2_min = [48,110,2.0,0,0];
+        sr_ms1j2_optFlag = [1,1,1,1,1];
+
 %         sr_mtsj2_vals = [48.8300 125.1396 0.0015 2.0486 -5.7059e-04 2.5002e-04 -9.5231e-05 0.9733];
 %         sr_mtsj2_unitScales = [1,1e-3,1,1,1,1,1,1];
 %         sr_mtsj2_max = [52,140,0.1,2.1,0.1,0.0005,0.1,2];
@@ -173,6 +185,7 @@ classdef REACHcal
         S11_meas_c25r10
         S11_meas_c25r250
         S11_meas_cold
+        S11_meas_hot
         S11_meas_r25
         S11_meas_r100
 
@@ -190,7 +203,7 @@ classdef REACHcal
         optVect_Nvars(1,:) double {mustBeInteger,mustBeNonnegative}
         optVect_Ne(1,1) double {mustBeInteger,mustBePositive} = 10
         optW_RIA(1,2) double {mustBeNonnegative} = [2 1]   % Weights of the real-imag and dB20 differences in the error functions
-        optW(1,:) double {mustBeNonnegative} = [1 1 1 1 1 1 1 1 1 1 1]
+        optW(1,:) double {mustBeNonnegative} = [1 1 1 1 1 1 1 1 1 1 1 1]
         
     end
 
@@ -205,6 +218,7 @@ classdef REACHcal
         r10(1,1) struct
         r250(1,1) struct
         rCold(1,1) struct
+        rHot(1,1) struct
         r25(1,1) struct
         r100(1,1) struct
         c2(1,1) struct
@@ -215,6 +229,7 @@ classdef REACHcal
         mts(1,1) struct
         sr_mtsj2(1,1) struct
         sr_mtsj1(1,1) struct
+        sr_ms1j2(1,1) struct
         a_ms3(1,1) struct
         a_ms1j7(1,1) struct
         a_ms1(1,1) struct
@@ -228,6 +243,7 @@ classdef REACHcal
         Sr10(1,1) struct
         Sr250(1,1) struct
         SrCold(1,1) struct
+        SrHot(1,1) struct
         Sr25(1,1) struct
         Sr100(1,1) struct
 
@@ -246,6 +262,7 @@ classdef REACHcal
         err_source_r10
         err_source_r250
         err_source_rCold
+        err_source_rHot
         err_source_r25
         err_source_r100
 
@@ -264,8 +281,8 @@ classdef REACHcal
         cShortVarNames = {'Z0','L','eps_r','tan_d','r_prime'};
         adaptVarNames = {'C1','L1','C2'};
 
-        optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','c2','c10'};
-        optErrElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','r25','r100'};
+        optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','sr_ms1j2','c2','c10'};
+        optErrElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100'};
     end
 
     methods
@@ -291,6 +308,7 @@ classdef REACHcal
             obj.S11_meas_c25open = obj.readSourceS11('c25open');
             obj.S11_meas_c25short = obj.readSourceS11('c25short');
             obj.S11_meas_cold = obj.readSourceS11('cold');
+            obj.S11_meas_hot = obj.readSourceS11('hot');
             obj.S11_meas_r25 = obj.readSourceS11('r25');
             obj.S11_meas_r100 = obj.readSourceS11('r100');
 
@@ -365,6 +383,10 @@ classdef REACHcal
             rCold = obj.buildRstruct(obj.rCold_vals,obj.rCold_unitScales,obj.rCold_max,obj.rCold_min,obj.rCold_optFlag);
         end
 
+        function rHot = get.rHot(obj)
+            rHot = obj.buildRstruct(obj.rHot_vals,obj.rHot_unitScales,obj.rHot_max,obj.rHot_min,obj.rHot_optFlag);
+        end
+
         function r25 = get.r25(obj)
             r25 = obj.buildRstruct(obj.r25_vals,obj.r25_unitScales,obj.r25_max,obj.r25_min,obj.r25_optFlag);
         end
@@ -405,6 +427,10 @@ classdef REACHcal
         function sr_mtsj2 = get.sr_mtsj2(obj)
             sr_mtsj2 = obj.buildShortCableStruct(obj.sr_mtsj2_vals,obj.sr_mtsj2_unitScales,obj.sr_mtsj2_max,obj.sr_mtsj2_min,obj.sr_mtsj2_optFlag);
 %             sr_mtsj2 = obj.buildCableStruct(obj.sr_mtsj2_vals,obj.sr_mtsj2_unitScales,obj.sr_mtsj2_max,obj.sr_mtsj2_min,obj.sr_mtsj2_optFlag);
+        end
+
+        function sr_ms1j2 = get.sr_ms1j2(obj)
+            sr_ms1j2 = obj.buildShortCableStruct(obj.sr_ms1j2_vals,obj.sr_ms1j2_unitScales,obj.sr_ms1j2_max,obj.sr_ms1j2_min,obj.sr_ms1j2_optFlag);
         end
 
         function a_ms3 = get.a_ms3(obj)
@@ -455,6 +481,10 @@ classdef REACHcal
             SrCold = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','rCold'});
         end
 
+        function SrHot = get.SrHot(obj)
+            SrHot = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','sr_ms1j2','rHot'});
+        end
+
         function Sr25 = get.Sr25(obj)
             Sr25 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','r25'});
         end
@@ -497,6 +527,10 @@ classdef REACHcal
 
         function err_source_rCold = get.err_source_rCold(obj)
             err_source_rCold = obj.errRIA(obj.S11_meas_cold,obj.SrCold.network.getS.d11);
+        end
+
+        function err_source_rHot = get.err_source_rHot(obj)
+            err_source_rHot = obj.errRIA(obj.S11_meas_hot,obj.SrHot.network.getS.d11);
         end
 
         function err_source_r25 = get.err_source_r25(obj)
@@ -586,6 +620,9 @@ classdef REACHcal
                 case {'rcold'}
                     optElements = obj.SrCold.elements;
                     errElements = {'rCold'};
+                case {'rhot'}
+                    optElements = obj.SrHot.elements;
+                    errElements = {'rHot'};
                 case {'r25'}
                     optElements = obj.Sr25.elements;
                     errElements = {'r25'};
@@ -748,11 +785,11 @@ classdef REACHcal
 
             Svect = [obj.Sr36,obj.Sr27,obj.Sr69,obj.Sr91,...
                     obj.SrOpen,obj.SrShort,obj.Sr10,obj.Sr250,...
-                    obj.SrCold,obj.Sr25,obj.Sr100];
+                    obj.SrCold,obj.SrHot,obj.Sr25,obj.Sr100];
             measVect = {obj.S11_meas_c12r36,obj.S11_meas_c12r27,obj.S11_meas_c12r69,obj.S11_meas_c12r91,...
                 obj.S11_meas_c25open,obj.S11_meas_c25short,obj.S11_meas_c25r10,obj.S11_meas_c25r250,...
-                obj.S11_meas_cold,obj.S11_meas_r25,obj.S11_meas_r100};
-            nameVect = {'r36','r27','r69','r91','Open','Short','r10','r250','cold','r25','r100'};
+                obj.S11_meas_cold,obj.S11_meas_hot,obj.S11_meas_r25,obj.S11_meas_r100};
+            nameVect = {'r36','r27','r69','r91','Open','Short','r10','r250','cold','hot','r25','r100'};
 
             if ~iscell(style), style = {style,style}; end
             if plotFlag == 3, style = {'r','k'}; end
