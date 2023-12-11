@@ -343,7 +343,7 @@ classdef REACHcal
             
             inStructs.r36 = parseobj.Results.r36;
 
-            if isfield(inStructs,'r36') 
+            if isfield(inStructs,'r36') && ~isempty(inStructs.('r36'))
                 fn = fieldnames(inStructs.('r36'));
                 ind = ismember(fn,obj.validFieldsInputStruct);
                 if ~all(ind)
