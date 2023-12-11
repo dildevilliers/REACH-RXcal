@@ -18,131 +18,131 @@ classdef REACHcal
         r36_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r36_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,40,10,38];
         r36_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,34];
-        r36_optFlag = [1,1,1,1];
+        r36_optFlag(1,4) logical = [1,1,1,1];
 
         r27_vals(1,4) double {mustBeReal,mustBeNonnegative} = [4.4148 24.1903 9.0568 27.3331];
         r27_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r27_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,40,20,29];
         r27_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,25];
-        r27_optFlag = [1,1,1,1];
+        r27_optFlag(1,4) logical = [1,1,1,1];
 
         r69_vals(1,4) double {mustBeReal,mustBeNonnegative} = [7.2883 36.4569 4.6570 69.9235];
         r69_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r69_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,60,20,72];
         r69_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,66];
-        r69_optFlag = [1,1,1,1];
+        r69_optFlag(1,4) logical = [1,1,1,1];
 
         r91_vals(1,4) double {mustBeReal,mustBeNonnegative} = [8.3539 49.6584 3.7671 93.1463];
         r91_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r91_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,20,95];
         r91_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,86];
-        r91_optFlag = [1,1,1,1];
+        r91_optFlag(1,4) logical = [1,1,1,1];
 
         rOpen_vals(1,4) double {mustBeReal,mustBeNonnegative} = [3.3378 52.2454 3.7027 391.5123];
         rOpen_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1e6];
         rOpen_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,150,20,1000];
         rOpen_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,5];
-        rOpen_optFlag = [1,1,1,1];
+        rOpen_optFlag(1,4) logical = [1,1,1,1];
 
         rShort_vals(1,4) double {mustBeReal,mustBeNonnegative} = [7.9373 18.6394 9.9928 0.3677];
         rShort_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         rShort_max(1,4) double {mustBeReal,mustBeNonnegative} = [50,80,20,2];
         rShort_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,0];
-        rShort_optFlag = [1,1,1,1];
+        rShort_optFlag(1,4) logical = [1,1,1,1];
 
         r10_vals(1,4) double {mustBeReal,mustBeNonnegative} = [5.3058 20.9861 10.7688 10.3533];
         r10_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
-        r10_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,20,11];
+        r10_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,40,11];
         r10_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,9];
-        r10_optFlag = [1,1,1,1];
+        r10_optFlag(1,4) logical = [1,1,1,1];
 
         r250_vals(1,4) double {mustBeReal,mustBeNonnegative} = [4.5536 21.6320 3.5899 254.1647];
         r250_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
-        r250_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,20,270];
+        r250_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,20,280];
         r250_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,240];
-        r250_optFlag = [1,1,1,1];
+        r250_optFlag(1,4) logical = [1,1,1,1];
 
         rCold_vals(1,4) double {mustBeReal,mustBeNonnegative} = [0.3876 2.0638 0.0537 50.2550];
         rCold_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         rCold_max(1,4) double {mustBeReal,mustBeNonnegative} = [1,5,1,51];
         rCold_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,49];
-        rCold_optFlag = [1,1,1,1];
+        rCold_optFlag(1,4) logical = [1,1,1,1];
 
         rHot_vals(1,4) double {mustBeReal,mustBeNonnegative} = [3.7886 9.7978 0.9865 50.8162];
         rHot_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         rHot_max(1,4) double {mustBeReal,mustBeNonnegative} = [10,20,10,51];
         rHot_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,49];
-        rHot_optFlag = [1,1,1,1];
+        rHot_optFlag(1,4) logical = [1,1,1,1];
 
         r25_vals(1,4) double {mustBeReal,mustBeNonnegative} = [16.1297 9.6251 5.2162 25.1860];
         r25_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r25_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,20,27];
         r25_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,23];
-        r25_optFlag = [1,1,1,1];
+        r25_optFlag(1,4) logical = [1,1,1,1];
 
         r100_vals(1,4) double {mustBeReal,mustBeNonnegative} = [7.3128e-05 44.9274 2.6004 101.7963];
         r100_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r100_max(1,4) double {mustBeReal,mustBeNonnegative} = [5,100,5,103];
         r100_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,97];
-        r100_optFlag = [1,1,1,1];
+        r100_optFlag(1,4) logical = [1,1,1,1];
 
 
         % Cables
-        c2_vals = [49.4791 1.9407 0.0214 1.3723 0.0088 0.0093 0.0323 0.6720];
-        c2_unitScales = [1,1,1,1,1,1,1,1];
-        c2_max = [52,2.1,0.1,1.9,0.1,0.01,0.1,2];
-        c2_min = [48,1.9,-0.1,1.3,-0.1,0,-0.1,0];
-        c2_optFlag = [1,1,1,1,1,1,1,1].*0;
+        c2_vals(1,8) double {mustBeReal} = [49.4791 1.9407 0.0214 1.3723 0.0088 0.0093 0.0323 0.6720];
+        c2_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1,1,1,1,1,1,1];
+        c2_max(1,8) double {mustBeReal} = [52,2.1,0.1,1.9,0.1,0.01,0.1,2];
+        c2_min(1,8) double {mustBeReal} = [48,1.9,-0.1,1.3,-0.1,0,-0.1,0];
+        c2_optFlag(1,8) logical = [1,1,1,1,1,1,1,1];
 
-        c10_vals = [49.7610 9.9198 -0.0118 1.4059 -0.0014 0.0068 0.0074 0.4267];
-        c10_unitScales = [1,1,1,1,1,1,1,1];
-        c10_max = [52,10.1,0.1,1.5,0.1,0.01,0.1,2];
-        c10_min = [48,9.9,-0.1,1.4,-0.1,0,-0.1,0];
-        c10_optFlag = [1,1,1,1,1,1,1,1];
+        c10_vals(1,8) double {mustBeReal} = [49.7610 9.9198 -0.0118 1.4059 -0.0014 0.0068 0.0074 0.4267];
+        c10_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1,1,1,1,1,1,1];
+        c10_max(1,8) double {mustBeReal} = [52,10.1,0.1,1.5,0.1,0.01,0.1,2];
+        c10_min(1,8) double {mustBeReal} = [48,9.9,-0.1,1.4,-0.1,0,-0.1,0];
+        c10_optFlag(1,8) logical = [1,1,1,1,1,1,1,1];
 
         % Mechanical switches
-        ms1_vals = [51.7101 13.3335 1.7260 0.0052 4.4804];
-        ms1_unitScales = [1,1e-3,1,1,1];
-        ms1_max = [52,18,1.9,0.01,10];
-        ms1_min = [48,9,1.5,0,0];
-        ms1_optFlag = [1,1,1,1,1];
+        ms1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [51.7101 13.3335 1.7260 0.0052 4.4804];
+        ms1_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
+        ms1_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,18,1.9,0.01,10];
+        ms1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,9,1.5,0,0];
+        ms1_optFlag(1,5) logical = [1,1,1,1,1];
 
-        ms3_vals = [50.0232 13.3749 1.6933 0.0051 4.4749];
-        ms3_unitScales = [1,1e-3,1,1,1];
-        ms3_max = [52,18,1.9,0.01,10];
-        ms3_min = [48,9,1.5,0,0];
-        ms3_optFlag = [1,1,1,1,1];
+        ms3_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.0232 13.3749 1.6933 0.0051 4.4749];
+        ms3_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
+        ms3_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,18,1.9,0.01,10];
+        ms3_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,9,1.5,0,0];
+        ms3_optFlag(1,5) logical = [1,1,1,1,1];
 
-        ms4_vals = [50.0232 13.3749 1.6933 0.0051 4.4749];
-        ms4_unitScales = [1,1e-3,1,1,1];
-        ms4_max = [53,20,1.9,0.01,10];
-        ms4_min = [47,9,1.5,0,0];
-        ms4_optFlag = [1,1,1,1,1];
+        ms4_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.0232 13.3749 1.6933 0.0051 4.4749];
+        ms4_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
+        ms4_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,20,1.9,0.01,10];
+        ms4_min(1,5) double {mustBeReal,mustBeNonnegative} = [47,9,1.5,0,0];
+        ms4_optFlag(1,5) logical = [1,1,1,1,1];
 
-        mts_vals = [50.9304 113.2259 1.6351 0.0059 3.9662];
-        mts_unitScales = [1,1e-3,1,1,1];
-        mts_max = [52,140,1.9,0.01,10];
-        mts_min = [48,100,1.5,0,0];
-        mts_optFlag = [1,1,1,1,1];
+        mts_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.9304 113.2259 1.6351 0.0059 3.9662];
+        mts_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
+        mts_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,140,1.9,0.01,10];
+        mts_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,100,1.5,0,0];
+        mts_optFlag(1,5) logical = [1,1,1,1,1];
 
         % Semi-ridged links
-        sr_mtsj2_vals = [48.4377 125.1712 2.0504 2.5188e-04 0.9629];
-        sr_mtsj2_unitScales = [1,1e-3,1,1,1];
-        sr_mtsj2_max = [52,130,2.1,0.0005,2];
-        sr_mtsj2_min = [48,120,2.0,0,0];
-        sr_mtsj2_optFlag = [1,1,1,1,1];
+        sr_mtsj2_vals(1,5) double {mustBeReal,mustBeNonnegative} = [48.4377 125.1712 2.0504 2.5188e-04 0.9629];
+        sr_mtsj2_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
+        sr_mtsj2_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,130,2.1,0.0005,2];
+        sr_mtsj2_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,120,2.0,0,0];
+        sr_mtsj2_optFlag(1,5) logical = [1,1,1,1,1];
 
-        sr_mtsj1_vals = [49.2178 124.9098 2.0459 2.5273e-04 1.0101];
-        sr_mtsj1_unitScales = [1,1e-3,1,1,1];
-        sr_mtsj1_max = [52,130,2.1,0.0005,2];
-        sr_mtsj1_min = [48,120,2.0,0,0];
-        sr_mtsj1_optFlag = [1,1,1,1,1];
+        sr_mtsj1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [49.2178 124.9098 2.0459 2.5273e-04 1.0101];
+        sr_mtsj1_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
+        sr_mtsj1_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,130,2.1,0.0005,2];
+        sr_mtsj1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,120,2.0,0,0];
+        sr_mtsj1_optFlag(1,5) logical = [1,1,1,1,1];
 
-        sr_ms1j2_vals = [54.4476 114.7614 2.0523 2.9177e-04 1.0598];
-        sr_ms1j2_unitScales = [1,1e-3,1,1,1];
-        sr_ms1j2_max = [55,130,2.1,0.0005,2];
-        sr_ms1j2_min = [48,110,2.0,0,0];
-        sr_ms1j2_optFlag = [1,1,1,1,1];
+        sr_ms1j2_vals(1,5) double {mustBeReal,mustBeNonnegative} = [54.4476 114.7614 2.0523 2.9177e-04 1.0598];
+        sr_ms1j2_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
+        sr_ms1j2_max(1,5) double {mustBeReal,mustBeNonnegative} = [55,130,2.1,0.0005,2];
+        sr_ms1j2_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,110,2.0,0,0];
+        sr_ms1j2_optFlag(1,5) logical = [1,1,1,1,1];
 
 %         sr_mtsj2_vals = [48.8300 125.1396 0.0015 2.0486 -5.7059e-04 2.5002e-04 -9.5231e-05 0.9733];
 %         sr_mtsj2_unitScales = [1,1e-3,1,1,1,1,1,1];
@@ -156,24 +156,24 @@ classdef REACHcal
 %         sr_mtsj1_min = [48,110,-0.1,2.0,-0.1,0,-0.1,0];
 %         sr_mtsj1_optFlag = [1,1,1,1,1,1,1,1];
 
-        % Adaptors (not used at present)
-        a_ms3_vals = [1.2110 0.0845 0.6999];
-        a_ms3_unitScales = [1e-12 1e-9 1e-12];
-        a_ms3_max = [3 1 2];
-        a_ms3_min = [0 0 0];
-        a_ms3_optFlag = [1 1 1];
-
-        a_ms1j7_vals = [1.2110 0.0845 0.6999];
-        a_ms1j7_unitScales = [1e-12 1e-9 1e-12];
-        a_ms1j7_max = [3 1 2];
-        a_ms1j7_min = [0 0 0];
-        a_ms1j7_optFlag = [1 1 1];
-
-        a_ms1_vals = [0 0 0] + eps;
-        a_ms1_unitScales = [1e-12 1e-9 1e-12];
-        a_ms1_max = [3 1 2];
-        a_ms1_min = [0 0 0];
-        a_ms1_optFlag = [1 1 1];
+%         % Adaptors (not used at present)
+%         a_ms3_vals = [1.2110 0.0845 0.6999];
+%         a_ms3_unitScales = [1e-12 1e-9 1e-12];
+%         a_ms3_max = [3 1 2];
+%         a_ms3_min = [0 0 0];
+%         a_ms3_optFlag = [1 1 1];
+% 
+%         a_ms1j7_vals = [1.2110 0.0845 0.6999];
+%         a_ms1j7_unitScales = [1e-12 1e-9 1e-12];
+%         a_ms1j7_max = [3 1 2];
+%         a_ms1j7_min = [0 0 0];
+%         a_ms1j7_optFlag = [1 1 1];
+% 
+%         a_ms1_vals = [0 0 0] + eps;
+%         a_ms1_unitScales = [1e-12 1e-9 1e-12];
+%         a_ms1_max = [3 1 2];
+%         a_ms1_min = [0 0 0];
+%         a_ms1_optFlag = [1 1 1];
 
         % Measured Data
         S11_meas_c12r36
@@ -337,29 +337,36 @@ classdef REACHcal
             % Name-value pairs
             typeValidation_elementStruct = @(x) validateattributes(x,{'struct'},{},'REACHcal','inputStruct');
             
-            parseobj.addOptional('r36',[],typeValidation_elementStruct);
+            for ii = 1:length(obj.optVectElements)
+                elName = obj.optVectElements{ii};
+                parseobj.addOptional(elName,[],typeValidation_elementStruct);
+            end
 
             parseobj.parse(varargin{:})
+            parseResult = parseobj.Results;
             
-            inStructs.r36 = parseobj.Results.r36;
+            for ii = 1:length(obj.optVectElements)
+                elName = obj.optVectElements{ii};
+                inStructs.(elName) = parseResult.(elName);
 
-            if isfield(inStructs,'r36') && ~isempty(inStructs.('r36'))
-                fn = fieldnames(inStructs.('r36'));
-                ind = ismember(fn,obj.validFieldsInputStruct);
-                if ~all(ind)
-                    disp('Error in r36 input for fields: ')
-                    disp(fn(~ind))
-                    mustBeMember(fn,fno)
-                else
-                    % Assign only the valid field names
-                    for ii = 1:length(ind)
-                        inStruct_ = inStructs.('r36');
-                        obj.(['r36_',fn{ii}]) = inStruct_.([fn{ii}]);
+                if isfield(inStructs,elName) && ~isempty(inStructs.(elName))
+                    fn = fieldnames(inStructs.(elName));
+                    ind = ismember(fn,obj.validFieldsInputStruct);
+                    if ~all(ind)
+                        disp(['Error in ',elName,' input for fields: '])
+                        disp(fn(~ind))
+                        mustBeMember(fn,obj.validFieldsInputStruct)
+                    else
+                        % Assign only the valid field names
+                        for jj = 1:length(ind)
+                            inStruct_ = inStructs.(elName);
+                            obj.([elName,'_',fn{jj}]) = inStruct_.([fn{jj}]);
+                        end
                     end
+                    minVar = obj.([elName,'_min']);
+                    maxVar = obj.([elName,'_max']);
+                    assert(all(maxVar >= minVar),[elName,'_min must be <= ',elName,'_max'])
                 end
-                minVar = obj.(['r36_','min']);
-                maxVar = obj.(['r36_','max']);
-                assert(all(maxVar >= minVar),['r36','_min must be <= ','r36','_max'])
             end
 
 
@@ -976,8 +983,16 @@ classdef REACHcal
             xtickangle(90);
             xticks([1:sum(obj.optVect_Nvars)]);
             xticklabels(xTicLab);
+        end
 
-            
+        function printOptElementVals(obj)
+            % PRINTOPTELEMENTVALS prints the optElement values to the screen
+
+            for ii = 1:length(obj.optVectElements)
+                optEl = obj.(obj.optVectElements{ii});
+                disp([obj.optVectElements{ii},'.vals = [',num2str(optEl.vals),'];'])
+
+            end
         end
 
     end
