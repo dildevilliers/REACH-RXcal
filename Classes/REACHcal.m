@@ -115,7 +115,7 @@ classdef REACHcal
 
         ms4_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.0232 13.3749 1.6933 0.0051 4.4749];
         ms4_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
-        ms4_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,20,1.9,0.01,10];
+        ms4_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,60,1.9,0.01,10];
         ms4_min(1,5) double {mustBeReal,mustBeNonnegative} = [47,9,1.5,0,0];
         ms4_optFlag(1,5) logical = [1,1,1,1,1];
 
@@ -779,7 +779,7 @@ classdef REACHcal
                     errElements = {'r10','r250'};
                 case {'r25_r36_r10'}
                     optElements = {'r25','r36','r10','ms3','ms4','c2','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
-                    errElements = {'c12r36','c12r27','c12r69','c12r91'};
+                    errElements = {'r25','c12r36','c25r10'};
                 case 'custom'
                     assert(all(contains(optElements,obj.optVectElements)),'Found unknown optElement - please check')
                     assert(all(contains(errElements,obj.optErrElements)),'Found unknown errElement - please check')
