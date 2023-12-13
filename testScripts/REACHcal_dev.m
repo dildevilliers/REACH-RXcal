@@ -150,7 +150,7 @@ Ropt = R.optimConfig('r25_r36_r10');
 % Ropt = R.optimConfig('custom',{'r250'}, {'c25r250'});
 Ropt = Ropt.fitParams('fmincon');
 figure(1)
-Ropt.plotSourceAllS11(1,{'b'})
+Ropt.plotAllS11(1,{'b'})
 figure(2)
 Ropt.plotAllParameters('b*')
 
