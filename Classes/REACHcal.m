@@ -9,7 +9,7 @@ classdef REACHcal
         dataPathMS3(1,:) char   % Path to the MS-3 2-port measured data
 
 
-        Nf(1,1) double = 201
+        Nf(1,1) double = 151
         fmin(1,1) double = 50  % in MHz
         fmax(1,1) double = 200 % in MHz
 
@@ -557,51 +557,63 @@ classdef REACHcal
         end
 
         function err_source_c12r36 = get.err_source_c12r36(obj)
-            err_source_c12r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
+%             err_source_c12r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
+            err_source_c12r36 = obj.err_dB(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
         end
 
         function err_source_c12r27 = get.err_source_c12r27(obj)
-            err_source_c12r27 = obj.errRIA(obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
+%             err_source_c12r27 = obj.errRIA(obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
+            err_source_c12r27 = obj.err_dB(obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
         end
 
         function err_source_c12r69 = get.err_source_c12r69(obj)
-            err_source_c12r69 = obj.errRIA(obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
+%             err_source_c12r69 = obj.errRIA(obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
+            err_source_c12r69 = obj.err_dB(obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
         end
 
         function err_source_c12r91 = get.err_source_c12r91(obj)
-            err_source_c12r91 = obj.errRIA(obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
+%             err_source_c12r91 = obj.errRIA(obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
+            err_source_c12r91 = obj.err_dB(obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
         end
 
         function err_source_c25open = get.err_source_c25open(obj)
-            err_source_c25open = obj.errRIA(obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
+%             err_source_c25open = obj.errRIA(obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
+            err_source_c25open = obj.err_dB(obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
         end
 
         function err_source_c25short = get.err_source_c25short(obj)
-            err_source_c25short = obj.errRIA(obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
+%             err_source_c25short = obj.errRIA(obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
+            err_source_c25short = obj.err_dB(obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
         end
 
         function err_source_c25r10 = get.err_source_c25r10(obj)
-            err_source_c25r10 = obj.errRIA(obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
+%             err_source_c25r10 = obj.errRIA(obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
+            err_source_c25r10 = obj.err_dB(obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
         end
 
         function err_source_c25r250 = get.err_source_c25r250(obj)
-            err_source_c25r250 = obj.errRIA(obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
+%             err_source_c25r250 = obj.errRIA(obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
+            err_source_c25r250 = obj.err_dB(obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
         end
 
         function err_source_cold = get.err_source_cold(obj)
-            err_source_cold = obj.errRIA(obj.S11_meas_cold,obj.Scold.network.getS.d11);
+%             err_source_cold = obj.errRIA(obj.S11_meas_cold,obj.Scold.network.getS.d11);
+            err_source_cold = obj.err_dB(obj.S11_meas_cold,obj.Scold.network.getS.d11);
         end
 
         function err_source_hot = get.err_source_hot(obj)
-            err_source_hot = obj.errRIA(obj.S11_meas_hot,obj.Shot.network.getS.d11);
+%             err_source_hot = obj.errRIA(obj.S11_meas_hot,obj.Shot.network.getS.d11);
+            err_source_hot = obj.err_dB(obj.S11_meas_hot,obj.Shot.network.getS.d11);
         end
 
         function err_source_r25 = get.err_source_r25(obj)
-            err_source_r25 = obj.errRIA(obj.S11_meas_r25,obj.Sr25.network.getS.d11);
+%             err_source_r25 = obj.errRIA(obj.S11_meas_r25,obj.Sr25.network.getS.d11);
+            err_source_r25 = obj.err_dB(obj.S11_meas_r25,obj.Sr25.network.getS.d11);
         end
 
         function err_source_r100 = get.err_source_r100(obj)
-            err_source_r100 = obj.errRIA(obj.S11_meas_r100,obj.Sr100.network.getS.d11);
+%             err_source_r100 = obj.errRIA(obj.S11_meas_r100,obj.Sr100.network.getS.d11);
+            err_source_r100 = obj.err_dB(obj.S11_meas_r100,obj.Sr100.network.getS.d11);
         end
 
         function err_ms3 = get.err_ms3(obj)
@@ -833,13 +845,20 @@ classdef REACHcal
             end
 
             Ne = length(obj.optW);
-            eV = zeros(Ne,1);
+            eV = ones(Ne,1).*(-inf);
             for ii = 1:Ne
-                eV(ii) = obj.(['err_source_',obj.optErrElements{ii}]);
+                eV_ = obj.(['err_source_',obj.optErrElements{ii}]);
+                eV(ii) = eV_.mean;
+%                 eV(ii) = eV_.max;
+%                 eV(ii) = obj.(['err_source_',obj.optErrElements{ii}]);
             end
 
-            w = obj.optW./norm(obj.optW,1);
-            err = w*eV;
+%             w = obj.optW./norm(obj.optW,1);
+%             err = w*eV;
+            w = obj.optW;
+            err_ = w(:).*eV;
+            err_(w == 0) = -inf;
+            err = max(err_);    
         end
 
         function obj = fitMS3(obj)
@@ -940,22 +959,28 @@ classdef REACHcal
 
             for ii = 1:length(obj.sourceNames)
                 measVals = obj.(['S11_meas_',obj.sourceNames{ii}]);
-                if ii < length(obj.sourceNames), Smod = obj.(['S',obj.sourceNames{ii}]); end
                 row1 = floor((ii-1)/4);
                 col1 = mod((ii-1),4);
                 subplot(8,8,(2*row1*8 + [1:2] + 2*col1))
                 grid on, hold on
+                if ii < length(obj.sourceNames)
+                    eV = obj.(['err_source_',obj.sourceNames{ii}]);
+                    title([obj.sourceNames{ii},'; max(err) = ',num2str(eV.max), ' dB']); 
+                    Smod = obj.(['S',obj.sourceNames{ii}]);
+                end
                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11dB(style{1}); end
                 if plotFlag > 1, plot(obj.freq,dB20(measVals),style{2}); end
-                title([obj.sourceNames{ii},'; T = ',num2str(obj.(['T_meas_',obj.sourceNames{ii}])), ' K'])
+                xlabel('')
                 subplot(8,8,((2*row1+1)*8 + 1 + 2*col1))
                 grid on, hold on
                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11real(style{1}); end
                 if plotFlag > 1, plot(obj.freq,real(measVals),style{2}); end
+                xlabel('')
                 subplot(8,8,((2*row1+1)*8 + 2 + 2*col1))
                 grid on, hold on
                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11imag(style{1}); end
                 if plotFlag > 1, plot(obj.freq,imag(measVals),style{2}); end
+                xlabel('')
             end
 
         end
@@ -1024,6 +1049,18 @@ classdef REACHcal
             err_ri = sqrt(sum(abs(S11meas(:) - S11model(:)).^2));
             err_a = sqrt(sum(abs(dB20(S11meas(:)) - dB20(S11model(:))).^2));
             err = w*[err_ri;err_a]./obj.Nf;
+        end
+
+        function err = err_dB(obj,y_meas,y_model)
+            % ERR_DB provides the complex difference-based error in dB
+            % The struct err contains mean, max, and norm_2 values
+
+            dist = y_meas(:) - y_model(:);
+            dist_dB = dB20(dist);
+
+            err.max = max(dist_dB);
+            err.mean = mean(dist_dB);
+            err.norm = dB20(vecnorm(dist)./obj.Nf);
         end
 
         function [Z0,L,freq,eps_r,tan_delta,r_prime] = getCablePars(obj,c_vals,c_unitScales)
@@ -1155,6 +1192,8 @@ classdef REACHcal
     end
 
     methods (Static = true)
+
+        
 
         %         function R = buildResistor(types,vals,unitScales,freq)
         %             % BUILDRESISTOR makes a load model from the internal description
