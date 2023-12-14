@@ -7,7 +7,8 @@ classdef REACHcal
     properties (SetAccess = private)
         dataPath(1,:) char
         dataPathMS3(1,:) char   % Path to the MS-3 2-port measured data
-
+        dataPathLabCable(1,:) char   % Path to the lab cable measurements
+        dataPathLabSources(1,:) char   % Path to the lab source measurements
 
         Nf(1,1) double = 151
         fmin(1,1) double = 50  % in MHz
@@ -218,6 +219,21 @@ classdef REACHcal
         PSD_meas_r100
         PSD_meas_ant
 
+        % Lab (fixed) measurements
+        S11_lab_c12r36
+        S11_lab_c12r27
+        S11_lab_c12r69
+        S11_lab_c12r91
+        S11_lab_c25open
+        S11_lab_c25short
+        S11_lab_c25r10
+        S11_lab_c25r250
+        S11_lab_cold
+        S11_lab_hot
+        S11_lab_r25
+        S11_lab_r100
+        
+
         S_meas_MS3_J1
         S_meas_MS3_J2
         S_meas_MS3_J3
@@ -233,7 +249,9 @@ classdef REACHcal
         optVect_Ne(1,1) double {mustBeInteger,mustBePositive} = 10
         optW_RIA(1,2) double {mustBeNonnegative} = [2 1]   % Weights of the real-imag and dB20 differences in the error functions
         optW(1,:) double {mustBeNonnegative} = [1 1 1 1 1 1 1 1 1 1 1 1]
+        optLabFlag(1,1) logical = false % Set to true to operate on the lad measured sources
 
+        folderFormat(1,1) double {mustBeInteger,mustBePositive} = 2         %  1 for the folder tree, 2 for the flat native structure
     end
 
     properties (Dependent = true)
@@ -263,6 +281,7 @@ classdef REACHcal
         a_ms1j7(1,1) struct
         a_ms1(1,1) struct
 
+        % Full source models - all the way to VNA cal plane
         Sc12r36(1,1) struct
         Sc12r27(1,1) struct
         Sc12r69(1,1) struct
@@ -276,12 +295,29 @@ classdef REACHcal
         Sr25(1,1) struct
         Sr100(1,1) struct
 
+        % De-embedded source models - only to reference plane
+        Rc12r36(1,1) struct
+        Rc12r27(1,1) struct
+        Rc12r69(1,1) struct
+        Rc12r91(1,1) struct
+        Rc25open(1,1) struct
+        Rc25short(1,1) struct
+        Rc25r10(1,1) struct
+        Rc25r250(1,1) struct
+        Rcold(1,1) struct
+        Rhot(1,1) struct
+        Rr25(1,1) struct
+        Rr100(1,1) struct
+
+
     end
 
     properties (Dependent = true, Hidden = true)
         freqHz
 
         optStruct
+
+        % Full source errors
         err_source_c12r36
         err_source_c12r27
         err_source_c12r69
@@ -294,6 +330,21 @@ classdef REACHcal
         err_source_hot
         err_source_r25
         err_source_r100
+
+        % Reference plane source errors (from lab data)
+        err_sourceLab_c12r36
+        err_sourceLab_c12r27
+        err_sourceLab_c12r69
+        err_sourceLab_c12r91
+        err_sourceLab_c25open
+        err_sourceLab_c25short
+        err_sourceLab_c25r10
+        err_sourceLab_c25r250
+        err_sourceLab_cold
+        err_sourceLab_hot
+        err_sourceLab_r25
+        err_sourceLab_r100
+
 
         % Lower level error functions
         err_ms3
@@ -332,6 +383,9 @@ classdef REACHcal
             end
             % MS3 dataPath
             obj.dataPathMS3 = [fileparts(p),'\..\data\MS-3\'];
+            % Lab measurements datapath
+            obj.dataPathLabCable = [fileparts(p),'\..\data\lab_cable\'];
+            obj.dataPathLabSources = [fileparts(p),'\..\data\lab_sources\'];
 
 
             % Name-value pairs
@@ -371,9 +425,17 @@ classdef REACHcal
 
 
             % Read the data
+            % Get the folder format - default is 2 so only change if needed
+            % First the lab data
+            obj = obj.readLabData;
+
+
+            if isfolder([obj.dataPath,'ant']), obj.folderFormat = 1; end
             obj = obj.readS11data;
-            obj = obj.readTempData;
-            obj = obj.readPSDdata;
+            if obj.folderFormat == 1
+                obj = obj.readTempData;
+                obj = obj.readPSDdata;
+            end
 
             % Read the MS3 data - only for the active through paths
             obj.S_meas_MS3_J1 = TwoPort.readTouchStone([obj.dataPathMS3,'P2_J1\J1_ON.s2p'],2,obj.freqHz);
@@ -556,6 +618,54 @@ classdef REACHcal
             Sr100 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','r100'});
         end
 
+        function Rc12r36 = get.Rc12r36(obj)
+            Rc12r36 = obj.buildSourceStruct({'sr_mtsj2','ms1','c2','ms3','r36'});
+        end
+
+        function Rc12r27 = get.Rc12r27(obj)
+            Rc12r27 = obj.buildSourceStruct({'sr_mtsj2','ms1','c2','ms3','r27'});
+        end
+
+        function Rc12r69 = get.Rc12r69(obj)
+            Rc12r69 = obj.buildSourceStruct({'sr_mtsj2','ms1','c2','ms3','r69'});
+        end
+
+        function Rc12r91 = get.Rc12r91(obj)
+            Rc12r91 = obj.buildSourceStruct({'sr_mtsj2','ms1','c2','ms3','r91'});
+        end
+
+        function Rc25open = get.Rc25open(obj)
+            Rc25open = obj.buildSourceStruct({'sr_mtsj2','ms1','c10','ms4','rOpen'});
+        end
+
+        function Rc25short = get.Rc25short(obj)
+            Rc25short = obj.buildSourceStruct({'sr_mtsj2','ms1','c10','ms4','rShort'});
+        end
+
+        function Rc25r10 = get.Rc25r10(obj)
+            Rc25r10 = obj.buildSourceStruct({'sr_mtsj2','ms1','c10','ms4','r10'});
+        end
+
+        function Rc25r250 = get.Rc25r250(obj)
+            Rc25r250 = obj.buildSourceStruct({'sr_mtsj2','ms1','c10','ms4','r250'});
+        end
+
+        function Rcold = get.Rcold(obj)
+            Rcold = obj.buildSourceStruct({'sr_mtsj2','ms1','rCold'});
+        end
+
+        function Rhot = get.Rhot(obj)
+            Rhot = obj.buildSourceStruct({'sr_mtsj2','ms1','sr_ms1j2','rHot'});
+        end
+
+        function Rr25 = get.Rr25(obj)
+            Rr25 = obj.buildSourceStruct({'sr_mtsj2','ms1','r25'});
+        end
+
+        function Rr100 = get.Rr100(obj)
+            Rr100 = obj.buildSourceStruct({'sr_mtsj2','ms1','r100'});
+        end
+
         function err_source_c12r36 = get.err_source_c12r36(obj)
 %             err_source_c12r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
             err_source_c12r36 = obj.err_dB(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
@@ -616,6 +726,54 @@ classdef REACHcal
             err_source_r100 = obj.err_dB(obj.S11_meas_r100,obj.Sr100.network.getS.d11);
         end
 
+        function err_sourceLab_c12r36 = get.err_sourceLab_c12r36(obj)
+            err_sourceLab_c12r36 = obj.err_dB(obj.S11_lab_c12r36,obj.Rc12r36.network.getS.d11);
+        end
+
+        function err_sourceLab_c12r27 = get.err_sourceLab_c12r27(obj)
+            err_sourceLab_c12r27 = obj.err_dB(obj.S11_lab_c12r27,obj.Rc12r27.network.getS.d11);
+        end
+
+        function err_sourceLab_c12r69 = get.err_sourceLab_c12r69(obj)
+            err_sourceLab_c12r69 = obj.err_dB(obj.S11_lab_c12r69,obj.Rc12r69.network.getS.d11);
+        end
+
+        function err_sourceLab_c12r91 = get.err_sourceLab_c12r91(obj)
+            err_sourceLab_c12r91 = obj.err_dB(obj.S11_lab_c12r91,obj.Rc12r91.network.getS.d11);
+        end
+
+        function err_sourceLab_c25open = get.err_sourceLab_c25open(obj)
+            err_sourceLab_c25open = obj.err_dB(obj.S11_lab_c25open,obj.Rc25open.network.getS.d11);
+        end
+
+        function err_sourceLab_c25short = get.err_sourceLab_c25short(obj)
+            err_sourceLab_c25short = obj.err_dB(obj.S11_lab_c25short,obj.Rc25short.network.getS.d11);
+        end
+
+        function err_sourceLab_c25r10 = get.err_sourceLab_c25r10(obj)
+            err_sourceLab_c25r10 = obj.err_dB(obj.S11_lab_c25r10,obj.Rc25r10.network.getS.d11);
+        end
+
+        function err_sourceLab_c25r250 = get.err_sourceLab_c25r250(obj)
+            err_sourceLab_c25r250 = obj.err_dB(obj.S11_lab_c25r250,obj.Rc25r250.network.getS.d11);
+        end
+
+        function err_sourceLab_cold = get.err_sourceLab_cold(obj)
+            err_sourceLab_cold = obj.err_dB(obj.S11_lab_cold,obj.Rcold.network.getS.d11);
+        end
+
+        function err_sourceLab_hot = get.err_sourceLab_hot(obj)
+            err_sourceLab_hot = obj.err_dB(obj.S11_lab_hot,obj.Rhot.network.getS.d11);
+        end
+
+        function err_sourceLab_r25 = get.err_sourceLab_r25(obj)
+            err_sourceLab_r25 = obj.err_dB(obj.S11_lab_r25,obj.Rr25.network.getS.d11);
+        end
+
+        function err_sourceLab_r100 = get.err_sourceLab_r100(obj)
+            err_sourceLab_r100 = obj.err_dB(obj.S11_lab_r100,obj.Rr100.network.getS.d11);
+        end
+
         function err_ms3 = get.err_ms3(obj)
             %             obj.Nf = length(obj.S_meas_MS3_J1.freq);
             %             obj.fmin = min(obj.S_meas_MS3_J1.freqHz)./1e6;
@@ -641,6 +799,31 @@ classdef REACHcal
         end
 
         % Measurement data
+        function obj = readLabData(obj)
+            % READLABDATA read the set of lab data measurements
+
+            for ii = 1:length(obj.sourceNames)-1
+                obj.(['S11_lab_',obj.sourceNames{ii}]) = obj.readLabS11(obj.sourceNames{ii});
+            end
+        end
+
+        function [S11,freq] = readLabS11(obj,sourceName,interpFlag)
+            % READLABS11 returns the measured lab S11 in a vector
+            % Also interpolates onto the object frequencies
+
+            if nargin < 3 || isempty(interpFlag), interpFlag = true; end
+
+            assert(ismember(sourceName,obj.sourceNames),'Unknown source name - check REACHcal.sourceNames')
+            pthRead = obj.dataPathLabSources;
+            
+            [S11,freq] = touchread([pthRead,sourceName,'.s2p']);
+            S11 = squeeze(S11(1,1,:));
+            if interpFlag
+                S11 = interp1(freq,S11,obj.freqHz,'linear');
+                freq = obj.freqHz;
+            end
+        end
+
         function obj = readS11data(obj)
             % READS11DATA read the set of S11 measurements
 
@@ -648,7 +831,7 @@ classdef REACHcal
                 obj.(['S11_meas_',obj.sourceNames{ii}]) = obj.readSourceS11(obj.sourceNames{ii});
             end
         end
-
+        
         function [S11,freq] = readSourceS11(obj,sourceName,interpFlag)
             % READSOURCES11 returns the measured source S11 in a vector
             % Also interpolates onto the object frequencies
@@ -656,7 +839,10 @@ classdef REACHcal
             if nargin < 3 || isempty(interpFlag), interpFlag = true; end
 
             assert(ismember(sourceName,obj.sourceNames),'Unknown source name - check REACHcal.sourceNames')
-            [S11,freq] = touchread([obj.dataPath,sourceName,'\',sourceName,'.s1p']);
+            pthRead = obj.dataPath;
+            if obj.folderFormat == 1, pthRead = [pthRead,sourceName,'\']; end
+            
+            [S11,freq] = touchread([pthRead,sourceName,'.s1p']);
             S11 = squeeze(S11(1,1,:));
             if interpFlag
                 S11 = interp1(freq,S11,obj.freqHz,'linear');
@@ -668,10 +854,16 @@ classdef REACHcal
             % READTEMPDATA reads the temperature data
 
             for ii = 1:length(obj.sourceNames)
-                fid = fopen([obj.dataPath,obj.sourceNames{ii},'\temperature.txt'], 'r');
-                T = fscanf(fid, '%f');
-                fclose(fid);
-                obj.(['T_meas_',obj.sourceNames{ii}]) = T;
+                if obj.folderFormat == 1
+                    pthRead = [obj.dataPath,obj.sourceNames{ii},'\'];
+                    fid = fopen([pthRead,'\temperature.txt'], 'r');
+                    T = fscanf(fid, '%f');
+                    fclose(fid);
+                    obj.(['T_meas_',obj.sourceNames{ii}]) = T;
+                else
+                    error('not implemented yet')
+
+                end
             end
         end
 
@@ -727,8 +919,10 @@ classdef REACHcal
         end
 
         % Optimization
-        function obj = optimConfig(obj,configName,optElements,errElements)
+        function obj = optimConfig(obj,configName,optElements,errElements,optLabFlag)
             % OPTIMCONFIG configures the optimization routine settings
+
+            if nargin > 4 && ~isempty(optLabFlag), obj.optLabFlag = optLabFlag; end
 
             % Start with all false
             optFlagVect = zeros(1,sum(obj.optVect_Nvars));
@@ -739,49 +933,99 @@ classdef REACHcal
 
             switch lower(configName)
                 case {'r36'}
-                    optElements = obj.Sc12r36.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rc12r36.elements;
+                    else
+                        optElements = obj.Sc12r36.elements;
+                    end
                     errElements = {'c12r36'};
                 case {'r27'}
-                    optElements = obj.Sc12r27.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rc12r27.elements;
+                    else
+                        optElements = obj.Sc12r27.elements;
+                    end
                     errElements = {'c12r27'};
                 case {'r69'}
-                    optElements = obj.Sc12r69.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rc12r69.elements;
+                    else
+                        optElements = obj.Sc12r69.elements;
+                    end
                     errElements = {'c12r69'};
                 case {'r91'}
-                    optElements = obj.Sc12r91.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rc12r91.elements;
+                    else
+                        optElements = obj.Sc12r91.elements;
+                    end
                     errElements = {'c12r91'};
                 case {'ropen','open'}
-                    optElements = obj.Sc25open.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rc25open.elements;
+                    else
+                        optElements = obj.Sc25open.elements;
+                    end
                     errElements = {'c25open'};
                 case {'rshort','short'}
-                    optElements = obj.Sc25short.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rc25short.elements;
+                    else
+                        optElements = obj.Sc25short.elements;
+                    end
                     errElements = {'c25short'};
                 case {'r10'}
-                    optElements = obj.Sc25r10.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rc25r10.elements;
+                    else
+                        optElements = obj.Sc25r10.elements;
+                    end
                     errElements = {'c25r10'};
                 case {'r250'}
-                    optElements = obj.Sc25r250.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rc25r250.elements;
+                    else
+                        optElements = obj.Sc25r250.elements;
+                    end
                     errElements = {'c25r250'};
                 case {'rcold'}
-                    optElements = obj.Scold.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rcold.elements;
+                    else
+                        optElements = obj.Scold.elements;
+                    end
                     errElements = {'cold'};
                 case {'rhot'}
-                    optElements = obj.Shot.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rhot.elements;
+                    else
+                        optElements = obj.Shot.elements;
+                    end
                     errElements = {'hot'};
                 case {'r25'}
-                    optElements = obj.Sr25.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rr25.elements;
+                    else
+                        optElements = obj.Sr25.elements;
+                    end
                     errElements = {'r25'};
                 case {'r100'}
-                    optElements = obj.Sr100.elements;
+                    if obj.optLabFlag
+                        optElements = obj.Rr100.elements;
+                    else
+                        optElements = obj.Sr100.elements;
+                    end
                     errElements = {'r100'};
                 case {'ms3set'}
-                    optElements = {'r36','r27','r69','r91','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = {'r36','r27','r69','r91','ms3','c2','ms1','sr_mtsj2'};
+                    if ~obj.optLabFlag, optElements = [optElements,{'mts','sr_mtsj1'}]; end
                     errElements = {'c12r36','c12r27','c12r69','c12r91'};
                 case {'ms3set_lim'}
                     optElements = {'r36','r27','r69','r91','ms3','c2'};
                     errElements = {'c12r36','c12r27','c12r69','c12r91'};
                 case {'ms4set'}
-                    optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1','sr_mtsj2'};
+                    if ~obj.optLabFlag, optElements = [optElements,{'mts','sr_mtsj1'}]; end
                     errElements = {'c25open','c25short','c25r10','c25r250'};
                 case {'ms4set_lim'}
                     optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1'};
@@ -790,7 +1034,8 @@ classdef REACHcal
                     optElements = {'r10','r250','ms4','c10'};
                     errElements = {'r10','r250'};
                 case {'r25_r36_r10'}
-                    optElements = {'r25','r36','r10','ms3','ms4','c2','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                    optElements = {'r25','r36','r10','ms3','ms4','c2','c10','ms1','sr_mtsj2'};
+                    if ~obj.optLabFlag, optElements = [optElements,{'mts','sr_mtsj1'}]; end
                     errElements = {'r25','c12r36','c25r10'};
                 case 'custom'
                     assert(all(contains(optElements,obj.optVectElements)),'Found unknown optElement - please check')
@@ -847,9 +1092,13 @@ classdef REACHcal
             Ne = length(obj.optW);
             eV = ones(Ne,1).*(-inf);
             for ii = 1:Ne
-                eV_ = obj.(['err_source_',obj.optErrElements{ii}]);
-                eV(ii) = eV_.mean;
-%                 eV(ii) = eV_.max;
+                if obj.optLabFlag
+                    eV_ = obj.(['err_sourceLab_',obj.optErrElements{ii}]);
+                else
+                    eV_ = obj.(['err_source_',obj.optErrElements{ii}]);
+                end
+%                 eV(ii) = eV_.mean;
+                eV(ii) = eV_.max;
 %                 eV(ii) = obj.(['err_source_',obj.optErrElements{ii}]);
             end
 
@@ -928,6 +1177,53 @@ classdef REACHcal
         %                 plot(obj.freq,imag(measVect{ii}),'r--')
         %             end
         %         end
+
+        function plotSourceModelComparison(obj,sourceName,includeLab)
+            % PLOTSOURCEMODELCOMPARISON plots a the measuered value and model of the specified source
+    
+            if nargin < 3 || isempty(includeLab), includeLab = true; end
+
+            measVals = obj.(['S11_meas_',sourceName]);
+            Smod = obj.(['S',sourceName]);
+
+            style = {'r','k'};
+
+            if includeLab
+                nSubCols = 4;
+                labVals = obj.(['S11_lab_',sourceName]);
+                Rmod = obj.(['R',sourceName]);
+
+                subplot(2,nSubCols,3:4)
+                hold on, grid on
+                Rmod.network.getS.plot11dB(style{1})
+                plot(obj.freq,dB20(labVals),style{2})
+                title(['Lab: ',sourceName])
+                subplot(2,nSubCols,7)
+                hold on, grid on
+                Rmod.network.getS.plot11real(style{1})
+                plot(obj.freq,real(labVals),style{2})
+                subplot(2,nSubCols,8)
+                hold on, grid on
+                Rmod.network.getS.plot11imag(style{1})
+                plot(obj.freq,imag(labVals),style{2})
+            else
+                nSubCols = 2;
+            end
+            subplot(2,nSubCols,1:2)
+            hold on, grid on
+            Smod.network.getS.plot11dB(style{1})
+            plot(obj.freq,dB20(measVals),style{2})
+            title(['VNA-ref: ',sourceName])
+            legend('Model','Measure')
+            subplot(2,nSubCols,3+nSubCols-2)
+            hold on, grid on
+            Smod.network.getS.plot11real(style{1})
+            plot(obj.freq,real(measVals),style{2})
+            subplot(2,nSubCols,4+nSubCols-2)
+            hold on, grid on
+            Smod.network.getS.plot11imag(style{1})
+            plot(obj.freq,imag(measVals),style{2})
+        end
 
         function plotAllPSD(obj)
             % PLOTALLPSD plots all the PSDs
