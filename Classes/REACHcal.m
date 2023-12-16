@@ -309,6 +309,9 @@ classdef REACHcal
         Rr25(1,1) struct
         Rr100(1,1) struct
 
+        % Lab source models - measured S11 to reference plane, with mts and sr_mtsj1 attached
+        Lc12r36(1,1) struct
+        Lc25open(1,1) struct
 
     end
 
@@ -665,6 +668,11 @@ classdef REACHcal
         function Rr100 = get.Rr100(obj)
             Rr100 = obj.buildSourceStruct({'sr_mtsj2','ms1','r100'});
         end
+
+        function Lc12r36 = get.Lc12r36(obj)
+            Lc12r36 = obj.buildLabSourceStruct('c12r36');
+        end
+        
 
         function err_source_c12r36 = get.err_source_c12r36(obj)
 %             err_source_c12r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
@@ -1482,6 +1490,40 @@ classdef REACHcal
             S_struct.max = valMat(3,:);
             S_struct.min = valMat(4,:);
             S_struct.optFlag = valMat(5,:);
+
+        end
+
+        function L_struct = buildLabSourceStruct(obj,elementName)
+            % BUILDLABSOURCESTRUCT builds a general lab source structure
+            % The labSource is the measured lab values with mts and sr_mtsj1 added 
+
+            L_struct.elements = {'sr_mtsj1','mts',elementName};
+            Ne = length(L_struct.elements);
+            % First get the number of variables in the cascade
+            L_struct.Nvars = zeros(1,Ne);
+            networkVect = TwoPort.empty(0,Ne);
+            for ii = 1:Ne-1
+                L_struct.Nvars(ii) = length(obj.(L_struct.elements{ii}).vals);
+                networkVect(ii) = obj.(L_struct.elements{ii}).network;
+            end
+            % Run the loop again, and allocate the long vectors
+            valMat = zeros(5,sum(L_struct.Nvars));
+            for ii = 1:Ne-1
+                element_ = obj.(L_struct.elements{ii});
+                valMat(:,(sum(L_struct.Nvars(1:(ii-1)))+1):sum(L_struct.Nvars(1:ii))) = [element_.vals; ...
+                    element_.unitScales; ...
+                    element_.max; ...
+                    element_.min; ...
+                    element_.optFlag];
+            end
+            L_struct.network = cascade(networkVect(1:end-1));
+            S11load = obj.(['S',elementName]).network.getS;
+            L_struct.network = L_struct.network.getS([],networkVect(Ne).Zport2);
+            L_struct.vals = valMat(1,:);
+            L_struct.unitScales = valMat(2,:);
+            L_struct.max = valMat(3,:);
+            L_struct.min = valMat(4,:);
+            L_struct.optFlag = valMat(5,:);
 
         end
 
