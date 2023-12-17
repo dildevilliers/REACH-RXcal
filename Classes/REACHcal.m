@@ -123,7 +123,7 @@ classdef REACHcal
         mts_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.9304 113.2259 1.6351 0.0059 3.9662];
         mts_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         mts_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,140,1.9,0.01,10];
-        mts_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,100,1.5,0,0];
+        mts_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,10,1.5,0,0];
         mts_optFlag(1,5) logical = [1,1,1,1,1];
 
         % Semi-ridged links
@@ -351,6 +351,7 @@ classdef REACHcal
 
         % Lower level error functions
         err_ms3
+        err_mts
 
 
     end
@@ -791,6 +792,14 @@ classdef REACHcal
             err_ms3 = sqrt(sum(abs(meas21 - mod21).^2))./obj.Nf;
         end
 
+        function err_mts = get.err_mts(obj)
+
+            meas11 = obj.S11_meas_c12r36;
+            mod11 = obj.Lc12r36.network.getS.d11;
+
+            err_mts = sqrt(sum(abs(meas11(:) - mod11(:)).^2))./obj.Nf;
+        end
+
         function optStruct = get.optStruct(obj)
             valMat = zeros(4,sum(obj.optVect_Nvars));
             for ii = 1:obj.optVect_Ne
@@ -1119,7 +1128,7 @@ classdef REACHcal
         end
 
         function obj = fitMS3(obj)
-            % FITMS3 is a componennt-level function to fit the MS3 model
+            % FITMS3 is a component-level function to fit the MS3 model
 
             X0 = obj.ms3_vals;
             LB = obj.ms3_min;
@@ -1133,6 +1142,24 @@ classdef REACHcal
                 err = obj.err_ms3;
             end
         end
+
+        function obj = fitMTS(obj)
+            % FITMTS is a component-level function to fit the MTS and sr_mtsj1 models from lab measured data
+
+            X0 = [obj.mts_vals,obj.sr_mtsj1.vals];
+            LB = [obj.mts_min,obj.sr_mtsj1.min];
+            UB = [obj.mts_max,obj.sr_mtsj1.max];
+            options = optimoptions('fmincon','display','iter','MaxIterations',1000);
+            optVals = fmincon(@(x) errFuncMTS(obj,x),X0,[],[],[],[],LB,UB,[],options);
+            [~,obj] = errFuncMTS(obj,optVals);
+
+            function [err, obj] = errFuncMTS(obj,x)
+                obj.mts_vals = x(1:5);
+                obj.sr_mtsj1_vals  = x(6:end);
+                err = obj.err_mts;
+            end
+        end
+
 
 
         % Plotting
@@ -1517,8 +1544,9 @@ classdef REACHcal
                     element_.optFlag];
             end
             L_struct.network = cascade(networkVect(1:end-1));
-            S11load = obj.(['S',elementName]).network.getS;
-            L_struct.network = L_struct.network.getS([],networkVect(Ne).Zport2);
+            S11load = obj.(['S',elementName]).network.getS.d11;
+            Zload = 50*(1 + S11load)./(1 - S11load);
+            L_struct.network = L_struct.network.getS([],Zload);
             L_struct.vals = valMat(1,:);
             L_struct.unitScales = valMat(2,:);
             L_struct.max = valMat(3,:);
