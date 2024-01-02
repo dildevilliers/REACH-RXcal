@@ -115,8 +115,6 @@ classdef TwoPort
         function obj = cascade(objIn)
             % CASCADE calculates the cascades circuit of the input array
 
-            % Use pagemtimes()!
-            
             obj = objIn(1);
             typeIn = obj.type;
             if length(objIn) > 1
@@ -227,6 +225,16 @@ classdef TwoPort
                     error('I should not be here...')
             end
             
+        end
+
+        function obj = inv(obj)
+            % INV returns the inverse ABCD matrix for de-embedding
+
+            typeIn = obj.type;
+            obj = obj.getABCD;
+            obj.data = pageinv(obj.data);
+            transFun = str2func(['get',typeIn]);
+            obj = transFun(obj);
         end
 
         % Plotting

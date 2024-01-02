@@ -145,6 +145,13 @@ classdef REACHcal
         sr_ms1j2_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,110,2.0,0,0];
         sr_ms1j2_optFlag(1,5) logical = [1,1,1,1,1];
 
+        % Lab adapter
+        la_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50 100 2.0523 2.9177e-04 1.0598];
+        la_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
+        la_max(1,5) double {mustBeReal,mustBeNonnegative} = [55,130,2.1,0.0005,2];
+        la_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,5,2.0,0,0];
+        la_optFlag(1,5) logical = [1,1,1,1,1];
+
         %         sr_mtsj2_vals = [48.8300 125.1396 0.0015 2.0486 -5.7059e-04 2.5002e-04 -9.5231e-05 0.9733];
         %         sr_mtsj2_unitScales = [1,1e-3,1,1,1,1,1,1];
         %         sr_mtsj2_max = [52,140,0.1,2.1,0.1,0.0005,0.1,2];
@@ -277,9 +284,10 @@ classdef REACHcal
         sr_mtsj2(1,1) struct
         sr_mtsj1(1,1) struct
         sr_ms1j2(1,1) struct
-        a_ms3(1,1) struct
-        a_ms1j7(1,1) struct
-        a_ms1(1,1) struct
+        la(1,1) struct
+%         a_ms3(1,1) struct
+%         a_ms1j7(1,1) struct
+%         a_ms1(1,1) struct
 
         % Full source models - all the way to VNA cal plane
         Sc12r36(1,1) struct
@@ -562,17 +570,21 @@ classdef REACHcal
             sr_ms1j2 = obj.buildShortCableStruct(obj.sr_ms1j2_vals,obj.sr_ms1j2_unitScales,obj.sr_ms1j2_max,obj.sr_ms1j2_min,obj.sr_ms1j2_optFlag);
         end
 
-        function a_ms3 = get.a_ms3(obj)
-            a_ms3 = obj.buildAdaptStruct(obj.a_ms3_vals,obj.a_ms3_unitScales,obj.a_ms3_max,obj.a_ms3_min,obj.a_ms3_optFlag);
+        function la = get.la(obj)
+            la = obj.buildShortCableStruct(obj.la_vals,obj.la_unitScales,obj.la_max,obj.la_min,obj.la_optFlag);
         end
 
-        function a_ms1j7 = get.a_ms1j7(obj)
-            a_ms1j7 = obj.buildAdaptStruct(obj.a_ms1j7_vals,obj.a_ms1j7_unitScales,obj.a_ms1j7_max,obj.a_ms1j7_min,obj.a_ms1j7_optFlag);
-        end
-
-        function a_ms1 = get.a_ms1(obj)
-            a_ms1 = obj.buildAdaptStruct(obj.a_ms1_vals,obj.a_ms1_unitScales,obj.a_ms1_max,obj.a_ms1_min,obj.a_ms1_optFlag);
-        end
+%         function a_ms3 = get.a_ms3(obj)
+%             a_ms3 = obj.buildAdaptStruct(obj.a_ms3_vals,obj.a_ms3_unitScales,obj.a_ms3_max,obj.a_ms3_min,obj.a_ms3_optFlag);
+%         end
+% 
+%         function a_ms1j7 = get.a_ms1j7(obj)
+%             a_ms1j7 = obj.buildAdaptStruct(obj.a_ms1j7_vals,obj.a_ms1j7_unitScales,obj.a_ms1j7_max,obj.a_ms1j7_min,obj.a_ms1j7_optFlag);
+%         end
+% 
+%         function a_ms1 = get.a_ms1(obj)
+%             a_ms1 = obj.buildAdaptStruct(obj.a_ms1_vals,obj.a_ms1_unitScales,obj.a_ms1_max,obj.a_ms1_min,obj.a_ms1_optFlag);
+%         end
 
         function Sc12r36 = get.Sc12r36(obj)
             Sc12r36 = obj.buildSourceStruct({'sr_mtsj1','mts','sr_mtsj2','ms1','c2','ms3','r36'});
@@ -1146,16 +1158,17 @@ classdef REACHcal
         function obj = fitMTS(obj)
             % FITMTS is a component-level function to fit the MTS and sr_mtsj1 models from lab measured data
 
-            X0 = [obj.mts_vals,obj.sr_mtsj1.vals];
-            LB = [obj.mts_min,obj.sr_mtsj1.min];
-            UB = [obj.mts_max,obj.sr_mtsj1.max];
+            X0 = [obj.mts_vals,obj.sr_mtsj1.vals,obj.la_vals];
+            LB = [obj.mts_min,obj.sr_mtsj1.min,obj.la_min];
+            UB = [obj.mts_max,obj.sr_mtsj1.max,obj.la_max];
             options = optimoptions('fmincon','display','iter','MaxIterations',1000);
             optVals = fmincon(@(x) errFuncMTS(obj,x),X0,[],[],[],[],LB,UB,[],options);
             [~,obj] = errFuncMTS(obj,optVals);
 
             function [err, obj] = errFuncMTS(obj,x)
                 obj.mts_vals = x(1:5);
-                obj.sr_mtsj1_vals  = x(6:end);
+                obj.sr_mtsj1_vals  = x(6:10);
+                obj.la_vals = x(11:end);
                 err = obj.err_mts;
             end
         end
@@ -1524,7 +1537,7 @@ classdef REACHcal
             % BUILDLABSOURCESTRUCT builds a general lab source structure
             % The labSource is the measured lab values with mts and sr_mtsj1 added 
 
-            L_struct.elements = {'sr_mtsj1','mts',elementName};
+            L_struct.elements = {'sr_mtsj1','mts','la',elementName};
             Ne = length(L_struct.elements);
             % First get the number of variables in the cascade
             L_struct.Nvars = zeros(1,Ne);
@@ -1532,6 +1545,7 @@ classdef REACHcal
             for ii = 1:Ne-1
                 L_struct.Nvars(ii) = length(obj.(L_struct.elements{ii}).vals);
                 networkVect(ii) = obj.(L_struct.elements{ii}).network;
+                if strcmp(L_struct.elements{ii},'la'), networkVect(ii) = inv(networkVect(ii)); end  % De-empbed the adaptor by inverting the ABCD matrix
             end
             % Run the loop again, and allocate the long vectors
             valMat = zeros(5,sum(L_struct.Nvars));
