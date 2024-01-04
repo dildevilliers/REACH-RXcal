@@ -120,7 +120,7 @@ classdef REACHcal
         ms4_min(1,5) double {mustBeReal,mustBeNonnegative} = [47,9,1.5,0,0];
         ms4_optFlag(1,5) logical = [1,1,1,1,1];
 
-        mts_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.9304 113.2259 1.6351 0.0059 3.9662];
+        mts_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.9304 58 1.6351 0.0059 3.9662];
         mts_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         mts_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,140,1.9,0.01,10];
         mts_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,10,1.5,0,0];
@@ -146,11 +146,18 @@ classdef REACHcal
         sr_ms1j2_optFlag(1,5) logical = [1,1,1,1,1];
 
         % Lab adapter
-        la_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50 100 2.0523 2.9177e-04 1.0598];
+        la_vals(1,5) double {mustBeReal,mustBeNonnegative} = [48.084868835418405 1.269441125051055e+02 2.050954767071014 2.490506108558774e-04 1.309184897853441];
         la_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         la_max(1,5) double {mustBeReal,mustBeNonnegative} = [55,130,2.1,0.0005,2];
         la_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,5,2.0,0,0];
         la_optFlag(1,5) logical = [1,1,1,1,1];
+
+        % Lab measurement phase shift (not used at present)
+        ps_vals(1,1) double {mustBeReal,mustBeNonnegative} = [0];
+        ps_unitScales(1,1) double {mustBeReal,mustBePositive} = [1e-3];
+        ps_max(1,1) double {mustBeReal,mustBeNonnegative} = [2000];
+        ps_min(1,1) double {mustBeReal,mustBeNonnegative} = [0];
+        ps_optFlag(1,1) logical = [0];
 
         %         sr_mtsj2_vals = [48.8300 125.1396 0.0015 2.0486 -5.7059e-04 2.5002e-04 -9.5231e-05 0.9733];
         %         sr_mtsj2_unitScales = [1,1e-3,1,1,1,1,1,1];
@@ -285,6 +292,7 @@ classdef REACHcal
         sr_mtsj1(1,1) struct
         sr_ms1j2(1,1) struct
         la(1,1) struct
+        ps(1,1) struct
 %         a_ms3(1,1) struct
 %         a_ms1j7(1,1) struct
 %         a_ms1(1,1) struct
@@ -572,6 +580,18 @@ classdef REACHcal
 
         function la = get.la(obj)
             la = obj.buildShortCableStruct(obj.la_vals,obj.la_unitScales,obj.la_max,obj.la_min,obj.la_optFlag);
+        end
+
+        function ps = get.ps(obj)
+            ps.vals = obj.ps_vals;
+            ps.unitScales = obj.ps_unitScales;
+            ps.max = obj.ps_max;
+            ps.min = obj.ps_min;
+            ps.optFlag = obj.ps_optFlag;
+            lenScale = ps.vals.*ps.unitScales;
+            Z0 = 50;
+            ps.network = TwoPort.Tline(Z0,lenScale,obj.freqHz,1,0,0,Z0,Z0);
+            ps.network = ps.network.freqChangeUnit(obj.freqUnit);
         end
 
 %         function a_ms3 = get.a_ms3(obj)
@@ -1158,9 +1178,9 @@ classdef REACHcal
         function obj = fitMTS(obj)
             % FITMTS is a component-level function to fit the MTS and sr_mtsj1 models from lab measured data
 
-            X0 = [obj.mts_vals,obj.sr_mtsj1.vals,obj.la_vals];
-            LB = [obj.mts_min,obj.sr_mtsj1.min,obj.la_min];
-            UB = [obj.mts_max,obj.sr_mtsj1.max,obj.la_max];
+            X0 = [obj.mts_vals,obj.sr_mtsj1.vals,obj.la_vals,obj.ps_vals];
+            LB = [obj.mts_min,obj.sr_mtsj1.min,obj.la_min,obj.ps_min];
+            UB = [obj.mts_max,obj.sr_mtsj1.max,obj.la_max,obj.ps_max];
             options = optimoptions('fmincon','display','iter','MaxIterations',1000);
             optVals = fmincon(@(x) errFuncMTS(obj,x),X0,[],[],[],[],LB,UB,[],options);
             [~,obj] = errFuncMTS(obj,optVals);
@@ -1168,7 +1188,8 @@ classdef REACHcal
             function [err, obj] = errFuncMTS(obj,x)
                 obj.mts_vals = x(1:5);
                 obj.sr_mtsj1_vals  = x(6:10);
-                obj.la_vals = x(11:end);
+                obj.la_vals = x(11:15);
+                obj.ps_vals = x(16);
                 err = obj.err_mts;
             end
         end
@@ -1537,7 +1558,7 @@ classdef REACHcal
             % BUILDLABSOURCESTRUCT builds a general lab source structure
             % The labSource is the measured lab values with mts and sr_mtsj1 added 
 
-            L_struct.elements = {'sr_mtsj1','mts','la',elementName};
+            L_struct.elements = {'ps','sr_mtsj1','mts','la',elementName};
             Ne = length(L_struct.elements);
             % First get the number of variables in the cascade
             L_struct.Nvars = zeros(1,Ne);
@@ -1545,7 +1566,7 @@ classdef REACHcal
             for ii = 1:Ne-1
                 L_struct.Nvars(ii) = length(obj.(L_struct.elements{ii}).vals);
                 networkVect(ii) = obj.(L_struct.elements{ii}).network;
-                if strcmp(L_struct.elements{ii},'la'), networkVect(ii) = inv(networkVect(ii)); end  % De-empbed the adaptor by inverting the ABCD matrix
+                if strcmp(L_struct.elements{ii},'la'), networkVect(ii) = inv(networkVect(ii)); end  % De-embed the adaptor by inverting the ABCD matrix
             end
             % Run the loop again, and allocate the long vectors
             valMat = zeros(5,sum(L_struct.Nvars));
@@ -1557,7 +1578,7 @@ classdef REACHcal
                     element_.min; ...
                     element_.optFlag];
             end
-            L_struct.network = cascade(networkVect(1:end-1));
+            L_struct.network = cascade(networkVect(1:end));
             S11load = obj.(['S',elementName]).network.getS.d11;
             Zload = 50*(1 + S11load)./(1 - S11load);
             L_struct.network = L_struct.network.getS([],Zload);
