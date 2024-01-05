@@ -122,8 +122,8 @@ classdef REACHcal
 
         mts_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.9304 58 1.6351 0.0059 3.9662];
         mts_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
-        mts_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,140,1.9,0.01,10];
-        mts_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,10,1.5,0,0];
+        mts_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,70,1.9,0.01,10];
+        mts_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,20,1.5,0,0];
         mts_optFlag(1,5) logical = [1,1,1,1,1];
 
         % Semi-ridged links
@@ -135,8 +135,8 @@ classdef REACHcal
 
         sr_mtsj1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [49.2178 124.9098 2.0459 2.5273e-04 1.0101];
         sr_mtsj1_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
-        sr_mtsj1_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,130,2.1,0.0005,2];
-        sr_mtsj1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,120,2.0,0,0];
+        sr_mtsj1_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,135,2.1,0.0005,2];
+        sr_mtsj1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,115,2.0,0,0];
         sr_mtsj1_optFlag(1,5) logical = [1,1,1,1,1];
 
         sr_ms1j2_vals(1,5) double {mustBeReal,mustBeNonnegative} = [54.4476 114.7614 2.0523 2.9177e-04 1.0598];
@@ -146,16 +146,16 @@ classdef REACHcal
         sr_ms1j2_optFlag(1,5) logical = [1,1,1,1,1];
 
         % Lab adapter
-        la_vals(1,5) double {mustBeReal,mustBeNonnegative} = [48.084868835418405 1.269441125051055e+02 2.050954767071014 2.490506108558774e-04 1.309184897853441];
+        la_vals(1,5) double {mustBeReal,mustBeNonnegative} = [48.084868835418405 10 2.050954767071014 2.490506108558774e-04 1.309184897853441];
         la_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
-        la_max(1,5) double {mustBeReal,mustBeNonnegative} = [55,130,2.1,0.0005,2];
+        la_max(1,5) double {mustBeReal,mustBeNonnegative} = [55,70,2.1,0.0005,2];
         la_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,5,2.0,0,0];
         la_optFlag(1,5) logical = [1,1,1,1,1];
 
         % Lab measurement phase shift (not used at present)
         ps_vals(1,1) double {mustBeReal,mustBeNonnegative} = [0];
         ps_unitScales(1,1) double {mustBeReal,mustBePositive} = [1e-3];
-        ps_max(1,1) double {mustBeReal,mustBeNonnegative} = [2000];
+        ps_max(1,1) double {mustBeReal,mustBeNonnegative} = [2];
         ps_min(1,1) double {mustBeReal,mustBeNonnegative} = [0];
         ps_optFlag(1,1) logical = [0];
 
@@ -263,7 +263,8 @@ classdef REACHcal
         optVect_Ne(1,1) double {mustBeInteger,mustBePositive} = 10
         optW_RIA(1,2) double {mustBeNonnegative} = [2 1]   % Weights of the real-imag and dB20 differences in the error functions
         optW(1,:) double {mustBeNonnegative} = [1 1 1 1 1 1 1 1 1 1 1 1]
-        optLabFlag(1,1) logical = false % Set to true to operate on the lad measured sources
+        optTypeFlag(1,1) double {mustBeInteger,mustBeNonnegative} = 1   % Set to 1 for standard VNA measured targets; 2 for the lab measured sources; 3 to only do the MTS and sr_mtsj1 elements from lab sources 
+                                                                            
 
         folderFormat(1,1) double {mustBeInteger,mustBePositive} = 2         %  1 for the folder tree, 2 for the flat native structure
     end
@@ -327,7 +328,17 @@ classdef REACHcal
 
         % Lab source models - measured S11 to reference plane, with mts and sr_mtsj1 attached
         Lc12r36(1,1) struct
+        Lc12r27(1,1) struct
+        Lc12r69(1,1) struct
+        Lc12r91(1,1) struct
         Lc25open(1,1) struct
+        Lc25short(1,1) struct
+        Lc25r10(1,1) struct
+        Lc25r250(1,1) struct
+        Lcold(1,1) struct
+        Lhot(1,1) struct
+        Lr25(1,1) struct
+        Lr100(1,1) struct
 
     end
 
@@ -364,6 +375,20 @@ classdef REACHcal
         err_sourceLab_r25
         err_sourceLab_r100
 
+        % Lab measured data as load to MTS errors
+        err_sourceMTS_c12r36
+        err_sourceMTS_c12r27
+        err_sourceMTS_c12r69
+        err_sourceMTS_c12r91
+        err_sourceMTS_c25open
+        err_sourceMTS_c25short
+        err_sourceMTS_c25r10
+        err_sourceMTS_c25r250
+        err_sourceMTS_cold
+        err_sourceMTS_hot
+        err_sourceMTS_r25
+        err_sourceMTS_r100
+
 
         % Lower level error functions
         err_ms3
@@ -381,7 +406,7 @@ classdef REACHcal
         cShortVarNames = {'Z0','L','eps_r','tan_d','r_prime'};
         adaptVarNames = {'C1','L1','C2'};
 
-        optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','sr_ms1j2','c2','c10'};
+        optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','sr_ms1j2','c2','c10','la'};
         optErrElements = {'c12r36','c12r27','c12r69','c12r91','c25open','c25short','c25r10','c25r250','cold','hot','r25','r100'};
 
         validFieldsInputStruct = {'vals','unitScales','max','min','optFlag'};
@@ -705,8 +730,51 @@ classdef REACHcal
         function Lc12r36 = get.Lc12r36(obj)
             Lc12r36 = obj.buildLabSourceStruct('c12r36');
         end
-        
 
+        function Lc12r27 = get.Lc12r27(obj)
+            Lc12r27 = obj.buildLabSourceStruct('c12r27');
+        end
+
+        function Lc12r69 = get.Lc12r69(obj)
+            Lc12r69 = obj.buildLabSourceStruct('c12r69');
+        end
+
+        function Lc12r91 = get.Lc12r91(obj)
+            Lc12r91 = obj.buildLabSourceStruct('c12r91');
+        end
+
+        function Lc25open = get.Lc25open(obj)
+            Lc25open = obj.buildLabSourceStruct('c25open');
+        end
+
+        function Lc25short = get.Lc25short(obj)
+            Lc25short = obj.buildLabSourceStruct('c25short');
+        end
+
+        function Lc25r10 = get.Lc25r10(obj)
+            Lc25r10 = obj.buildLabSourceStruct('c25r10');
+        end
+
+        function Lc25r250 = get.Lc25r250(obj)
+            Lc25r250 = obj.buildLabSourceStruct('c25r250');
+        end
+
+        function Lcold = get.Lcold(obj)
+            Lcold = obj.buildLabSourceStruct('cold');
+        end
+
+        function Lhot = get.Lhot(obj)
+            Lhot = obj.buildLabSourceStruct('hot');
+        end
+
+        function Lr25 = get.Lr25(obj)
+            Lr25 = obj.buildLabSourceStruct('r25');
+        end
+
+        function Lr100 = get.Lr100(obj)
+            Lr100 = obj.buildLabSourceStruct('r100');
+        end
+        
         function err_source_c12r36 = get.err_source_c12r36(obj)
 %             err_source_c12r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
             err_source_c12r36 = obj.err_dB(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
@@ -815,6 +883,54 @@ classdef REACHcal
             err_sourceLab_r100 = obj.err_dB(obj.S11_lab_r100,obj.Rr100.network.getS.d11);
         end
 
+        function err_sourceMTS_c12r36 = get.err_sourceMTS_c12r36(obj)
+            err_sourceMTS_c12r36 = obj.err_dB(obj.S11_meas_c12r36,obj.Lc12r36.network.getS.d11);
+        end
+
+        function err_sourceMTS_c12r27 = get.err_sourceMTS_c12r27(obj)
+            err_sourceMTS_c12r27 = obj.err_dB(obj.S11_meas_c12r27,obj.Lc12r27.network.getS.d11);
+        end
+
+        function err_sourceMTS_c12r69 = get.err_sourceMTS_c12r69(obj)
+            err_sourceMTS_c12r69 = obj.err_dB(obj.S11_meas_c12r69,obj.Lc12r69.network.getS.d11);
+        end
+
+        function err_sourceMTS_c12r91 = get.err_sourceMTS_c12r91(obj)
+            err_sourceMTS_c12r91 = obj.err_dB(obj.S11_meas_c12r91,obj.Lc12r91.network.getS.d11);
+        end
+
+        function err_sourceMTS_c25open = get.err_sourceMTS_c25open(obj)
+            err_sourceMTS_c25open = obj.err_dB(obj.S11_meas_c25open,obj.Lc25open.network.getS.d11);
+        end
+
+        function err_sourceMTS_c25short = get.err_sourceMTS_c25short(obj)
+            err_sourceMTS_c25short = obj.err_dB(obj.S11_meas_c25short,obj.Lc25short.network.getS.d11);
+        end
+
+        function err_sourceMTS_c25r10 = get.err_sourceMTS_c25r10(obj)
+            err_sourceMTS_c25r10 = obj.err_dB(obj.S11_meas_c25r10,obj.Lc25r10.network.getS.d11);
+        end
+
+        function err_sourceMTS_c25r250 = get.err_sourceMTS_c25r250(obj)
+            err_sourceMTS_c25r250 = obj.err_dB(obj.S11_meas_c25r250,obj.Lc25r250.network.getS.d11);
+        end
+
+        function err_sourceMTS_cold = get.err_sourceMTS_cold(obj)
+            err_sourceMTS_cold = obj.err_dB(obj.S11_meas_cold,obj.Lcold.network.getS.d11);
+        end
+
+        function err_sourceMTS_hot = get.err_sourceMTS_hot(obj)
+            err_sourceMTS_hot = obj.err_dB(obj.S11_meas_hot,obj.Lhot.network.getS.d11);
+        end
+
+        function err_sourceMTS_r25 = get.err_sourceMTS_r25(obj)
+            err_sourceMTS_r25 = obj.err_dB(obj.S11_meas_r25,obj.Lr25.network.getS.d11);
+        end
+
+        function err_sourceMTS_r100 = get.err_sourceMTS_r100(obj)
+            err_sourceMTS_r100 = obj.err_dB(obj.S11_meas_r100,obj.Lr100.network.getS.d11);
+        end
+
         function err_ms3 = get.err_ms3(obj)
             %             obj.Nf = length(obj.S_meas_MS3_J1.freq);
             %             obj.fmin = min(obj.S_meas_MS3_J1.freqHz)./1e6;
@@ -828,6 +944,9 @@ classdef REACHcal
 
             meas11 = obj.S11_meas_c12r36;
             mod11 = obj.Lc12r36.network.getS.d11;
+
+%             meas11 = obj.S11_meas_c25open;
+%             mod11 = obj.Lc25open.network.getS.d11;
 
             err_mts = sqrt(sum(abs(meas11(:) - mod11(:)).^2))./obj.Nf;
         end
@@ -968,10 +1087,12 @@ classdef REACHcal
         end
 
         % Optimization
-        function obj = optimConfig(obj,configName,optElements,errElements,optLabFlag)
+        function obj = optimConfig(obj,configName,optElements,errElements,optTypeFlag)
             % OPTIMCONFIG configures the optimization routine settings
 
-            if nargin > 4 && ~isempty(optLabFlag), obj.optLabFlag = optLabFlag; end
+            if nargin > 4 && ~isempty(optTypeFlag), obj.optTypeFlag = optTypeFlag; end
+
+            mustBeMember(optTypeFlag,[1,2,3]);  % Rough error check here
 
             % Start with all false
             optFlagVect = zeros(1,sum(obj.optVect_Nvars));
@@ -982,99 +1103,119 @@ classdef REACHcal
 
             switch lower(configName)
                 case {'r36'}
-                    if obj.optLabFlag
-                        optElements = obj.Rc12r36.elements;
-                    else
-                        optElements = obj.Sc12r36.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sc12r36.elements;
+                        case 2
+                            optElements = obj.Rc12r36.elements;
                     end
                     errElements = {'c12r36'};
                 case {'r27'}
-                    if obj.optLabFlag
-                        optElements = obj.Rc12r27.elements;
-                    else
-                        optElements = obj.Sc12r27.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sc12r27.elements;
+                        case 2
+                            optElements = obj.Rc12r27.elements;
                     end
                     errElements = {'c12r27'};
                 case {'r69'}
-                    if obj.optLabFlag
-                        optElements = obj.Rc12r69.elements;
-                    else
-                        optElements = obj.Sc12r69.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sc12r69.elements;
+                        case 2
+                            optElements = obj.Rc12r69.elements;
                     end
                     errElements = {'c12r69'};
                 case {'r91'}
-                    if obj.optLabFlag
-                        optElements = obj.Rc12r91.elements;
-                    else
-                        optElements = obj.Sc12r91.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sc12r91.elements;
+                        case 2
+                            optElements = obj.Rc12r91.elements;
                     end
                     errElements = {'c12r91'};
                 case {'ropen','open'}
-                    if obj.optLabFlag
-                        optElements = obj.Rc25open.elements;
-                    else
-                        optElements = obj.Sc25open.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sc25open.elements;
+                        case 2
+                            optElements = obj.Rc25open.elements;
                     end
                     errElements = {'c25open'};
                 case {'rshort','short'}
-                    if obj.optLabFlag
-                        optElements = obj.Rc25short.elements;
-                    else
-                        optElements = obj.Sc25short.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sc25short.elements;
+                        case 2
+                            optElements = obj.Rc25short.elements;
                     end
                     errElements = {'c25short'};
                 case {'r10'}
-                    if obj.optLabFlag
-                        optElements = obj.Rc25r10.elements;
-                    else
-                        optElements = obj.Sc25r10.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sc25r10.elements;
+                        case 2
+                            optElements = obj.Rc25r10.elements;
                     end
                     errElements = {'c25r10'};
                 case {'r250'}
-                    if obj.optLabFlag
-                        optElements = obj.Rc25r250.elements;
-                    else
-                        optElements = obj.Sc25r250.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sc25r250.elements;
+                        case 2
+                            optElements = obj.Rc25r250.elements;
                     end
                     errElements = {'c25r250'};
-                case {'rcold'}
-                    if obj.optLabFlag
-                        optElements = obj.Rcold.elements;
-                    else
-                        optElements = obj.Scold.elements;
+                case {'rcold','cold'}
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Scold.elements;
+                        case 2
+                            optElements = obj.Rcold.elements;
                     end
                     errElements = {'cold'};
-                case {'rhot'}
-                    if obj.optLabFlag
-                        optElements = obj.Rhot.elements;
-                    else
-                        optElements = obj.Shot.elements;
+                case {'rhot','hot'}
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Shot.elements;
+                        case 2
+                            optElements = obj.Rhot.elements;
                     end
                     errElements = {'hot'};
                 case {'r25'}
-                    if obj.optLabFlag
-                        optElements = obj.Rr25.elements;
-                    else
-                        optElements = obj.Sr25.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sr25.elements;
+                        case 2
+                            optElements = obj.Rr25.elements;
                     end
                     errElements = {'r25'};
                 case {'r100'}
-                    if obj.optLabFlag
-                        optElements = obj.Rr100.elements;
-                    else
-                        optElements = obj.Sr100.elements;
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = obj.Sr100.elements;
+                        case 2
+                            optElements = obj.Rr100.elements;
                     end
                     errElements = {'r100'};
                 case {'ms3set'}
-                    optElements = {'r36','r27','r69','r91','ms3','c2','ms1','sr_mtsj2'};
-                    if ~obj.optLabFlag, optElements = [optElements,{'mts','sr_mtsj1'}]; end
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = {'r36','r27','r69','r91','ms3','c2','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                        case 2
+                            optElements = {'r36','r27','r69','r91','ms3','c2','ms1','sr_mtsj2'};
+                    end
                     errElements = {'c12r36','c12r27','c12r69','c12r91'};
                 case {'ms3set_lim'}
                     optElements = {'r36','r27','r69','r91','ms3','c2'};
                     errElements = {'c12r36','c12r27','c12r69','c12r91'};
                 case {'ms4set'}
-                    optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1','sr_mtsj2'};
-                    if ~obj.optLabFlag, optElements = [optElements,{'mts','sr_mtsj1'}]; end
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                        case 2
+                            optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1','sr_mtsj2'};
+                    end
                     errElements = {'c25open','c25short','c25r10','c25r250'};
                 case {'ms4set_lim'}
                     optElements = {'rOpen','rShort','r10','r250','ms4','c10','ms1'};
@@ -1083,14 +1224,23 @@ classdef REACHcal
                     optElements = {'r10','r250','ms4','c10'};
                     errElements = {'r10','r250'};
                 case {'r25_r36_r10'}
-                    optElements = {'r25','r36','r10','ms3','ms4','c2','c10','ms1','sr_mtsj2'};
-                    if ~obj.optLabFlag, optElements = [optElements,{'mts','sr_mtsj1'}]; end
+                    switch obj.optTypeFlag
+                        case 1
+                            optElements = {'r25','r36','r10','ms3','ms4','c2','c10','ms1','sr_mtsj2','mts','sr_mtsj1'};
+                        case 2
+                            optElements = {'r25','r36','r10','ms3','ms4','c2','c10','ms1','sr_mtsj2'};
+                    end
                     errElements = {'r25','c12r36','c25r10'};
                 case 'custom'
                     assert(all(contains(optElements,obj.optVectElements)),'Found unknown optElement - please check')
                     assert(all(contains(errElements,obj.optErrElements)),'Found unknown errElement - please check')
                 otherwise
                     error(['Unknown configName: ',configName])
+            end
+
+            % Overwrite the optElements for the mts case
+            if obj.optTypeFlag == 3
+                optElements = {'mts','sr_mtsj1','la'};
             end
 
             for ii = 1:length(optElements)
@@ -1141,10 +1291,13 @@ classdef REACHcal
             Ne = length(obj.optW);
             eV = ones(Ne,1).*(-inf);
             for ii = 1:Ne
-                if obj.optLabFlag
-                    eV_ = obj.(['err_sourceLab_',obj.optErrElements{ii}]);
-                else
-                    eV_ = obj.(['err_source_',obj.optErrElements{ii}]);
+                switch obj.optTypeFlag
+                    case 1
+                        eV_ = obj.(['err_source_',obj.optErrElements{ii}]);
+                    case 2
+                        eV_ = obj.(['err_sourceLab_',obj.optErrElements{ii}]);
+                    case 3
+                        eV_ = obj.(['err_sourceMTS_',obj.optErrElements{ii}]);
                 end
 %                 eV(ii) = eV_.mean;
                 eV(ii) = eV_.max;
@@ -1181,8 +1334,13 @@ classdef REACHcal
             X0 = [obj.mts_vals,obj.sr_mtsj1.vals,obj.la_vals,obj.ps_vals];
             LB = [obj.mts_min,obj.sr_mtsj1.min,obj.la_min,obj.ps_min];
             UB = [obj.mts_max,obj.sr_mtsj1.max,obj.la_max,obj.ps_max];
+
             options = optimoptions('fmincon','display','iter','MaxIterations',1000);
             optVals = fmincon(@(x) errFuncMTS(obj,x),X0,[],[],[],[],LB,UB,[],options);
+            
+%             options = optimoptions('ga','display','iter','PopulationSize',1000);
+%             optVals = ga(@(x) errFuncMTS(obj,x),length(X0),[],[],[],[],LB,UB,[],options);
+
             [~,obj] = errFuncMTS(obj,optVals);
 
             function [err, obj] = errFuncMTS(obj,x)
@@ -1370,7 +1528,7 @@ classdef REACHcal
                 switch lower(obj.optVectElements{ii}(1))
                     case 'r'
                         labels = obj.rVarNames;
-                    case {'m','s'}
+                    case {'m','s','l'}
                         labels = obj.cShortVarNames;
                     case {'c'}
                         labels = obj.cVarNames;
@@ -1579,7 +1737,8 @@ classdef REACHcal
                     element_.optFlag];
             end
             L_struct.network = cascade(networkVect(1:end));
-            S11load = obj.(['S',elementName]).network.getS.d11;
+%             S11load = obj.(['S',elementName]).network.getS.d11;
+            S11load = obj.(['S11_lab_',elementName]);
             Zload = 50*(1 + S11load)./(1 - S11load);
             L_struct.network = L_struct.network.getS([],Zload);
             L_struct.vals = valMat(1,:);

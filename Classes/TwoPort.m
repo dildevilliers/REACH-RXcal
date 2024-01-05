@@ -167,8 +167,8 @@ classdef TwoPort
 
             Z1 = obj.Zport1;
             Z2 = obj.Zport2;
-            if nargin > 1 && ~isempty(Zport1), Z1 = Zport1; end
-            if nargin > 2 && ~isempty(Zport2), Z2 = Zport2; end
+            if nargin > 1 && ~isempty(Zport1), Z1 = Zport1(:); end
+            if nargin > 2 && ~isempty(Zport2), Z2 = Zport2(:); end
 
             if strcmp(obj.type,'S') && isequal(Z1,obj.Zport1) && isequal(Z2,obj.Zport2)
                 % Do nothing

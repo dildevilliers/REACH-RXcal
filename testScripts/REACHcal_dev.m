@@ -9,6 +9,24 @@ R.plotAllS11(3,{'r','k'})
 figure(2)
 R.plotAllParameters('r*')
 
+%% Do the MTS fits with lab sources
+% R1 = R.fitMTS;
+
+R1 = R.optimConfig('cold',[],[],3);
+R1 = R1.fitParams;
+
+figure
+R1.Lc12r36.network.getS.plot11dB
+plot(R1.freq,dB20(R1.S11_meas_c12r36))
+
+figure
+R1.Lc25open.network.getS.plot11dB
+plot(R1.freq,dB20(R1.S11_meas_c25open))
+
+
+return
+
+
 
 
 
