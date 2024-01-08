@@ -133,11 +133,17 @@ classdef REACHcal
         sr_mtsj2_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,120,2.0,0,0];
         sr_mtsj2_optFlag(1,5) logical = [1,1,1,1,1];
 
-        sr_mtsj1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [49.2178 124.9098 2.0459 2.5273e-04 1.0101];
-        sr_mtsj1_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
-        sr_mtsj1_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,135,2.1,0.0005,2];
-        sr_mtsj1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,115,2.0,0,0];
-        sr_mtsj1_optFlag(1,5) logical = [1,1,1,1,1];
+%         sr_mtsj1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [49.2178 124.9098 2.0459 2.5273e-04 1.0101];
+%         sr_mtsj1_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
+%         sr_mtsj1_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,135,2.1,0.0005,2];
+%         sr_mtsj1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,115,2.0,0,0];
+%         sr_mtsj1_optFlag(1,5) logical = [1,1,1,1,1];
+
+        sr_mtsj1_vals(1,8) double {mustBeReal} = [49.7610 125 -0.0118 2 -0.0014 0.0068 0.0074 0.4267];
+        sr_mtsj1_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1,1,1,1];
+        sr_mtsj1_max(1,8) double {mustBeReal} = [52,135.1,0.1,2.2,0.1,0.01,0.1,2];
+        sr_mtsj1_min(1,8) double {mustBeReal} = [48,115,-0.1,1.8,-0.1,0,-0.1,0];
+        sr_mtsj1_optFlag(1,8) logical = [1,1,1,1,1,1,1,1];
 
         sr_ms1j2_vals(1,5) double {mustBeReal,mustBeNonnegative} = [54.4476 114.7614 2.0523 2.9177e-04 1.0598];
         sr_ms1j2_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
@@ -590,8 +596,8 @@ classdef REACHcal
         end
 
         function sr_mtsj1 = get.sr_mtsj1(obj)
-            sr_mtsj1 = obj.buildShortCableStruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
-            %             sr_mtsj1 = obj.buildCableStruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
+%             sr_mtsj1 = obj.buildShortCableStruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
+            sr_mtsj1 = obj.buildCableStruct(obj.sr_mtsj1_vals,obj.sr_mtsj1_unitScales,obj.sr_mtsj1_max,obj.sr_mtsj1_min,obj.sr_mtsj1_optFlag);
         end
 
         function sr_mtsj2 = get.sr_mtsj2(obj)
@@ -1413,12 +1419,13 @@ classdef REACHcal
             measVals = obj.(['S11_meas_',sourceName]);
             Smod = obj.(['S',sourceName]);
 
-            style = {'r','k'};
+            style = {'r','k','b'};
 
             if includeLab
                 nSubCols = 4;
                 labVals = obj.(['S11_lab_',sourceName]);
                 Rmod = obj.(['R',sourceName]);
+                Lmod = obj.(['L',sourceName]);
 
                 subplot(2,nSubCols,3:4)
                 hold on, grid on
@@ -1440,16 +1447,25 @@ classdef REACHcal
             hold on, grid on
             Smod.network.getS.plot11dB(style{1})
             plot(obj.freq,dB20(measVals),style{2})
+            if includeLab
+                Lmod.network.getS.plot11dB(style{3})
+            end
             title(['VNA-ref: ',sourceName])
             legend('Model','Measure')
             subplot(2,nSubCols,3+nSubCols-2)
             hold on, grid on
             Smod.network.getS.plot11real(style{1})
             plot(obj.freq,real(measVals),style{2})
+            if includeLab
+                Lmod.network.getS.plot11real(style{3})
+            end
             subplot(2,nSubCols,4+nSubCols-2)
             hold on, grid on
             Smod.network.getS.plot11imag(style{1})
             plot(obj.freq,imag(measVals),style{2})
+            if includeLab
+                Lmod.network.getS.plot11imag(style{3})
+            end
         end
 
         function plotAllPSD(obj)
@@ -1530,6 +1546,9 @@ classdef REACHcal
                         labels = obj.rVarNames;
                     case {'m','s','l'}
                         labels = obj.cShortVarNames;
+                        if strcmpi(obj.optVectElements{ii},'sr_mtsj1')
+                            labels = obj.cVarNames;
+                        end
                     case {'c'}
                         labels = obj.cVarNames;
                     case 'a'

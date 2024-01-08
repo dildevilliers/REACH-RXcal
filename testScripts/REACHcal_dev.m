@@ -12,7 +12,7 @@ R.plotAllParameters('r*')
 %% Do the MTS fits with lab sources
 % R1 = R.fitMTS;
 
-R1 = R.optimConfig('cold',[],[],3);
+R1 = R.optimConfig('open',[],[],3);
 R1 = R1.fitParams;
 
 figure
