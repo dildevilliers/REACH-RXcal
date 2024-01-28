@@ -9,6 +9,8 @@ R.plotAllS11(3,{'r','k'})
 figure(2)
 R.plotAllParameters('r*')
 
+return
+
 %% Do the MTS fits with lab sources
 % R1 = R.fitMTS;
 

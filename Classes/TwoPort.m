@@ -237,6 +237,40 @@ classdef TwoPort
             obj = transFun(obj);
         end
 
+        % Output
+
+        function writeTouchStone(obj,pathName)
+            % writeTouchStone writes an .s2p touchstone output file to pathName
+
+            if nargin < 2, pathName = 'temp.s2p'; end
+
+            [p,n] = fileparts(pathName);
+            if ~isempty(p) && ~isequal(p(end),'\'), p = [p,'\']; end
+            fid = fopen([p,n,'.s2p'],'w+');
+
+            header = {'! S-parameter export from MATLAB TwoPort class';...
+                ['!   Creation date: ',char(datetime('now'))];...
+                ['# ',upper(obj.fUnit),' S DB R ',num2str(obj.Zport1),' ',num2str(obj.Zport2)];...
+                ['! FREQ.',upper(obj.fUnit),'      S11dB       S11deg       S21dB        S21deg       S12dB         S12deg       S22dB       S22deg   ']};
+
+            for hh = 1:numel(header)
+                fprintf(fid,'%s\n',header{hh});
+            end
+
+            obj = obj.getS;
+            data = [obj.freq(:),...
+                dB20(obj.d11(:)),rad2deg(angle(obj.d11)),...
+                dB20(obj.d21(:)),rad2deg(angle(obj.d21)),...
+                dB20(obj.d12(:)),rad2deg(angle(obj.d12)),...
+                dB20(obj.d22(:)),rad2deg(angle(obj.d22))];
+            dataFormat = ['%1.7f\t',repmat('%1.7f\t%12.4f\t',1,4),'\n'];
+            for dd = 1:size(data,1)
+                fprintf(fid,dataFormat,data(dd,:));
+            end
+            fclose(fid);
+            
+        end
+
         % Plotting
         function plot11dB(obj,style)
             % PLOT11dB plots the 11 parameter in dB
