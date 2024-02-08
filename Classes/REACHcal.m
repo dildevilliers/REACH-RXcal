@@ -415,6 +415,8 @@ classdef REACHcal
         optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','sr_ms1j2','c2','c10','la'};
         optErrElements = {'c12r36','c12r27','c12r69','c12r91','c25open','c25short','c25r10','c25r250','cold','hot','r25','r100'};
 
+        outputElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','sr_ms1j2','c2','c10'};
+
         validFieldsInputStruct = {'vals','unitScales','max','min','optFlag'};
     end
 
@@ -1358,7 +1360,24 @@ classdef REACHcal
             end
         end
 
+        % Output
+        function writeTouchStone(obj,path)
+            % writeTouchStone writes the different element models to touchstone files in the folder: path
 
+            if nargin < 2 || isempty(path), path = [pwd,'\REACHcal_snp_',char(datetime('now','format','yyyyMMdd''T''HHmmss'))]; end
+
+            if ~isequal(path(end),'\'), path = [path,'\']; end
+
+            [SUCCESS,MESSAGE] = mkdir(path);
+            if SUCCESS == 0, error(MESSAGE); end
+
+            for oo = 1:numel(obj.outputElements)
+                oe = obj.outputElements{oo};
+                Nout = 2;
+                if oe(1) == 'r', Nout = 1; end
+                obj.(oe).network.writeTouchStone([path,oe],Nout);
+            end
+        end
 
         % Plotting
         function plotCablePars(obj,cVals,cUnitScales)
