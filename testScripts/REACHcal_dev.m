@@ -6,9 +6,16 @@ clear all
 dataPth = 'c:\Users\ddv\OneDrive - Stellenbosch University\Navorsing\REACH\Calibration\2023_12_11_10min-int_full-meas\14_32\';
 R = REACHcal(dataPth);
 
+<<<<<<< HEAD
 % R.plotAllS11(3,{'r','k'})
 % figure(2)
 % R.plotAllParameters('r*')
+=======
+return
+
+%% Do the MTS fits with lab sources
+% R1 = R.fitMTS;
+>>>>>>> 14c1981b3b69e4ebdd7d17decbf8732b30e1e2ac
 
 R.plotAllS11(2,{'','k'})
 
