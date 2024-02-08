@@ -239,34 +239,60 @@ classdef TwoPort
 
         % Output
 
-        function writeTouchStone(obj,pathName)
-            % writeTouchStone writes an .s2p touchstone output file to pathName
+        function writeTouchStone(obj,pathName,N)
+            % writeTouchStone writes an .s2p or .s1p touchstone output file to pathName
+            % N is the number of ports. If N = 1, the .s1p output as seen from port 1 will be written. 
+            %   Here it is assumed that Zport2 is the load connected to the network.
+            % Default is N = 2 for the full .s2p file
 
-            if nargin < 2, pathName = 'temp.s2p'; end
+            if nargin < 2 || isempty(pathName), pathName = 'temp.s2p'; end
+            if nargin < 3 || isempty(N), N = 2; end
+            assert(N == 1 || N == 2,'N must be 1 or 2')
 
             [p,n] = fileparts(pathName);
             if ~isempty(p) && ~isequal(p(end),'\'), p = [p,'\']; end
-            fid = fopen([p,n,'.s2p'],'w+');
+
+            obj = obj.getS;
 
             header = {'! S-parameter export from MATLAB TwoPort class';...
-                ['!   Creation date: ',char(datetime('now'))];...
-                ['# ',upper(obj.fUnit),' S DB R ',num2str(obj.Zport1),' ',num2str(obj.Zport2)];...
-                ['! FREQ.',upper(obj.fUnit),'      S11dB       S11deg       S21dB        S21deg       S12dB         S12deg       S22dB       S22deg   ']};
+                ['!   Creation date: ',char(datetime('now'))]};
+            data_ = [obj.freq(:),...
+                    dB20(obj.d11(:)),rad2deg(angle(obj.d11))];
+
+            datform_f = '%1.7f\t';
+            datform_s = '%1.7f\t%12.4f\t';
+
+            if N == 2
+                fid = fopen([p,n,'.s2p'],'w+');
+
+                header = [header;...
+                    {['# ',upper(obj.fUnit),' S DB R ',num2str(obj.Zport1),' ',num2str(obj.Zport2)];...
+                    ['! FREQ.',upper(obj.fUnit),'      S11dB       S11deg       S21dB        S21deg       S12dB         S12deg       S22dB       S22deg   ']}];
+                
+                data_ = [data_,...
+                    dB20(obj.d21(:)),rad2deg(angle(obj.d21)),...
+                    dB20(obj.d12(:)),rad2deg(angle(obj.d12)),...
+                    dB20(obj.d22(:)),rad2deg(angle(obj.d22))];
+                dataFormat = [datform_f,repmat(datform_s,1,4),'\n'];
+            elseif N == 1
+                fid = fopen([p,n,'.s1p'],'w+');
+
+                header = [header;...
+                    {['# ',upper(obj.fUnit),' S DB R ',num2str(obj.Zport1)];...
+                    ['! FREQ.',upper(obj.fUnit),'      S11dB       S11deg       ']}];
+
+                dataFormat = [datform_f,datform_s,'\n'];
+            else
+                error('I should not be here')
+            end
 
             for hh = 1:numel(header)
                 fprintf(fid,'%s\n',header{hh});
             end
-
-            obj = obj.getS;
-            data = [obj.freq(:),...
-                dB20(obj.d11(:)),rad2deg(angle(obj.d11)),...
-                dB20(obj.d21(:)),rad2deg(angle(obj.d21)),...
-                dB20(obj.d12(:)),rad2deg(angle(obj.d12)),...
-                dB20(obj.d22(:)),rad2deg(angle(obj.d22))];
-            dataFormat = ['%1.7f\t',repmat('%1.7f\t%12.4f\t',1,4),'\n'];
-            for dd = 1:size(data,1)
-                fprintf(fid,dataFormat,data(dd,:));
+            for dd = 1:size(data_,1)
+                fprintf(fid,dataFormat,data_(dd,:));
             end
+
             fclose(fid);
             
         end
