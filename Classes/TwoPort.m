@@ -5,7 +5,7 @@ classdef TwoPort
     end
 
     properties (SetAccess = private)
-        type(1,:) char {mustBeMember(type,{'S','ABCD'})} = 'S'
+        type(1,:) char {mustBeMember(type,{'S','ABCD','Y'})} = 'S'
 
         freq(1,:) double % in fUnit
         fUnit(1,:) char {mustBeMember(fUnit,{'Hz','kHz','MHz','GHz','THz'})} = 'GHz' % Frequency unit 
@@ -181,18 +181,29 @@ classdef TwoPort
             else
                 switch obj.type
                     case 'ABCD'
-                    A = obj.d11;
-                    B = obj.d12;
-                    C = obj.d21;
-                    D = obj.d22;
+                        A = obj.d11;
+                        B = obj.d12;
+                        C = obj.d21;
+                        D = obj.d22;
 
-                    den = A.*Z2 + B + C.*Z1.*Z2 + D.*Z1;
-                    obj.data(1,1,:) = (A.*Z2 + B - C.*conj(Z1).*Z2 - D.*conj(Z1))./den;
-                    obj.data(1,2,:) = (2.*(A.*D - B.*C).*sqrt(real(Z1).*real(Z2)))./den;
-                    obj.data(2,1,:) = (2.*sqrt(real(Z1).*real(Z2)))./den;
-                    obj.data(2,2,:) = (-A.*conj(Z2) + B - C.*Z1.*conj(Z2) + D.*Z1)./den;
-                otherwise
-                    error('I should not be here...')
+                        den = A.*Z2 + B + C.*Z1.*Z2 + D.*Z1;
+                        obj.data(1,1,:) = (A.*Z2 + B - C.*conj(Z1).*Z2 - D.*conj(Z1))./den;
+                        obj.data(1,2,:) = (2.*(A.*D - B.*C).*sqrt(real(Z1).*real(Z2)))./den;
+                        obj.data(2,1,:) = (2.*sqrt(real(Z1).*real(Z2)))./den;
+                        obj.data(2,2,:) = (-A.*conj(Z2) + B - C.*Z1.*conj(Z2) + D.*Z1)./den;
+                    case 'Y'
+                        Y11 = obj.d11;
+                        Y12 = obj.d12;
+                        Y21 = obj.d21;
+                        Y22 = obj.d22;
+
+                        den = (1 + Y11.*Z1).*(1 + Y22.*Z2) - Y12.*Y21.*Z1.*Z2;
+                        obj.data(1,1,:) = ((1 - Y11.*conj(Z1)).*(1 + Y22.*Z2) + Y12.*Y21.*conj(Z1).*Z2)./den;
+                        obj.data(1,2,:) = (-2.*Y12.*sqrt(real(Z1).*real(Z2)))./den;
+                        obj.data(2,1,:) = (-2.*Y21.*sqrt(real(Z1).*real(Z2)))./den;
+                        obj.data(2,2,:) = ((1 + Y11.*Z1).*(1 - Y22.*conj(Z2)) + Y12.*Y21.*Z1.*conj(Z2))./den;
+                    otherwise
+                        error('I should not be here...')
                 end
                 obj.type = 'S';
                 obj.Zport1 = Z1;
@@ -205,6 +216,7 @@ classdef TwoPort
 
             switch obj.type
                 case 'ABCD'
+                    return;
                     % Do nothing
                 case 'S'
                     S11 = obj.d11;
@@ -220,11 +232,57 @@ classdef TwoPort
                     obj.data(1,2,:) = ((conj(Z1) + S11.*Z1).*(conj(Z2) + S22.*Z2) - S12.*S21.*Z1.*Z2)./den;
                     obj.data(2,1,:) = ((1 - S11).*(1 - S22) - S12.*S21)./den;
                     obj.data(2,2,:) = ((1 - S11).*(conj(Z2) + S22.*Z2) + S12.*S21.*Z2)./den;
-                    obj.type = 'ABCD';
+                case 'Y'
+                    Y11 = obj.d11;
+                    Y12 = obj.d12;
+                    Y21 = obj.d21;
+                    Y22 = obj.d22;
+
+                    obj.data(1,1,:) = -Y22./Y21;
+                    obj.data(1,2,:) = -1./Y21;
+                    obj.data(2,1,:) = (Y12.*Y21 - Y11.*Y22)./Y21;
+                    obj.data(2,2,:) = -Y11./Y21;
                 otherwise
                     error('I should not be here...')
             end
-            
+            obj.type = 'ABCD';
+        end
+
+        function obj = getY(obj)
+            % GETY returns the object of type Y-parameter
+
+            switch obj.type
+                case 'Y'
+                    return;
+                    % Do nothing
+                case 'ABCD'
+                    A = obj.d11;
+                    B = obj.d12;
+                    C = obj.d21;
+                    D = obj.d22;
+
+                    obj.data(1,1,:) = D./B;
+                    obj.data(1,2,:) = (B.*C - A.*D)./B;
+                    obj.data(2,1,:) = -1./B;
+                    obj.data(2,2,:) = A./B;
+                case 'S'
+                    S11 = obj.d11;
+                    S12 = obj.d12;
+                    S21 = obj.d21;
+                    S22 = obj.d22;
+
+                    Z1 = obj.Zport1(:);
+                    Z2 = obj.Zport2(:);
+
+                    den = (conj(Z1) + S11.*Z1).*(conj(Z2) + S22.*Z2) - S12.*S21.*Z1.*Z2;
+                    obj.data(1,1,:) = ((1 - S11).*(conj(Z2) + S22.*Z2) + S12.*S21.*Z2)./den;
+                    obj.data(1,2,:) = (-2.*S12.*sqrt(real(Z1).*real(Z2)))./den;
+                    obj.data(2,1,:) = (-2.*S21.*sqrt(real(Z1).*real(Z2)))./den;
+                    obj.data(2,2,:) = ((1 - S22).*(conj(Z1) + S11.*Z1) + S12.*S21.*Z1)./den;
+                otherwise
+                    error('I should not be here...')
+            end
+            obj.type = 'Y';
         end
 
         function obj = inv(obj)
