@@ -89,17 +89,17 @@ classdef REACHcal
 
 
         % Cables
-        c2_vals(1,8) double {mustBeReal} = [49.4791 1.9407 0.0214 1.3723 0.0088 0.0093 0.0323 0.6720];
+        c2_vals(1,8) double {mustBeReal} = [48.8416 1.9825 0 1.4919 -0.0018 0.0076 0 0.4753];
         c2_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1,1,1,1,1,1,1];
-        c2_max(1,8) double {mustBeReal} = [52,2.1,0.1,1.9,0.1,0.01,0.1,2];
-        c2_min(1,8) double {mustBeReal} = [48,1.9,-0.1,1.3,-0.1,0,-0.1,0];
-        c2_optFlag(1,8) logical = [1,1,1,1,1,1,1,1];
+        c2_max(1,8) double {mustBeReal} = [52,2.1,0.1,1.6,0.1,0.01,0.1,2];
+        c2_min(1,8) double {mustBeReal} = [48,1.9,-0.1,1.4,-0.1,0,-0.1,0];
+        c2_optFlag(1,8) logical = [1,1,0,1,1,1,0,1];
 
-        c10_vals(1,8) double {mustBeReal} = [49.7610 9.9198 -0.0118 1.4059 -0.0014 0.0068 0.0074 0.4267];
+        c10_vals(1,8) double {mustBeReal} = [48.9523 9.9566 0 1.4272 -0.0013 0.0064 0 0.4759];
         c10_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1,1,1,1,1,1,1];
-        c10_max(1,8) double {mustBeReal} = [52,10.1,0.1,1.5,0.1,0.01,0.1,2];
+        c10_max(1,8) double {mustBeReal} = [52,10.1,0.1,1.6,0.1,0.01,0.1,2];
         c10_min(1,8) double {mustBeReal} = [48,9.9,-0.1,1.4,-0.1,0,-0.1,0];
-        c10_optFlag(1,8) logical = [1,1,1,1,1,1,1,1];
+        c10_optFlag(1,8) logical = [1,1,0,1,1,1,0,1];
 
         % Mechanical switches
         ms1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [51.7101 13.3335 1.7260 0.0052 4.4804];
@@ -259,6 +259,9 @@ classdef REACHcal
         S_meas_MS3_J3
         S_meas_MS3_J4
 
+        S_meas_c2
+        S_meas_c10
+
 
 
     end
@@ -398,6 +401,8 @@ classdef REACHcal
 
         % Lower level error functions
         err_ms3
+        err_c2
+        err_c10
         err_mts
 
 
@@ -437,7 +442,7 @@ classdef REACHcal
             % MS3 dataPath
             obj.dataPathMS3 = [fileparts(p),'\..\data\MS-3\'];
             % Lab measurements datapath
-            obj.dataPathLabCable = [fileparts(p),'\..\data\lab_cable\'];
+            obj.dataPathLabCable = [fileparts(p),'\..\data\lab_cables\'];
             obj.dataPathLabSources = [fileparts(p),'\..\data\lab_sources\'];
 
 
@@ -504,6 +509,11 @@ classdef REACHcal
             obj.S_meas_MS3_J3 = obj.S_meas_MS3_J3.freqChangeUnit(obj.freqUnit);
             obj.S_meas_MS3_J4 = obj.S_meas_MS3_J4.freqChangeUnit(obj.freqUnit);
 
+            % Read the lab cable data 
+            obj.S_meas_c2 = TwoPort.readTouchStone([obj.dataPathLabCable,'2m_P1A1-P2A2_installed.s2p'],2,obj.freqHz);
+            obj.S_meas_c10 = TwoPort.readTouchStone([obj.dataPathLabCable,'10m_P1A1-P2A2_installed.s2p'],2,obj.freqHz);
+            obj.S_meas_c2 = obj.S_meas_c2.freqChangeUnit(obj.freqUnit);
+            obj.S_meas_c10 = obj.S_meas_c10.freqChangeUnit(obj.freqUnit);
 
 
             % Set up optimization preliminaries
@@ -948,6 +958,26 @@ classdef REACHcal
             err_ms3 = sqrt(sum(abs(meas21 - mod21).^2))./obj.Nf;
         end
 
+        function err_c2 = get.err_c2(obj)
+            meas11 = obj.S_meas_c2.getS.d11;
+            meas21 = obj.S_meas_c2.getS.d21;
+            mod11 = obj.c2.network.getS.d11;
+            mod21 = obj.c2.network.getS.d21;
+            err_c2_11 = sqrt(sum(abs(meas11 - mod11).^2))./obj.Nf;
+            err_c2_21 = sqrt(sum(abs(meas21 - mod21).^2))./obj.Nf;
+            err_c2 = err_c2_11 + err_c2_21;
+        end
+
+        function err_c10 = get.err_c10(obj)
+            meas11 = obj.S_meas_c10.getS.d11;
+            meas21 = obj.S_meas_c10.getS.d21;
+            mod11 = obj.c10.network.getS.d11;
+            mod21 = obj.c10.network.getS.d21;
+            err_c10_11 = sqrt(sum(abs(meas11 - mod11).^2))./obj.Nf;
+            err_c10_21 = sqrt(sum(abs(meas21 - mod21).^2))./obj.Nf;
+            err_c10 = err_c10_11 + err_c10_21;
+        end
+
         function err_mts = get.err_mts(obj)
 
             meas11 = obj.S11_meas_c12r36;
@@ -1100,7 +1130,7 @@ classdef REACHcal
 
             if nargin > 4 && ~isempty(optTypeFlag), obj.optTypeFlag = optTypeFlag; end
 
-            mustBeMember(optTypeFlag,[1,2,3]);  % Rough error check here
+            mustBeMember(obj.optTypeFlag,[1,2,3]);  % Rough error check here
 
             % Start with all false
             optFlagVect = zeros(1,sum(obj.optVect_Nvars));
@@ -1333,6 +1363,25 @@ classdef REACHcal
             function [err, obj] = errFuncMS3(obj,x)
                 obj.ms3_vals = x;
                 err = obj.err_ms3;
+            end
+        end
+
+        function obj = fitCables(obj,cableName)
+            % FITCABLES is a component-level function to fit the cable models
+
+            if nargin < 2, cableName = 'c2'; end
+
+            X0 = obj.([cableName,'_vals']);
+            LB = obj.([cableName,'_min']);
+            UB = obj.([cableName,'_max']);
+            F = obj.([cableName,'_optFlag']);
+            options = optimoptions('fmincon','display','none','MaxIterations',1000);
+            optVals = fmincon(@(x) errFuncCable(obj,x,cableName,F),X0(F),[],[],[],[],LB(F),UB(F),[],options);
+            [~,obj] = errFuncCable(obj,optVals,cableName,F);
+
+            function [err, obj] = errFuncCable(obj,x,cableName,F)
+                obj.([cableName,'_vals'])(F) = x;
+                err = obj.(['err_',cableName]);
             end
         end
 

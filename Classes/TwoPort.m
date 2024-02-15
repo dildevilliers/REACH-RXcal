@@ -135,9 +135,9 @@ classdef TwoPort
         function obj = freqChangeUnit(obj,fUnit)
             % FREQCHANGEUNIT changes the frequency unit to fUnit
 
-            freqHz = obj.freq.*obj.fScale;
+            freqHz_ = obj.freq.*obj.fScale;
             obj.fUnit = fUnit;
-            obj.freq = freqHz./obj.fScale;
+            obj.freq = freqHz_./obj.fScale;
         end
 
         function obj = freqInterp(obj,freqInterp,interpMethod)
