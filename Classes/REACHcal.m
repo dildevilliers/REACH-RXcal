@@ -991,9 +991,25 @@ classdef REACHcal
 
         function optStruct = get.optStruct(obj)
             valMat = zeros(4,sum(obj.optVect_Nvars));
+            [elementNames,parameterNames] = deal(cell.empty(0,sum(obj.optVect_Nvars)));
             for ii = 1:obj.optVect_Ne
-                element_ = obj.(obj.optVectElements{ii});
-                valMat(:,(sum(obj.optVect_Nvars(1:(ii-1)))+1):sum(obj.optVect_Nvars(1:ii))) = [element_.vals; ...
+                idxStart = sum(obj.optVect_Nvars(1:(ii-1)))+1;
+                idxStop = sum(obj.optVect_Nvars(1:ii));
+                elName = obj.optVectElements{ii};
+                switch lower(elName(1))
+                    case 'r'
+                        parNames = obj.rVarNames;
+                    case {'m','s','l'}
+                        parNames = obj.cShortVarNames;
+                    case {'c'}
+                        parNames = obj.cVarNames;
+                    case 'a'
+                        parNames = obj.adaptVarNames;
+                end
+                element_ = obj.(elName);
+                elementNames(idxStart:idxStop) = repmat({elName},1,obj.optVect_Nvars(ii));
+                parameterNames(idxStart:idxStop) = parNames;
+                valMat(:,idxStart:idxStop) = [element_.vals; ...
                     element_.max; ...
                     element_.min; ...
                     element_.optFlag];
@@ -1002,6 +1018,8 @@ classdef REACHcal
             optStruct.max = valMat(2,:);
             optStruct.min = valMat(3,:);
             optStruct.optFlag = valMat(4,:);
+            optStruct.elementNames = elementNames;
+            optStruct.parameterNames = parameterNames;
         end
 
         % Measurement data
@@ -1132,13 +1150,7 @@ classdef REACHcal
 
             mustBeMember(obj.optTypeFlag,[1,2,3]);  % Rough error check here
 
-            % Start with all false
-            optFlagVect = zeros(1,sum(obj.optVect_Nvars));
-            for ii = 1:obj.optVect_Ne
-                obj.([obj.optVectElements{ii},'_optFlag']) = optFlagVect((sum(obj.optVect_Nvars(1:(ii-1)))+1):sum(obj.optVect_Nvars(1:ii)));
-            end
             obj.optW = obj.optW.*0;
-
             switch lower(configName)
                 case {'r36'}
                     switch obj.optTypeFlag
@@ -1281,8 +1293,11 @@ classdef REACHcal
                 optElements = {'mts','sr_mtsj1','la'};
             end
 
-            for ii = 1:length(optElements)
-                obj.([optElements{ii},'_optFlag']) = ones(1,length(obj.([optElements{ii},'_optFlag'])));
+            for ii = 1:length(obj.optVectElements)
+                % Remove all the non-optimized elements from the optimization - the rest stay the way they are specified
+                if ~ismember(obj.optVectElements{ii},optElements)
+                    obj.([obj.optVectElements{ii},'_optFlag']) = zeros(1,obj.optVect_Nvars(ii));
+                end
             end
 
             for jj = 1:length(errElements)
@@ -1407,6 +1422,55 @@ classdef REACHcal
                 obj.ps_vals = x(16);
                 err = obj.err_mts;
             end
+        end
+
+        % Parameter sweeps
+        function [] = paramSweep(obj)
+            % PARAMSWEEP does a 1D parameters sweep on all the parameters
+
+            % TODO: Reshape this whole thing (elements and parameters) to look like optStruct.
+            % Should be a bit faster and eventually easier to plot...
+            
+            Nsweep = 11;
+            Nerr = length(obj.optErrElements);
+            Npar = length(obj.optVectElements);
+            NelMax = max(obj.optVect_Nvars);
+            Ntot = Nsweep*Nerr;
+
+            errVals = nan(Npar,NelMax,Nsweep,Nerr);
+            errNom = nan(1,Nerr);
+            h = waitbar(0,'Calculating parameter sweep...');
+            count = 0;
+            for ii = 1:Nerr
+                
+                errNom(ii) = obj.(['err_source_',obj.optErrElements{ii}]).max;
+
+                for jj = 1:Npar
+                    count = count + 1;
+                    waitbar(count/Ntot,h)
+
+                    el = obj.optVectElements{jj};
+                    for kk = 1:obj.optVect_Nvars(jj)
+                        idxPar = kk;
+
+                        parMin = obj.([el,'_min'])(idxPar);
+                        parMax = obj.([el,'_max'])(idxPar);
+                        parNom = obj.([el,'_vals'])(idxPar);
+
+                        parVals = linspace(parMin,parMax,Nsweep);
+
+                        for ll = 1:Nsweep
+                            
+                            obj.([el,'_vals'])(idxPar) = parVals(ll);
+                            errVals(jj,kk,ll,ii) = obj.(['err_source_',obj.optErrElements{ii}]).max;
+                        end
+                    end
+                end
+            end
+
+
+            keyboard
+            
         end
 
         % Output
