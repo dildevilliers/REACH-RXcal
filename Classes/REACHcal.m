@@ -1430,29 +1430,25 @@ classdef REACHcal
         function [] = paramSweep(obj)
             % PARAMSWEEP does a 1D parameters sweep on all the parameters
 
-            % TODO: Reshape this whole thing (elements and parameters) to look like optStruct.
-            % Should be a bit faster and eventually easier to plot...
-
-            Nsweep = 11;
+            Nsweep = 3;
             Nerr = length(obj.optErrElements);
-%             Npar = length(obj.optVectElements);
             Npar = length(obj.optStruct.parameterNames);
-%             NelMax = max(obj.optVect_Nvars);
-%             Ntot = Nsweep*Nerr;
+
+            % Set all the optFlags to true for the error calculation
+            for ii = 1:length(obj.optVectElements)
+                obj.([obj.optVectElements{ii},'_optFlag']) = true(1,obj.optVect_Nvars(ii));
+            end
+            obj.optTypeFlag = 1;
 
             parNom = obj.optStruct.vals;  
             for ii = 1:Nerr
                 errNom(1,ii) = obj.(['err_source_',obj.optErrElements{ii}]);
             end
-%             errVals = nan(Npar,NelMax,Nsweep,Nerr);
-            errVals = nan(Npar,Nsweep,Nerr);
-%             errNom = nan(1,Nerr);
+            errFuncNom = obj.errFunc(obj.optStruct.vals);
             h = waitbar(0,'Calculating parameter sweep...');
             count = 0;
             for aa = 1:Npar
-
                 count = count + 1;
-                %                     waitbar(count/Ntot,h)
                 waitbar(aa/Npar,h)
                 el = obj.optStruct.elementNames{aa};
                 parMin = obj.optStruct.min(aa);
@@ -1462,38 +1458,61 @@ classdef REACHcal
                 for bb = 1:Nsweep
                     obj.([el,'_vals'])(obj.optStruct.parameterIndex(aa)) = parVals(bb);
                     for cc = 1:Nerr
-                        errVals(aa,bb,cc) = obj.(['err_source_',obj.optErrElements{cc}]).max;
+                        errVals(aa,bb,cc) = obj.(['err_source_',obj.optErrElements{cc}]);
                     end
                     
-
-
-
-
-                    %                     el = obj.optVectElements{jj};
-                    %                     for kk = 1:obj.optVect_Nvars(jj)
-                    %                         idxPar = kk;
-                    %
-                    %                         parMin = obj.([el,'_min'])(idxPar);
-                    %                         parMax = obj.([el,'_max'])(idxPar);
-                    %                         parNom = obj.([el,'_vals'])(idxPar);
-                    %
-                    %                         parVals = linspace(parMin,parMax,Nsweep);
-                    %
-                    %                         for ll = 1:Nsweep
-                    %
-                    %                             obj.([el,'_vals'])(idxPar) = parVals(ll);
-                    %                             errVals(jj,kk,ll,ii) = obj.(['err_source_',obj.optErrElements{ii}]).max;
-                    %                         end
-                    %                     end
+                    errFuncVals(aa,bb) = obj.errFunc(obj.optStruct.vals);
                 end
                 % Reset back to the nominal value
                 obj.([el,'_vals'])(obj.optStruct.parameterIndex(aa)) = parNom(aa);
             end
 
-            errPlot = 1;
-            errorbar(1:Npar,ones(1,Npar).*errNom(errPlot).max,errNom(errPlot).max - min(errVals(:,:,errPlot),[],2),max(errVals(:,:,errPlot),[],2)-errNom(errPlot).max)
-            title(['Error source: ',obj.optErrElements{errPlot}])
-            keyboard
+            labels = obj.optStruct.parameterNames;
+            for jj = 1:length(obj.optStruct.parameterNames)
+                labels{jj} = strrep(labels{jj},'_','\_');
+            end
+
+            for ee = 1:Nerr + 1
+                errPlot = ee;
+                figure
+                if errPlot > Nerr
+                    E = errorbar(1:Npar,ones(1,Npar).*errFuncNom,errFuncNom - min(errFuncVals,[],2),max(errFuncVals,[],2)-errFuncNom,'k');
+                    grid on, hold on;
+                    title(['Error source: obj.errFunc'])
+                    ymax = max(E.YData + E.YPositiveDelta);
+                    ymin = min(E.YData - E.YNegativeDelta);
+                else
+                    errMax = reshape([errVals(:,:,errPlot).max],size(errVals,1),size(errVals,2));
+                    errMean = reshape([errVals(:,:,errPlot).mean],size(errVals,1),size(errVals,2));
+                    errNorm = reshape([errVals(:,:,errPlot).norm],size(errVals,1),size(errVals,2));
+                    Emax = errorbar(1:Npar,ones(1,Npar).*errNom(errPlot).max,errNom(errPlot).max - min(errMax,[],2),max(errMax,[],2)-errNom(errPlot).max,'k');
+                    grid on, hold on
+                    Emean = errorbar(1:Npar,ones(1,Npar).*errNom(errPlot).mean,errNom(errPlot).mean - min(errMean,[],2),max(errMean,[],2)-errNom(errPlot).mean,'r');
+                    Enorm = errorbar(1:Npar,ones(1,Npar).*errNom(errPlot).norm,errNom(errPlot).norm - min(errNorm,[],2),max(errNorm,[],2)-errNom(errPlot).norm,'b');
+                    ymax = max([max(Emax.YData + Emax.YPositiveDelta), max(Emean.YData + Emean.YPositiveDelta), max(Enorm.YData + Enorm.YPositiveDelta)]);
+                    ymin = min([min(Emax.YData - Emax.YNegativeDelta), min(Emean.YData - Emean.YNegativeDelta), min(Enorm.YData - Enorm.YNegativeDelta)]);
+                    
+                    title(['Error source: ',obj.optErrElements{errPlot}])
+                end
+                ymax = ceil(ymax./10)*10;
+                ymin = floor(ymin./10)*10;
+                ylim([ymin,ymax])
+
+                xtickangle(90);
+                xticks(1:length(obj.optStruct.parameterNames));
+                xticklabels(labels)
+                xlim([0,length(obj.optStruct.parameterNames)]+0.5)
+                for ii = 1:obj.optVect_Ne
+                    x_start = sum(obj.optVect_Nvars(1:ii-1)) + 0.5;
+                    x_stop = sum(obj.optVect_Nvars(1:ii)) + 0.5;
+                    plot([x_start,x_start],[ymin,ymax],'k--','linewidth',1.5)
+                    text(x_start+0.5,ymax,strrep(obj.optVectElements{ii},'_','\_'));
+                end
+                plot([x_stop,x_stop],[ymin,ymax],'k--','linewidth',1.5)
+
+                legend([Emax,Emean,Enorm],{'Max','Mean','Norm'})
+            end
+            
             
         end
 
