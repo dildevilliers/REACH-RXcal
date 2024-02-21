@@ -990,7 +990,7 @@ classdef REACHcal
         end
 
         function optStruct = get.optStruct(obj)
-            valMat = zeros(4,sum(obj.optVect_Nvars));
+            valMat = zeros(5,sum(obj.optVect_Nvars));
             [elementNames,parameterNames] = deal(cell.empty(0,sum(obj.optVect_Nvars)));
             for ii = 1:obj.optVect_Ne
                 idxStart = sum(obj.optVect_Nvars(1:(ii-1)))+1;
@@ -1012,7 +1012,8 @@ classdef REACHcal
                 valMat(:,idxStart:idxStop) = [element_.vals; ...
                     element_.max; ...
                     element_.min; ...
-                    element_.optFlag];
+                    element_.optFlag;...
+                    1:obj.optVect_Nvars(ii)];
             end
             optStruct.vals = valMat(1,:);
             optStruct.max = valMat(2,:);
@@ -1020,6 +1021,7 @@ classdef REACHcal
             optStruct.optFlag = valMat(4,:);
             optStruct.elementNames = elementNames;
             optStruct.parameterNames = parameterNames;
+            optStruct.parameterIndex = valMat(5,:);
         end
 
         % Measurement data
@@ -1430,45 +1432,67 @@ classdef REACHcal
 
             % TODO: Reshape this whole thing (elements and parameters) to look like optStruct.
             % Should be a bit faster and eventually easier to plot...
-            
+
             Nsweep = 11;
             Nerr = length(obj.optErrElements);
-            Npar = length(obj.optVectElements);
-            NelMax = max(obj.optVect_Nvars);
-            Ntot = Nsweep*Nerr;
+%             Npar = length(obj.optVectElements);
+            Npar = length(obj.optStruct.parameterNames);
+%             NelMax = max(obj.optVect_Nvars);
+%             Ntot = Nsweep*Nerr;
 
-            errVals = nan(Npar,NelMax,Nsweep,Nerr);
-            errNom = nan(1,Nerr);
+            parNom = obj.optStruct.vals;  
+            for ii = 1:Nerr
+                errNom(1,ii) = obj.(['err_source_',obj.optErrElements{ii}]);
+            end
+%             errVals = nan(Npar,NelMax,Nsweep,Nerr);
+            errVals = nan(Npar,Nsweep,Nerr);
+%             errNom = nan(1,Nerr);
             h = waitbar(0,'Calculating parameter sweep...');
             count = 0;
-            for ii = 1:Nerr
-                
-                errNom(ii) = obj.(['err_source_',obj.optErrElements{ii}]).max;
+            for aa = 1:Npar
 
-                for jj = 1:Npar
-                    count = count + 1;
-                    waitbar(count/Ntot,h)
+                count = count + 1;
+                %                     waitbar(count/Ntot,h)
+                waitbar(aa/Npar,h)
+                el = obj.optStruct.elementNames{aa};
+                parMin = obj.optStruct.min(aa);
+                parMax = obj.optStruct.max(aa);
 
-                    el = obj.optVectElements{jj};
-                    for kk = 1:obj.optVect_Nvars(jj)
-                        idxPar = kk;
-
-                        parMin = obj.([el,'_min'])(idxPar);
-                        parMax = obj.([el,'_max'])(idxPar);
-                        parNom = obj.([el,'_vals'])(idxPar);
-
-                        parVals = linspace(parMin,parMax,Nsweep);
-
-                        for ll = 1:Nsweep
-                            
-                            obj.([el,'_vals'])(idxPar) = parVals(ll);
-                            errVals(jj,kk,ll,ii) = obj.(['err_source_',obj.optErrElements{ii}]).max;
-                        end
+                parVals = linspace(parMin,parMax,Nsweep);
+                for bb = 1:Nsweep
+                    obj.([el,'_vals'])(obj.optStruct.parameterIndex(aa)) = parVals(bb);
+                    for cc = 1:Nerr
+                        errVals(aa,bb,cc) = obj.(['err_source_',obj.optErrElements{cc}]).max;
                     end
+                    
+
+
+
+
+                    %                     el = obj.optVectElements{jj};
+                    %                     for kk = 1:obj.optVect_Nvars(jj)
+                    %                         idxPar = kk;
+                    %
+                    %                         parMin = obj.([el,'_min'])(idxPar);
+                    %                         parMax = obj.([el,'_max'])(idxPar);
+                    %                         parNom = obj.([el,'_vals'])(idxPar);
+                    %
+                    %                         parVals = linspace(parMin,parMax,Nsweep);
+                    %
+                    %                         for ll = 1:Nsweep
+                    %
+                    %                             obj.([el,'_vals'])(idxPar) = parVals(ll);
+                    %                             errVals(jj,kk,ll,ii) = obj.(['err_source_',obj.optErrElements{ii}]).max;
+                    %                         end
+                    %                     end
                 end
+                % Reset back to the nominal value
+                obj.([el,'_vals'])(obj.optStruct.parameterIndex(aa)) = parNom(aa);
             end
 
-
+            errPlot = 1;
+            errorbar(1:Npar,ones(1,Npar).*errNom(errPlot).max,errNom(errPlot).max - min(errVals(:,:,errPlot),[],2),max(errVals(:,:,errPlot),[],2)-errNom(errPlot).max)
+            title(['Error source: ',obj.optErrElements{errPlot}])
             keyboard
             
         end
