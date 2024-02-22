@@ -39,17 +39,17 @@ classdef REACHcal
         r91_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,86];
         r91_optFlag(1,4) logical = [1,1,1,1];
 
-        rOpen_vals(1,4) double {mustBeReal,mustBeNonnegative} = [3.3378 52.2454 3.7027 391.5123];
+        rOpen_vals(1,4) double {mustBeReal,mustBeNonnegative} = [3.3378 52.2454 3.7027 0.5];
         rOpen_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1e6];
-        rOpen_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,150,20,1000];
-        rOpen_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,5];
+        rOpen_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,150,20,1];
+        rOpen_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,0.01];
         rOpen_optFlag(1,4) logical = [1,1,1,1];
 
-        rShort_vals(1,4) double {mustBeReal,mustBeNonnegative} = [7.9373 18.6394 9.9928 0.3677];
+        rShort_vals(1,4) double {mustBeReal,mustBeNonnegative} = [7.9373 18.6394 0 0.3677];
         rShort_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
-        rShort_max(1,4) double {mustBeReal,mustBeNonnegative} = [50,80,20,2];
+        rShort_max(1,4) double {mustBeReal,mustBeNonnegative} = [50,80,200,10];
         rShort_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,0];
-        rShort_optFlag(1,4) logical = [1,1,1,1];
+        rShort_optFlag(1,4) logical = [1,1,0,1];
 
         r10_vals(1,4) double {mustBeReal,mustBeNonnegative} = [5.3058 20.9861 10.7688 10.3533];
         r10_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
@@ -89,36 +89,36 @@ classdef REACHcal
 
 
         % Cables
-        c2_vals(1,8) double {mustBeReal} = [48.8416 1.9825 0 1.4919 -0.0018 0.0076 0 0.4753];
+        c2_vals(1,8) double {mustBeReal} = [48.8417 1.9818 0 1.4930 -0.0019 0.0078 0 0.4591];
         c2_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1,1,1,1,1,1,1];
-        c2_max(1,8) double {mustBeReal} = [52,2.1,0.1,1.6,0.1,0.01,0.1,2];
-        c2_min(1,8) double {mustBeReal} = [48,1.9,-0.1,1.4,-0.1,0,-0.1,0];
+        c2_max(1,8) double {mustBeReal} = [52,2.1,0.1,1.6,0.01, 0.01,0.1,2];
+        c2_min(1,8) double {mustBeReal} = [48,1.9,-0.1,1.4,-0.01,0,-0.1,0];
         c2_optFlag(1,8) logical = [1,1,0,1,1,1,0,1];
 
-        c10_vals(1,8) double {mustBeReal} = [48.9523 9.9566 0 1.4272 -0.0013 0.0064 0 0.4759];
+        c10_vals(1,8) double {mustBeReal} = [48.9522 9.9592  0 1.4265 -0.0013 0.0065 0  0.4742];
         c10_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1,1,1,1,1,1,1];
-        c10_max(1,8) double {mustBeReal} = [52,10.1,0.1,1.6,0.1,0.01,0.1,2];
-        c10_min(1,8) double {mustBeReal} = [48,9.9,-0.1,1.4,-0.1,0,-0.1,0];
+        c10_max(1,8) double {mustBeReal} = [52,10.1,0.1,1.6,0.01,0.01,0.1,2];
+        c10_min(1,8) double {mustBeReal} = [48,9.9,-0.1,1.4,-0.01,0,-0.1,0];
         c10_optFlag(1,8) logical = [1,1,0,1,1,1,0,1];
 
         % Mechanical switches
-        ms1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [51.7101 13.3335 1.7260 0.0052 4.4804];
+        ms1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [51.7101 13.3335 1.7260 0 0];
         ms1_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         ms1_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,18,1.9,0.01,10];
         ms1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,9,1.5,0,0];
-        ms1_optFlag(1,5) logical = [1,1,1,1,1];
+        ms1_optFlag(1,5) logical = [1,1,1,0,0];
 
-        ms3_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.0232 13.3749 1.6933 0.0051 4.4749];
+        ms3_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.0232 13.3749 1.6933 0 0];
         ms3_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         ms3_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,18,1.9,0.01,10];
         ms3_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,9,1.5,0,0];
-        ms3_optFlag(1,5) logical = [1,1,1,1,1];
+        ms3_optFlag(1,5) logical = [1,1,1,0,0];
 
-        ms4_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.0232 13.3749 1.6933 0.0051 4.4749];
+        ms4_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.0232 13.3749 1.6933 0 0];
         ms4_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         ms4_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,60,1.9,0.01,10];
         ms4_min(1,5) double {mustBeReal,mustBeNonnegative} = [47,9,1.5,0,0];
-        ms4_optFlag(1,5) logical = [1,1,1,1,1];
+        ms4_optFlag(1,5) logical = [1,1,1,0,0];
 
         mts_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.9304 58 1.6351 0.0059 3.9662];
         mts_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
@@ -127,17 +127,17 @@ classdef REACHcal
         mts_optFlag(1,5) logical = [1,1,1,1,1];
 
         % Semi-ridged links
-        sr_mtsj2_vals(1,5) double {mustBeReal,mustBeNonnegative} = [48.4377 125.1712 2.0504 2.5188e-04 0.9629];
+        sr_mtsj2_vals(1,5) double {mustBeReal,mustBeNonnegative} = [48.4377 125.1712 2.0504 0 0.9629];
         sr_mtsj2_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         sr_mtsj2_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,130,2.1,0.0005,2];
         sr_mtsj2_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,120,2.0,0,0];
-        sr_mtsj2_optFlag(1,5) logical = [1,1,1,1,1];
+        sr_mtsj2_optFlag(1,5) logical = [1,1,1,0,1];
 
-        sr_mtsj1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [49.2178 124.9098 2.0459 2.5273e-04 1.0101];
+        sr_mtsj1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [49.2178 124.9098 2.0459 0 1.0101];
         sr_mtsj1_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         sr_mtsj1_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,135,2.1,0.0005,2];
         sr_mtsj1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,115,2.0,0,0];
-        sr_mtsj1_optFlag(1,5) logical = [1,1,1,1,1];
+        sr_mtsj1_optFlag(1,5) logical = [1,1,1,0,1];
 
 %         sr_mtsj1_vals(1,8) double {mustBeReal} = [49.7610 125 -0.0118 2 -0.0014 0.0068 0.0074 0.4267];
 %         sr_mtsj1_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1,1,1,1];
@@ -1430,7 +1430,7 @@ classdef REACHcal
         function [] = paramSweep(obj)
             % PARAMSWEEP does a 1D parameters sweep on all the parameters
 
-            Nsweep = 3;
+            Nsweep = 9;
             Nerr = length(obj.optErrElements);
             Npar = length(obj.optStruct.parameterNames);
 
@@ -1475,44 +1475,34 @@ classdef REACHcal
             for ee = 1:Nerr + 1
                 errPlot = ee;
                 figure
+                grid on, hold on
                 if errPlot > Nerr
-                    E = errorbar(1:Npar,ones(1,Npar).*errFuncNom,errFuncNom - min(errFuncVals,[],2),max(errFuncVals,[],2)-errFuncNom,'k');
-                    grid on, hold on;
+                    yline(errFuncNom,'b')
+                    plot(repmat(1:Npar,Nsweep,1),errFuncVals.','b.-')
                     title(['Error source: obj.errFunc'])
-                    ymax = max(E.YData + E.YPositiveDelta);
-                    ymin = min(E.YData - E.YNegativeDelta);
                 else
                     errMax = reshape([errVals(:,:,errPlot).max],size(errVals,1),size(errVals,2));
                     errMean = reshape([errVals(:,:,errPlot).mean],size(errVals,1),size(errVals,2));
                     errNorm = reshape([errVals(:,:,errPlot).norm],size(errVals,1),size(errVals,2));
-                    Emax = errorbar(1:Npar,ones(1,Npar).*errNom(errPlot).max,errNom(errPlot).max - min(errMax,[],2),max(errMax,[],2)-errNom(errPlot).max,'k');
-                    grid on, hold on
-                    Emean = errorbar(1:Npar,ones(1,Npar).*errNom(errPlot).mean,errNom(errPlot).mean - min(errMean,[],2),max(errMean,[],2)-errNom(errPlot).mean,'r');
-                    Enorm = errorbar(1:Npar,ones(1,Npar).*errNom(errPlot).norm,errNom(errPlot).norm - min(errNorm,[],2),max(errNorm,[],2)-errNom(errPlot).norm,'b');
-                    ymax = max([max(Emax.YData + Emax.YPositiveDelta), max(Emean.YData + Emean.YPositiveDelta), max(Enorm.YData + Enorm.YPositiveDelta)]);
-                    ymin = min([min(Emax.YData - Emax.YNegativeDelta), min(Emean.YData - Emean.YNegativeDelta), min(Enorm.YData - Enorm.YNegativeDelta)]);
-                    
+
+                    pMax = yline(errNom(errPlot).max,'b');
+                    pMean = yline(errNom(errPlot).mean,'r');
+                    pNorm = yline(errNom(errPlot).norm,'m');
+                    plot(repmat(1:Npar,Nsweep,1),errMax.','b.-')
+                    plot(repmat(1:Npar,Nsweep,1),errMean.','r.-')
+                    plot(repmat(1:Npar,Nsweep,1),errNorm.','m.-')
                     title(['Error source: ',obj.optErrElements{errPlot}])
                 end
-                ymax = ceil(ymax./10)*10;
-                ymin = floor(ymin./10)*10;
-                ylim([ymin,ymax])
-
                 xtickangle(90);
                 xticks(1:length(obj.optStruct.parameterNames));
                 xticklabels(labels)
                 xlim([0,length(obj.optStruct.parameterNames)]+0.5)
-                for ii = 1:obj.optVect_Ne
-                    x_start = sum(obj.optVect_Nvars(1:ii-1)) + 0.5;
-                    x_stop = sum(obj.optVect_Nvars(1:ii)) + 0.5;
-                    plot([x_start,x_start],[ymin,ymax],'k--','linewidth',1.5)
-                    text(x_start+0.5,ymax,strrep(obj.optVectElements{ii},'_','\_'));
-                end
-                plot([x_stop,x_stop],[ymin,ymax],'k--','linewidth',1.5)
-
-                legend([Emax,Emean,Enorm],{'Max','Mean','Norm'})
+                xlineVals = find(obj.optStruct.parameterIndex == 1)-0.5;
+                xline(xlineVals,'k--',strrep(obj.optVectElements,'_','\_'),'LabelOrientation','horizontal')
+                legend([pMax,pMean,pNorm],{'Max','Mean','Norm'})
             end
             
+%             keyboard
             
         end
 
