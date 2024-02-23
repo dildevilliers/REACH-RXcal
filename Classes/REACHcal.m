@@ -1283,6 +1283,17 @@ classdef REACHcal
                             optElements = {'r25','r36','r10','ms3','ms4','c2','c10','ms1','sr_mtsj2'};
                     end
                     errElements = {'r25','c12r36','c25r10'};
+                case {'no_open_short'}
+                    optElements = obj.optVectElements;
+                    optElements(contains(optElements,{'la','rOpen','rShort'})) = [];
+                    switch obj.optTypeFlag
+                        case 1
+                            % Do nothing
+                        case 2
+                            optElements(contains(optElements,{'mts','sr_mtsj1'})) = [];
+                    end
+                    errElements = obj.optErrElements;
+                    errElements(contains(errElements,{'c25open','c25short'})) = [];
                 case 'custom'
                     assert(all(contains(optElements,obj.optVectElements)),'Found unknown optElement - please check')
                     assert(all(contains(errElements,obj.optErrElements)),'Found unknown errElement - please check')
@@ -1319,7 +1330,7 @@ classdef REACHcal
             LB = obj.optStruct.min(idx);
             UB = obj.optStruct.max(idx);
 
-            switch solver
+            switch lower(solver)
                 case 'fmincon'
                     if nargin < 3 || isempty(options), options = optimoptions('fmincon','display','iter','MaxFunctionEvaluations',10000); end
                     optVals = fmincon(@(x) errFunc(obj,x),X0,[],[],[],[],LB,UB,[],options);
@@ -1430,7 +1441,7 @@ classdef REACHcal
         function [] = paramSweep(obj)
             % PARAMSWEEP does a 1D parameters sweep on all the parameters
 
-            Nsweep = 9;
+            Nsweep = 2;
             Nerr = length(obj.optErrElements);
             Npar = length(obj.optStruct.parameterNames);
 
@@ -1441,12 +1452,15 @@ classdef REACHcal
             obj.optTypeFlag = 1;
 
             parNom = obj.optStruct.vals;  
+            errNom = struct('max',cell(1,Nerr),'mean',cell(1,Nerr),'norm',cell(1,Nerr));
             for ii = 1:Nerr
                 errNom(1,ii) = obj.(['err_source_',obj.optErrElements{ii}]);
             end
             errFuncNom = obj.errFunc(obj.optStruct.vals);
             h = waitbar(0,'Calculating parameter sweep...');
             count = 0;
+            errVals = struct('max',cell(Npar,Nsweep,Nerr),'mean',cell(Npar,Nsweep,Nerr),'norm',cell(Npar,Nsweep,Nerr));
+            errFuncVals = nan(Npar,Nsweep);
             for aa = 1:Npar
                 count = count + 1;
                 waitbar(aa/Npar,h)
@@ -1502,6 +1516,7 @@ classdef REACHcal
                 legend([pMax,pMean,pNorm],{'Max','Mean','Norm'})
             end
             
+            delete(h);
 %             keyboard
             
         end
