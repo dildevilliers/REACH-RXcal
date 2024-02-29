@@ -1,7 +1,8 @@
 classdef REACHcal
 
     properties
-
+        useMeasCableC10(1,1) logical = false
+        useMeasCableC2(1,1) logical = false
     end
 
     properties (SetAccess = private)
@@ -15,49 +16,49 @@ classdef REACHcal
         fmax(1,1) double = 200 % in MHz
 
         % Resistors
-        r36_vals(1,4) double {mustBeReal,mustBeNonnegative} = [3.8492 21.0167 4.5243 36.8479];
+        r36_vals(1,4) double {mustBeReal,mustBeNonnegative} = [4.0065   18.8989    5.7711   36.7437];
         r36_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r36_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,40,10,38];
         r36_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,34];
         r36_optFlag(1,4) logical = [1,1,1,1];
 
-        r27_vals(1,4) double {mustBeReal,mustBeNonnegative} = [4.4148 24.1903 9.0568 27.3331];
+        r27_vals(1,4) double {mustBeReal,mustBeNonnegative} = [3.2910   15.9559    6.2957   27.0931];
         r27_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r27_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,40,20,29];
         r27_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,25];
         r27_optFlag(1,4) logical = [1,1,1,1];
 
-        r69_vals(1,4) double {mustBeReal,mustBeNonnegative} = [7.2883 36.4569 4.6570 69.9235];
+        r69_vals(1,4) double {mustBeReal,mustBeNonnegative} = [4.9320   29.9975    3.8569   69.5087];
         r69_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r69_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,60,20,72];
         r69_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,66];
         r69_optFlag(1,4) logical = [1,1,1,1];
 
-        r91_vals(1,4) double {mustBeReal,mustBeNonnegative} = [8.3539 49.6584 3.7671 93.1463];
+        r91_vals(1,4) double {mustBeReal,mustBeNonnegative} = [5.2012   37.2199    2.8573   91.8306];
         r91_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r91_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,20,95];
         r91_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,86];
         r91_optFlag(1,4) logical = [1,1,1,1];
 
-        rOpen_vals(1,4) double {mustBeReal,mustBeNonnegative} = [3.3378 52.2454 3.7027 0.5];
+        rOpen_vals(1,4) double {mustBeReal,mustBeNonnegative} = [3.3572   52.2871    1.5286    0.5040];
         rOpen_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1e6];
         rOpen_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,150,20,1];
         rOpen_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,0.01];
         rOpen_optFlag(1,4) logical = [1,1,1,1];
 
-        rShort_vals(1,4) double {mustBeReal,mustBeNonnegative} = [7.9373 18.6394 0 0.3677];
+        rShort_vals(1,4) double {mustBeReal,mustBeNonnegative} = [0.3825   13.5334         0    0.3885];
         rShort_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         rShort_max(1,4) double {mustBeReal,mustBeNonnegative} = [50,80,200,10];
         rShort_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,0];
         rShort_optFlag(1,4) logical = [1,1,0,1];
 
-        r10_vals(1,4) double {mustBeReal,mustBeNonnegative} = [5.3058 20.9861 10.7688 10.3533];
+        r10_vals(1,4) double {mustBeReal,mustBeNonnegative} = [2.9820   14.0527    6.4371   10.2865];
         r10_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r10_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,40,11];
         r10_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,9];
         r10_optFlag(1,4) logical = [1,1,1,1];
 
-        r250_vals(1,4) double {mustBeReal,mustBeNonnegative} = [4.5536 21.6320 3.5899 254.1647];
+        r250_vals(1,4) double {mustBeReal,mustBeNonnegative} = [3.2736   22.1183    2.2688  254.8343];
         r250_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
         r250_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,20,280];
         r250_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,240];
@@ -108,13 +109,13 @@ classdef REACHcal
         ms1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,9,1.5,0,0];
         ms1_optFlag(1,5) logical = [1,1,1,0,0];
 
-        ms3_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.0232 13.3749 1.6933 0 0];
+        ms3_vals(1,5) double {mustBeReal,mustBeNonnegative} = [49.6175   16.3713    1.7817         0         0];
         ms3_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         ms3_max(1,5) double {mustBeReal,mustBeNonnegative} = [52,18,1.9,0.01,10];
         ms3_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,9,1.5,0,0];
         ms3_optFlag(1,5) logical = [1,1,1,0,0];
 
-        ms4_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.0232 13.3749 1.6933 0 0];
+        ms4_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.2524 15.6277 1.6720 0 0];
         ms4_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
         ms4_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,60,1.9,0.01,10];
         ms4_min(1,5) double {mustBeReal,mustBeNonnegative} = [47,9,1.5,0,0];
@@ -445,7 +446,6 @@ classdef REACHcal
             obj.dataPathLabCable = [fileparts(p),'\..\data\lab_cables\'];
             obj.dataPathLabSources = [fileparts(p),'\..\data\lab_sources\'];
 
-
             % Name-value pairs
             typeValidation_elementStruct = @(x) validateattributes(x,{'struct'},{},'REACHcal','inputStruct');
 
@@ -584,11 +584,19 @@ classdef REACHcal
         end
 
         function c2 = get.c2(obj)
-            c2 = obj.buildCableStruct(obj.c2_vals,obj.c2_unitScales,obj.c2_max,obj.c2_min,obj.c2_optFlag);
+            if obj.useMeasCableC2
+                c2 = obj.buildCableStruct('c2');
+            else
+                c2 = obj.buildCableStruct(obj.c2_vals,obj.c2_unitScales,obj.c2_max,obj.c2_min,obj.c2_optFlag);
+            end
         end
 
         function c10 = get.c10(obj)
-            c10 = obj.buildCableStruct(obj.c10_vals,obj.c10_unitScales,obj.c10_max,obj.c10_min,obj.c10_optFlag);
+            if obj.useMeasCableC10
+                c10 = obj.buildCableStruct('c10');
+            else
+                c10 = obj.buildCableStruct(obj.c10_vals,obj.c10_unitScales,obj.c10_max,obj.c10_min,obj.c10_optFlag);
+            end
         end
 
         function ms1 = get.ms1(obj)
@@ -1803,14 +1811,21 @@ classdef REACHcal
         function cable = buildCableStruct(obj,c_vals,c_unitScales,c_max,c_min,c_optFlag)
             % BUILDCABLESTRUCT builds a general cable structure
 
-            [Z0,L,f,eps_r,tan_delta,r_prime] = obj.getCablePars(c_vals,c_unitScales);
-            cable.network = TwoPort.Tline(Z0,L,f,eps_r,tan_delta,r_prime);
-            cable.network = cable.network.freqChangeUnit(obj.freqUnit);
-            cable.vals = c_vals;
-            cable.unitScales = c_unitScales;
-            cable.max = c_max;
-            cable.min = c_min;
-            cable.optFlag = c_optFlag;
+            if nargin == 2 % Special case for using the measure cable data
+                cable.network = obj.(['S_meas_',c_vals]);
+                nPar = length(obj.([c_vals,'_vals']));
+                [cable.vals,cable.unitScales,cable.max,cable.min] = deal(nan(1,nPar));
+                cable.optFlag = false(1,nPar);
+            else
+                [Z0,L,f,eps_r,tan_delta,r_prime] = obj.getCablePars(c_vals,c_unitScales);
+                cable.network = TwoPort.Tline(Z0,L,f,eps_r,tan_delta,r_prime);
+                cable.network = cable.network.freqChangeUnit(obj.freqUnit);
+                cable.vals = c_vals;
+                cable.unitScales = c_unitScales;
+                cable.max = c_max;
+                cable.min = c_min;
+                cable.optFlag = c_optFlag;
+            end
         end
 
         function r = buildRstruct(obj,r_vals,r_unitScales,r_max,r_min,r_optFlag)

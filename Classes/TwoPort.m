@@ -122,7 +122,9 @@ classdef TwoPort
                 for ii = 2:length(objIn)
                     obj0 = getABCD(objIn(ii));
                     if ~strcmp(obj.fUnit,obj0.fUnit), obj0 = obj0.freqChangeUnit(obj.fUnit); end
-                    assert(isequal(obj.freq,obj0.freq),'Frequencies do not match')
+%                     assert(isequal(obj.freq,obj0.freq),'Frequencies do not match')
+                    tol = min(obj.freq).*1e-9;
+                    assert(max(abs(obj.freq - obj0.freq)) < tol,'Frequencies do not match')
                     obj.data = pagemtimes(obj.data,obj0.data);
                     
                 end
