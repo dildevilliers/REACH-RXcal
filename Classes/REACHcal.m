@@ -351,6 +351,21 @@ classdef REACHcal
         Lr25(1,1) struct
         Lr100(1,1) struct
 
+        % Gain models
+        Gc12r36(1,:) double
+        Gc12r27(1,:) double
+        Gc12r69(1,:) double
+        Gc12r91(1,:) double
+        Gc25open(1,:) double
+        Gc25short(1,:) double
+        Gc25r10(1,:) double
+        Gc25r250(1,:) double
+        Gcold(1,:) double
+        Ghot(1,:) double
+        Gr25(1,:) double
+        Gr100(1,:) double
+
+
     end
 
     properties (Dependent = true, Hidden = true)
@@ -803,6 +818,54 @@ classdef REACHcal
 
         function Lr100 = get.Lr100(obj)
             Lr100 = obj.buildLabSourceStruct('r100');
+        end
+
+        function Gc12r36 = get.Gc12r36(obj)
+            Gc12r36 = obj.calcSourceGain('c12r36');
+        end
+
+        function Gc12r27 = get.Gc12r27(obj)
+            Gc12r27 = obj.calcSourceGain('c12r27');
+        end
+
+        function Gc12r69 = get.Gc12r69(obj)
+            Gc12r69 = obj.calcSourceGain('c12r69');
+        end
+
+        function Gc12r91 = get.Gc12r91(obj)
+            Gc12r91 = obj.calcSourceGain('c12r91');
+        end
+
+        function Gc25open = get.Gc25open(obj)
+            Gc25open = obj.calcSourceGain('c25open');
+        end
+
+        function Gc25short = get.Gc25short(obj)
+            Gc25short = obj.calcSourceGain('c25short');
+        end
+
+        function Gc25r10 = get.Gc25r10(obj)
+            Gc25r10 = obj.calcSourceGain('c25r10');
+        end
+
+        function Gc25r250 = get.Gc25r250(obj)
+            Gc25r250 = obj.calcSourceGain('c25r250');
+        end
+
+        function Gcold = get.Gcold(obj)
+            Gcold = obj.calcSourceGain('cold');
+        end
+
+        function Ghot = get.Ghot(obj)
+            Ghot = obj.calcSourceGain('hot');
+        end
+
+        function Gr25 = get.Gr25(obj)
+            Gr25 = obj.calcSourceGain('r25');
+        end
+
+        function Gr100 = get.Gr100(obj)
+            Gr100 = obj.calcSourceGain('r100');
         end
 
         function errFuncHandle = get.errFuncHandle(obj)
@@ -1737,7 +1800,6 @@ classdef REACHcal
             if nargin < 2 || isempty(color), color = 'k'; end
 
             for ii = 1:length(obj.sourceNames)-1
-                measVals = obj.(['S11_meas_',obj.sourceNames{ii}]);
                 subplot(3,4,ii)
                 grid on, hold on
 
@@ -1756,30 +1818,24 @@ classdef REACHcal
                 xlabel('Frequency (MHz)')
                 ylabel('Error distance (dB)')
                 title(obj.sourceNames{ii})
-
-                
-
-%                 if ii < length(obj.sourceNames)
-%                     eV = obj.(['err_source_',obj.sourceNames{ii}]);
-%                     title([obj.sourceNames{ii},'; ',obj.errorFuncType,':err = ',num2str(eV), errUnit]); 
-%                     Smod = obj.(['S',obj.sourceNames{ii}]);
-%                 end
-%                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11dB(style{1}); end
-%                 if plotFlag > 1, plot(obj.freq,dB20(measVals),style{2}); end
-%                 xlabel('')
-%                 subplot(8,8,((2*row1+1)*8 + 1 + 2*col1))
-%                 grid on, hold on
-%                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11real(style{1}); end
-%                 if plotFlag > 1, plot(obj.freq,real(measVals),style{2}); end
-%                 xlabel('')
-%                 subplot(8,8,((2*row1+1)*8 + 2 + 2*col1))
-%                 grid on, hold on
-%                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11imag(style{1}); end
-%                 if plotFlag > 1, plot(obj.freq,imag(measVals),style{2}); end
-%                 xlabel('')
             end
+        end
 
+        function plotAllGains(obj,color)
+            % plotAllGains plots all the source available gains to the reference plain
 
+            if nargin < 2 || isempty(color), color = 'k'; end
+
+            for ii = 1:length(obj.sourceNames)-1
+                subplot(3,4,ii)
+                grid on, hold on
+
+                y = obj.(['G',obj.sourceNames{ii}]);
+                plot(obj.freq,y,color), grid on, hold on
+                xlabel('Frequency (MHz)')
+                ylabel('Available Gain (linear)')
+                title(obj.sourceNames{ii})
+            end
         end
 
         function plotAllParameters(obj,style)
@@ -1842,6 +1898,8 @@ classdef REACHcal
     end
 
     methods (Access = private)
+
+        % Fitting error functions
         function err = errRIA(obj,S11meas,S11model)
             % ERRRIA combines the real-imag and absolute parts of the difference error
 
@@ -1869,6 +1927,7 @@ classdef REACHcal
             err = dB20(err);
         end
 
+        % Element construction
         function [Z0,L,freq,eps_r,tan_delta,r_prime] = getCablePars(obj,c_vals,c_unitScales)
             % GETCABLEPARS Calculates the frequency dependent Tline parameters
 
@@ -1917,32 +1976,6 @@ classdef REACHcal
             r.network = r.network.freqChangeUnit(obj.freqUnit);
         end
 
-        %         function sr = buildSRstruct(obj,sr_vals,sr_unitScales,sr_max,sr_min,sr_optFlag)
-        %             % BUILDSRSTRUCT builds a general semi-rigid structure
-        %
-        %             sr.vals = sr_vals;
-        %             sr.unitScales = sr_unitScales;
-        %             sr.max = sr_max;
-        %             sr.min = sr_min;
-        %             sr.optFlag = sr_optFlag;
-        %             parVals = sr.vals.*sr.unitScales;
-        %             sr.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4),parVals(5));
-        %             sr.network = sr.network.freqChangeUnit(obj.freqUnit);
-        %         end
-        %
-        %         function ms = buildMSstruct(obj,ms_vals,ms_unitScales,ms_max,ms_min,ms_optFlag)
-        %             % BUILDMSSTRUCT builds a general mechanical switch structure
-        %
-        %             ms.vals = ms_vals;
-        %             ms.unitScales = ms_unitScales;
-        %             ms.max = ms_max;
-        %             ms.min = ms_min;
-        %             ms.optFlag = ms_optFlag;
-        %             parVals = ms.vals.*ms.unitScales;
-        %             ms.network = TwoPort.Tline(parVals(1),parVals(2),obj.freqHz,parVals(3),parVals(4),parVals(5));
-        %             ms.network = ms.network.freqChangeUnit(obj.freqUnit);
-        %         end
-
         function sc = buildShortCableStruct(obj,sc_vals,sc_unitScales,sc_max,sc_min,sc_optFlag)
             % BUILDMSSTRUCT builds a general short cable structure
 
@@ -1968,7 +2001,6 @@ classdef REACHcal
             a.network = TwoPort.PI_CLC(parVals(1),parVals(2),parVals(3),obj.freqHz);
             a.network = a.network.freqChangeUnit(obj.freqUnit);
         end
-
 
         function S_struct = buildSourceStruct(obj,elementNameVect)
             % BUILDSOURCESTRUCT builds a general source structure
@@ -2039,34 +2071,71 @@ classdef REACHcal
 
         end
 
+        % Gain and noise temperature construction
+        function G = calcSourceGain(obj,sourceName)
+            % CALCSOURCEGAIN calculates the transducer gain of the specified source
+
+            if strncmp(sourceName,'c12',3)
+                cableName = 'c12';
+                loadName = sourceName(4:end);
+            elseif strncmp(sourceName,'c25',3)
+                cableName = 'c25';
+                loadName = sourceName(4:end);
+                switch loadName
+                    case 'open'
+                        loadName = 'rOpen';
+                    case 'short'
+                        loadName = 'rShort';
+                    otherwise
+                        % Do nothing;
+                end
+            else
+                cableName = 'No cable';
+                switch sourceName
+                    case 'cold'
+                        loadName = 'rCold';
+                    case 'hot'
+                        loadName = 'rHot';
+                    otherwise
+                        loadName = sourceName;
+                end
+            end
+
+            switch cableName
+                case 'c12'
+                    c = obj.c2.network;
+                    loadMS = obj.ms3.network;
+                case 'c25'
+                    c = obj.c10.network;
+                    loadMS = obj.ms4.network;
+                otherwise
+                    [c,loadMS] = deal(TwoPort.empty(1,0));
+            end
+
+            % Cable - including MS1 and the semi-rigid (assumed at the same temperature)
+            C = cascade([c,obj.ms1.network,obj.sr_mtsj2.network]);
+
+            % Load - resistor and MS3/4
+            R = cascade([loadMS,obj.(loadName).network]);
+            R = R.getS([],obj.(loadName).network.Zport2); % Terminate in correct impedance
+
+            % Source (only to reference plane)
+            S = obj.(['R',sourceName]).network;
+
+            % Work in 50 Ohm environment for Gamma and S 
+            Gam_R = R.getS.d11;
+            Gam_S = S.getS.d11;
+            C = C.getS;
+            S21 = C.d21;
+            S11 = S.d11;
+
+            G = abs(S21).^2.*(1 - abs(Gam_R).^2)./(abs(1 - S11.*Gam_R).^2.*(1 - abs(Gam_S).^2));
+        end
     end
 
     methods (Static = true)
 
-        
 
-        %         function R = buildResistor(types,vals,unitScales,freq)
-        %             % BUILDRESISTOR makes a load model from the internal description
-        %             % Not doing any error checking here for speed
-        %             %
-        %             % Returns:
-        %             % R - TwoPort S parameters
-        %             %
-        %             % Inputs:
-        %             % types - row cell vector containing {'Cpar'|'Lser'|'Load'}
-        %             % vals - row vector of corresponding values of the elements
-        %             % unitScales - in the specified unit scaling
-        %             % freq - frequency vector in Hz
-        %
-        %             nComp = numel(types);
-        %             tp = TwoPort.empty(0,nComp-1);
-        %             for ii = 1:nComp-1
-        %                 funcType = str2func(['TwoPort.',types{ii}]);
-        %                 tp(ii) = funcType(vals(ii).*unitScales(ii),freq);
-        %             end
-        %             R = cascade(tp);
-        %             R = R.getS([],vals(end).*unitScales(end));
-        %         end
     end
 
 end
