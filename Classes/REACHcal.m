@@ -3,6 +3,7 @@ classdef REACHcal
     properties
         useMeasCableC10(1,1) logical = false
         useMeasCableC2(1,1) logical = false
+        errorFuncType(1,:) char {mustBeMember(errorFuncType,{'dBmax','dBmean','dBnorm','RIA'})} = 'dBmean'
     end
 
     properties (SetAccess = private)
@@ -54,7 +55,7 @@ classdef REACHcal
 
         r10_vals(1,4) double {mustBeReal,mustBeNonnegative} = [2.9820   14.0527    6.4371   10.2865];
         r10_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
-        r10_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,40,11];
+        r10_max(1,4) double {mustBeReal,mustBeNonnegative} = [20,80,40,15];
         r10_min(1,4) double {mustBeReal,mustBeNonnegative} = [0,0,0,9];
         r10_optFlag(1,4) logical = [1,1,1,1];
 
@@ -105,7 +106,7 @@ classdef REACHcal
         % Mechanical switches
         ms1_vals(1,5) double {mustBeReal,mustBeNonnegative} = [51.7101 13.3335 1.7260 0 0];
         ms1_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
-        ms1_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,18,1.9,0.01,10];
+        ms1_max(1,5) double {mustBeReal,mustBeNonnegative} = [55,25,2.1,0.02,15];
         ms1_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,9,1.5,0,0];
         ms1_optFlag(1,5) logical = [1,1,1,0,0];
 
@@ -117,13 +118,13 @@ classdef REACHcal
 
         ms4_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.2524 15.6277 1.6720 0 0];
         ms4_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
-        ms4_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,60,1.9,0.01,10];
+        ms4_max(1,5) double {mustBeReal,mustBeNonnegative} = [70,120,3,0.2,10];
         ms4_min(1,5) double {mustBeReal,mustBeNonnegative} = [47,9,1.5,0,0];
-        ms4_optFlag(1,5) logical = [1,1,1,0,0];
+        ms4_optFlag(1,5) logical = [1,1,1,1,0];
 
         mts_vals(1,5) double {mustBeReal,mustBeNonnegative} = [50.9304 58 1.6351 0.0059 3.9662];
         mts_unitScales(1,5) double {mustBeReal,mustBePositive} = [1,1e-3,1,1,1];
-        mts_max(1,5) double {mustBeReal,mustBeNonnegative} = [53,130,1.9,0.01,10];
+        mts_max(1,5) double {mustBeReal,mustBeNonnegative} = [58,130,1.9,0.02,20];
         mts_min(1,5) double {mustBeReal,mustBeNonnegative} = [48,20,1.5,0,0];
         mts_optFlag(1,5) logical = [1,1,1,1,1];
 
@@ -356,6 +357,9 @@ classdef REACHcal
         freqHz
 
         optStruct
+
+        % Error function handle
+        errFuncHandle
 
         % Full source errors
         err_source_c12r36
@@ -800,161 +804,173 @@ classdef REACHcal
         function Lr100 = get.Lr100(obj)
             Lr100 = obj.buildLabSourceStruct('r100');
         end
+
+        function errFuncHandle = get.errFuncHandle(obj)
+            switch obj.errorFuncType
+                case {'dBmax','dBmean','dBnorm'}
+                    errFuncHandle = @err_dB;
+                case {'RIA'}
+                    errFuncHandle = @errRIA;
+                otherwise
+                    error('I should not be here')
+            end
+        end
         
         function err_source_c12r36 = get.err_source_c12r36(obj)
-%             err_source_c12r36 = obj.errRIA(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
-            err_source_c12r36 = obj.err_dB(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
+            err_source_c12r36 = obj.errFuncHandle(obj,obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
+%             err_source_c12r36 = obj.err_dB(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
         end
 
         function err_source_c12r27 = get.err_source_c12r27(obj)
-%             err_source_c12r27 = obj.errRIA(obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
-            err_source_c12r27 = obj.err_dB(obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
+            err_source_c12r27 = obj.errFuncHandle(obj,obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
+%             err_source_c12r27 = obj.err_dB(obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
         end
 
         function err_source_c12r69 = get.err_source_c12r69(obj)
-%             err_source_c12r69 = obj.errRIA(obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
-            err_source_c12r69 = obj.err_dB(obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
+            err_source_c12r69 = obj.errFuncHandle(obj,obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
+%             err_source_c12r69 = obj.err_dB(obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
         end
 
         function err_source_c12r91 = get.err_source_c12r91(obj)
-%             err_source_c12r91 = obj.errRIA(obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
-            err_source_c12r91 = obj.err_dB(obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
+            err_source_c12r91 = obj.errFuncHandle(obj,obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
+%             err_source_c12r91 = obj.err_dB(obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
         end
 
         function err_source_c25open = get.err_source_c25open(obj)
-%             err_source_c25open = obj.errRIA(obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
-            err_source_c25open = obj.err_dB(obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
+            err_source_c25open = obj.errFuncHandle(obj,obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
+%             err_source_c25open = obj.err_dB(obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
         end
 
         function err_source_c25short = get.err_source_c25short(obj)
-%             err_source_c25short = obj.errRIA(obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
-            err_source_c25short = obj.err_dB(obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
+            err_source_c25short = obj.errFuncHandle(obj,obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
+%             err_source_c25short = obj.err_dB(obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
         end
 
         function err_source_c25r10 = get.err_source_c25r10(obj)
 %             err_source_c25r10 = obj.errRIA(obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
-            err_source_c25r10 = obj.err_dB(obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
+%             err_source_c25r10 = obj.err_dB(obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
+            err_source_c25r10 = obj.errFuncHandle(obj,obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
         end
 
         function err_source_c25r250 = get.err_source_c25r250(obj)
-%             err_source_c25r250 = obj.errRIA(obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
-            err_source_c25r250 = obj.err_dB(obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
+            err_source_c25r250 = obj.errFuncHandle(obj,obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
+%             err_source_c25r250 = obj.err_dB(obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
         end
 
         function err_source_cold = get.err_source_cold(obj)
-%             err_source_cold = obj.errRIA(obj.S11_meas_cold,obj.Scold.network.getS.d11);
-            err_source_cold = obj.err_dB(obj.S11_meas_cold,obj.Scold.network.getS.d11);
+            err_source_cold = obj.errFuncHandle(obj,obj.S11_meas_cold,obj.Scold.network.getS.d11);
+%             err_source_cold = obj.err_dB(obj.S11_meas_cold,obj.Scold.network.getS.d11);
         end
 
         function err_source_hot = get.err_source_hot(obj)
-%             err_source_hot = obj.errRIA(obj.S11_meas_hot,obj.Shot.network.getS.d11);
-            err_source_hot = obj.err_dB(obj.S11_meas_hot,obj.Shot.network.getS.d11);
+            err_source_hot = obj.errFuncHandle(obj,obj.S11_meas_hot,obj.Shot.network.getS.d11);
+%             err_source_hot = obj.err_dB(obj.S11_meas_hot,obj.Shot.network.getS.d11);
         end
 
         function err_source_r25 = get.err_source_r25(obj)
-%             err_source_r25 = obj.errRIA(obj.S11_meas_r25,obj.Sr25.network.getS.d11);
-            err_source_r25 = obj.err_dB(obj.S11_meas_r25,obj.Sr25.network.getS.d11);
+            err_source_r25 = obj.errFuncHandle(obj,obj.S11_meas_r25,obj.Sr25.network.getS.d11);
+%             err_source_r25 = obj.err_dB(obj.S11_meas_r25,obj.Sr25.network.getS.d11);
         end
 
         function err_source_r100 = get.err_source_r100(obj)
-%             err_source_r100 = obj.errRIA(obj.S11_meas_r100,obj.Sr100.network.getS.d11);
-            err_source_r100 = obj.err_dB(obj.S11_meas_r100,obj.Sr100.network.getS.d11);
+            err_source_r100 = obj.errFuncHandle(obj,obj.S11_meas_r100,obj.Sr100.network.getS.d11);
+%             err_source_r100 = obj.err_dB(obj.S11_meas_r100,obj.Sr100.network.getS.d11);
         end
 
         function err_sourceLab_c12r36 = get.err_sourceLab_c12r36(obj)
-            err_sourceLab_c12r36 = obj.err_dB(obj.S11_lab_c12r36,obj.Rc12r36.network.getS.d11);
+            err_sourceLab_c12r36 = obj.errFuncHandle(obj,obj.S11_lab_c12r36,obj.Rc12r36.network.getS.d11);
         end
 
         function err_sourceLab_c12r27 = get.err_sourceLab_c12r27(obj)
-            err_sourceLab_c12r27 = obj.err_dB(obj.S11_lab_c12r27,obj.Rc12r27.network.getS.d11);
+            err_sourceLab_c12r27 = obj.errFuncHandle(obj,obj.S11_lab_c12r27,obj.Rc12r27.network.getS.d11);
         end
 
         function err_sourceLab_c12r69 = get.err_sourceLab_c12r69(obj)
-            err_sourceLab_c12r69 = obj.err_dB(obj.S11_lab_c12r69,obj.Rc12r69.network.getS.d11);
+            err_sourceLab_c12r69 = obj.errFuncHandle(obj,obj.S11_lab_c12r69,obj.Rc12r69.network.getS.d11);
         end
 
         function err_sourceLab_c12r91 = get.err_sourceLab_c12r91(obj)
-            err_sourceLab_c12r91 = obj.err_dB(obj.S11_lab_c12r91,obj.Rc12r91.network.getS.d11);
+            err_sourceLab_c12r91 = obj.errFuncHandle(obj,obj.S11_lab_c12r91,obj.Rc12r91.network.getS.d11);
         end
 
         function err_sourceLab_c25open = get.err_sourceLab_c25open(obj)
-            err_sourceLab_c25open = obj.err_dB(obj.S11_lab_c25open,obj.Rc25open.network.getS.d11);
+            err_sourceLab_c25open = obj.errFuncHandle(obj,obj.S11_lab_c25open,obj.Rc25open.network.getS.d11);
         end
 
         function err_sourceLab_c25short = get.err_sourceLab_c25short(obj)
-            err_sourceLab_c25short = obj.err_dB(obj.S11_lab_c25short,obj.Rc25short.network.getS.d11);
+            err_sourceLab_c25short = obj.errFuncHandle(obj,obj.S11_lab_c25short,obj.Rc25short.network.getS.d11);
         end
 
         function err_sourceLab_c25r10 = get.err_sourceLab_c25r10(obj)
-            err_sourceLab_c25r10 = obj.err_dB(obj.S11_lab_c25r10,obj.Rc25r10.network.getS.d11);
+            err_sourceLab_c25r10 = obj.errFuncHandle(obj,obj.S11_lab_c25r10,obj.Rc25r10.network.getS.d11);
         end
 
         function err_sourceLab_c25r250 = get.err_sourceLab_c25r250(obj)
-            err_sourceLab_c25r250 = obj.err_dB(obj.S11_lab_c25r250,obj.Rc25r250.network.getS.d11);
+            err_sourceLab_c25r250 = obj.errFuncHandle(obj,obj.S11_lab_c25r250,obj.Rc25r250.network.getS.d11);
         end
 
         function err_sourceLab_cold = get.err_sourceLab_cold(obj)
-            err_sourceLab_cold = obj.err_dB(obj.S11_lab_cold,obj.Rcold.network.getS.d11);
+            err_sourceLab_cold = obj.errFuncHandle(obj,obj.S11_lab_cold,obj.Rcold.network.getS.d11);
         end
 
         function err_sourceLab_hot = get.err_sourceLab_hot(obj)
-            err_sourceLab_hot = obj.err_dB(obj.S11_lab_hot,obj.Rhot.network.getS.d11);
+            err_sourceLab_hot = obj.errFuncHandle(obj,obj.S11_lab_hot,obj.Rhot.network.getS.d11);
         end
 
         function err_sourceLab_r25 = get.err_sourceLab_r25(obj)
-            err_sourceLab_r25 = obj.err_dB(obj.S11_lab_r25,obj.Rr25.network.getS.d11);
+            err_sourceLab_r25 = obj.errFuncHandle(obj,obj.S11_lab_r25,obj.Rr25.network.getS.d11);
         end
 
         function err_sourceLab_r100 = get.err_sourceLab_r100(obj)
-            err_sourceLab_r100 = obj.err_dB(obj.S11_lab_r100,obj.Rr100.network.getS.d11);
+            err_sourceLab_r100 = obj.errFuncHandle(obj,obj.S11_lab_r100,obj.Rr100.network.getS.d11);
         end
 
         function err_sourceMTS_c12r36 = get.err_sourceMTS_c12r36(obj)
-            err_sourceMTS_c12r36 = obj.err_dB(obj.S11_meas_c12r36,obj.Lc12r36.network.getS.d11);
+            err_sourceMTS_c12r36 = obj.errFuncHandle(obj,obj.S11_meas_c12r36,obj.Lc12r36.network.getS.d11);
         end
 
         function err_sourceMTS_c12r27 = get.err_sourceMTS_c12r27(obj)
-            err_sourceMTS_c12r27 = obj.err_dB(obj.S11_meas_c12r27,obj.Lc12r27.network.getS.d11);
+            err_sourceMTS_c12r27 = obj.errFuncHandle(obj,obj.S11_meas_c12r27,obj.Lc12r27.network.getS.d11);
         end
 
         function err_sourceMTS_c12r69 = get.err_sourceMTS_c12r69(obj)
-            err_sourceMTS_c12r69 = obj.err_dB(obj.S11_meas_c12r69,obj.Lc12r69.network.getS.d11);
+            err_sourceMTS_c12r69 = obj.errFuncHandle(obj,obj.S11_meas_c12r69,obj.Lc12r69.network.getS.d11);
         end
 
         function err_sourceMTS_c12r91 = get.err_sourceMTS_c12r91(obj)
-            err_sourceMTS_c12r91 = obj.err_dB(obj.S11_meas_c12r91,obj.Lc12r91.network.getS.d11);
+            err_sourceMTS_c12r91 = obj.errFuncHandle(obj,obj.S11_meas_c12r91,obj.Lc12r91.network.getS.d11);
         end
 
         function err_sourceMTS_c25open = get.err_sourceMTS_c25open(obj)
-            err_sourceMTS_c25open = obj.err_dB(obj.S11_meas_c25open,obj.Lc25open.network.getS.d11);
+            err_sourceMTS_c25open = obj.errFuncHandle(obj,obj.S11_meas_c25open,obj.Lc25open.network.getS.d11);
         end
 
         function err_sourceMTS_c25short = get.err_sourceMTS_c25short(obj)
-            err_sourceMTS_c25short = obj.err_dB(obj.S11_meas_c25short,obj.Lc25short.network.getS.d11);
+            err_sourceMTS_c25short = obj.errFuncHandle(obj,obj.S11_meas_c25short,obj.Lc25short.network.getS.d11);
         end
 
         function err_sourceMTS_c25r10 = get.err_sourceMTS_c25r10(obj)
-            err_sourceMTS_c25r10 = obj.err_dB(obj.S11_meas_c25r10,obj.Lc25r10.network.getS.d11);
+            err_sourceMTS_c25r10 = obj.errFuncHandle(obj,obj.S11_meas_c25r10,obj.Lc25r10.network.getS.d11);
         end
 
         function err_sourceMTS_c25r250 = get.err_sourceMTS_c25r250(obj)
-            err_sourceMTS_c25r250 = obj.err_dB(obj.S11_meas_c25r250,obj.Lc25r250.network.getS.d11);
+            err_sourceMTS_c25r250 = obj.errFuncHandle(obj,obj.S11_meas_c25r250,obj.Lc25r250.network.getS.d11);
         end
 
         function err_sourceMTS_cold = get.err_sourceMTS_cold(obj)
-            err_sourceMTS_cold = obj.err_dB(obj.S11_meas_cold,obj.Lcold.network.getS.d11);
+            err_sourceMTS_cold = obj.errFuncHandle(obj,obj.S11_meas_cold,obj.Lcold.network.getS.d11);
         end
 
         function err_sourceMTS_hot = get.err_sourceMTS_hot(obj)
-            err_sourceMTS_hot = obj.err_dB(obj.S11_meas_hot,obj.Lhot.network.getS.d11);
+            err_sourceMTS_hot = obj.errFuncHandle(obj,obj.S11_meas_hot,obj.Lhot.network.getS.d11);
         end
 
         function err_sourceMTS_r25 = get.err_sourceMTS_r25(obj)
-            err_sourceMTS_r25 = obj.err_dB(obj.S11_meas_r25,obj.Lr25.network.getS.d11);
+            err_sourceMTS_r25 = obj.errFuncHandle(obj,obj.S11_meas_r25,obj.Lr25.network.getS.d11);
         end
 
         function err_sourceMTS_r100 = get.err_sourceMTS_r100(obj)
-            err_sourceMTS_r100 = obj.err_dB(obj.S11_meas_r100,obj.Lr100.network.getS.d11);
+            err_sourceMTS_r100 = obj.errFuncHandle(obj,obj.S11_meas_r100,obj.Lr100.network.getS.d11);
         end
 
         function err_ms3 = get.err_ms3(obj)
@@ -1361,26 +1377,25 @@ classdef REACHcal
             for ii = 1:obj.optVect_Ne
                 obj.([obj.optVectElements{ii},'_vals']) = X((sum(obj.optVect_Nvars(1:(ii-1)))+1):sum(obj.optVect_Nvars(1:ii)));
             end
-
+            w = obj.optW;
             Ne = length(obj.optW);
             eV = ones(Ne,1).*(-inf);
             for ii = 1:Ne
-                switch obj.optTypeFlag
-                    case 1
-                        eV_ = obj.(['err_source_',obj.optErrElements{ii}]);
-                    case 2
-                        eV_ = obj.(['err_sourceLab_',obj.optErrElements{ii}]);
-                    case 3
-                        eV_ = obj.(['err_sourceMTS_',obj.optErrElements{ii}]);
+                if w(ii)
+                    switch obj.optTypeFlag
+                        case 1
+                            eV(ii) = obj.(['err_source_',obj.optErrElements{ii}]);
+                        case 2
+                            eV(ii) = obj.(['err_sourceLab_',obj.optErrElements{ii}]);
+                        case 3
+                            eV(ii) = obj.(['err_sourceMTS_',obj.optErrElements{ii}]);
+                    end
                 end
-%                 eV(ii) = eV_.mean;
-                eV(ii) = eV_.max;
-%                 eV(ii) = obj.(['err_source_',obj.optErrElements{ii}]);
             end
 
 %             w = obj.optW./norm(obj.optW,1);
 %             err = w*eV;
-            w = obj.optW;
+            
             err_ = w(:).*eV;
             err_(w == 0) = -inf;
             err = max(err_);    
@@ -1684,6 +1699,9 @@ classdef REACHcal
             if ~iscell(style), style = {style,style}; end
             if plotFlag == 3, style = {'r','k'}; end
 
+            errUnit = '';
+            if strncmp(obj.errorFuncType,'dB',2), errUnit = ' dB'; end
+
             for ii = 1:length(obj.sourceNames)
                 measVals = obj.(['S11_meas_',obj.sourceNames{ii}]);
                 row1 = floor((ii-1)/4);
@@ -1692,7 +1710,7 @@ classdef REACHcal
                 grid on, hold on
                 if ii < length(obj.sourceNames)
                     eV = obj.(['err_source_',obj.sourceNames{ii}]);
-                    title([obj.sourceNames{ii},'; max(err) = ',num2str(eV.max), ' dB']); 
+                    title([obj.sourceNames{ii},'; ',obj.errorFuncType,':err = ',num2str(eV), errUnit]); 
                     Smod = obj.(['S',obj.sourceNames{ii}]);
                 end
                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11dB(style{1}); end
@@ -1709,6 +1727,58 @@ classdef REACHcal
                 if plotFlag > 1, plot(obj.freq,imag(measVals),style{2}); end
                 xlabel('')
             end
+
+        end
+
+        function plotAllS11ComplexDistance(obj,color)
+            % plotAllS11ComplexDistance plots the distance on the complex plane between the model 
+            % and measured data (only for the full models - lab source not implemented yet)
+
+            if nargin < 2 || isempty(color), color = 'k'; end
+
+            for ii = 1:length(obj.sourceNames)-1
+                measVals = obj.(['S11_meas_',obj.sourceNames{ii}]);
+                subplot(3,4,ii)
+                grid on, hold on
+
+                meas_ = obj.(['S11_meas_',obj.sourceNames{ii}]);
+                sM = obj.(['S',obj.sourceNames{ii}]);
+                mod_ = sM.network.getS.d11;
+                y = abs(meas_(:) - mod_(:));
+                mean_ = dB20(mean(y));
+                norm_ = dB20(vecnorm(y)./obj.Nf);
+                plot(obj.freq,dB20(y),color), grid on, hold on
+                yline(mean_,[color,'--'])
+                yline(norm_,[color,'-.'])
+                if ii == 1
+                    legend('Total distance','Mean','Norm','Location','Best')
+                end
+                xlabel('Frequency (MHz)')
+                ylabel('Error distance (dB)')
+                title(obj.sourceNames{ii})
+
+                
+
+%                 if ii < length(obj.sourceNames)
+%                     eV = obj.(['err_source_',obj.sourceNames{ii}]);
+%                     title([obj.sourceNames{ii},'; ',obj.errorFuncType,':err = ',num2str(eV), errUnit]); 
+%                     Smod = obj.(['S',obj.sourceNames{ii}]);
+%                 end
+%                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11dB(style{1}); end
+%                 if plotFlag > 1, plot(obj.freq,dB20(measVals),style{2}); end
+%                 xlabel('')
+%                 subplot(8,8,((2*row1+1)*8 + 1 + 2*col1))
+%                 grid on, hold on
+%                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11real(style{1}); end
+%                 if plotFlag > 1, plot(obj.freq,real(measVals),style{2}); end
+%                 xlabel('')
+%                 subplot(8,8,((2*row1+1)*8 + 2 + 2*col1))
+%                 grid on, hold on
+%                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11imag(style{1}); end
+%                 if plotFlag > 1, plot(obj.freq,imag(measVals),style{2}); end
+%                 xlabel('')
+            end
+
 
         end
 
@@ -1783,14 +1853,20 @@ classdef REACHcal
 
         function err = err_dB(obj,y_meas,y_model)
             % ERR_DB provides the complex difference-based error in dB
-            % The struct err contains mean, max, and norm_2 values
-
-            dist = y_meas(:) - y_model(:);
-            dist_dB = dB20(dist);
-
-            err.max = max(dist_dB);
-            err.mean = mean(dist_dB);
-            err.norm = dB20(vecnorm(dist)./obj.Nf);
+            
+            dist = abs(y_meas(:) - y_model(:));
+            
+            switch obj.errorFuncType
+                case {'dBmax'}
+                    err = max(dist);
+                case {'dBmean'}
+                    err = mean(dist);
+                case {'dBnorm'}
+                    err = vecnorm(dist)./obj.Nf;
+                otherwise
+                    error('I should not be here')
+            end
+            err = dB20(err);
         end
 
         function [Z0,L,freq,eps_r,tan_delta,r_prime] = getCablePars(obj,c_vals,c_unitScales)

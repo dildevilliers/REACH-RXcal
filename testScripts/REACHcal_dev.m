@@ -6,12 +6,12 @@ clear all
 dataPth = 'c:\Users\ddv\OneDrive - Stellenbosch University\Navorsing\REACH\Calibration\2023_12_11_10min-int_full-meas\14_32\';
 R = REACHcal(dataPth);
 
-return
+
 
 %% Do the MTS fits with lab sources
 % R1 = R.fitMTS;
 
-R.plotAllS11(2,{'','k'})
+% R.plotAllS11(2,{'','k'})
 
 % %% Do the MTS fits with lab sources
 % % R1 = R.fitMTS;
@@ -31,7 +31,41 @@ R.plotAllS11(2,{'','k'})
 % return
 % 
 
+%% Saurabh test
 
+r36.vals = [3.8492 21.0167 4.5243 36.8479];
+r27.vals = [4.4148 24.1903 9.0568 27.3331];
+r69.vals = [7.2883 36.4569 4.6570 69.9235];
+r91.vals = [8.3539 49.6584 3.7671 93.1463];
+rOpen.vals = [3.3572 52.2871 1.5286 0.6293];
+rShort.vals = [7.9373 18.6394 9.9928 0.3677];
+r10.vals = [2.9820 14.0527 6.4371 11.5114];
+r250.vals = [4.5536 21.6320 3.5899 254.1647];
+rCold.vals = [0.3876 2.0638 0.0537 50.2550];
+rHot.vals = [3.7886 9.7978 0.9865 50.8162];
+r25.vals = [16.1297 9.6251 5.2162 25.1860];
+r100.vals = [7.3128e-05 44.9274 2.6004 101.7963];
+c2.vals = [49.4791 1.9407 0.0214 1.3723 0.0088 0.0093 0.0323 0.6720];
+c10.vals = [49.7773 9.9004 0 1.4001 -9.1910e-4 0.0087 0 0.0013];
+ms1.vals = [52.9947 17.9739 1.8940 0.0096 9.8451];
+ms3.vals = [50.0232 13.3749 1.6933 0.0051 4.4749];
+ms4.vals = [66.9910 99.9076 1.9962 0.1245 2.4821];
+mts.vals = [52.9943 73.8979 1.5158 0.0097 9.9467];
+sr_mtsj2.vals = [48.0903 121.1936 2.0254 9.2032e-05 0.0199];
+sr_mtsj1.vals = [48.7902 115.0626 2.0021 2.1335e-04 0.1085];
+sr_ms1j2.vals = [54.4476 114.7614 2.0523 2.9177e-04 1.0598];
+
+R = REACHcal(dataPth,'r36',r36,'r27',r27,'r69',r69,'r91',r91,...
+                'rOpen',rOpen,'rShort',rShort,'r10',r10,'r250',r250,...
+                'rCold',rCold,'rHot',rHot,'r25',r25,'r100',r100,...
+                'c2',c2,'c10',c10,...
+                'ms1',ms1,'ms3',ms3,'ms4',ms4','mts',mts,...
+                'sr_mtsj2',sr_mtsj2,'sr_mtsj1',sr_mtsj1,'sr_ms1j2',sr_ms1j2);
+R.useMeasCableC10 = false;
+R.plotAllS11
+
+
+return
 
 
 %% Some good fits
