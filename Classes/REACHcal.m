@@ -2112,23 +2112,28 @@ classdef REACHcal
                     [c,loadMS] = deal(TwoPort.empty(1,0));
             end
 
-            % Cable - including MS1 and the semi-rigid (assumed at the same temperature)
-            C = cascade([c,obj.ms1.network,obj.sr_mtsj2.network]);
+            % Select constant reference impedance
+            Zport = 50;  % Everything in a 50 Ohm environment
+            % Just keep real part of the termination resistor
+            rReal = obj.(loadName).network.Zport2;
+            Gam_R = (rReal - Zport)./(rReal + Zport);       % Just the real part is kept
 
-            % Load - resistor and MS3/4
-            R = cascade([loadMS,obj.(loadName).network]);
-            R = R.getS([],obj.(loadName).network.Zport2); % Terminate in correct impedance
-
-            % Source (only to reference plane)
-            S = obj.(['R',sourceName]).network;
-
-            % Work in 50 Ohm environment for Gamma and S 
-            Gam_R = R.getS.d11;
-            Gam_S = S.getS.d11;
-            C = C.getS;
+            % Cable (between resistive load and reference plane) - include load reactive network, MS3/4, cable, MS1, and MTS semi-rigid
+            rReactive = obj.(loadName).network;
+            rReactive = rReactive.getS(Zport,Zport);
+            if ~isempty(loadMS), loadMS = loadMS.getS(Zport,Zport); end
+            if ~isempty(c), c = c.getS(Zport,Zport); end
+            MS1 = obj.ms1.network.getS(Zport,Zport);
+            SR = obj.sr_mtsj2.network.getS(Zport,Zport);
+            C = cascade([rReactive,loadMS,c,MS1,SR]);
+            C = C.getS(Zport,Zport);
             S21 = C.d21;
-            S11 = S.d11;
+            S11 = C.d11;
+            
+            % Source reflection
+            Gam_S = C.d22 + (C.d12.*C.d21.*Gam_R)./(1 - C.d11.*Gam_R);
 
+            % String it all up
             G = abs(S21).^2.*(1 - abs(Gam_R).^2)./(abs(1 - S11.*Gam_R).^2.*(1 - abs(Gam_S).^2));
         end
     end
