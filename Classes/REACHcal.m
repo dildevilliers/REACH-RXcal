@@ -213,19 +213,22 @@ classdef REACHcal
         S11_meas_r100
         S11_meas_ant
 
-        T_meas_c12r36
-        T_meas_c12r27
-        T_meas_c12r69
-        T_meas_c12r91
-        T_meas_c25open
-        T_meas_c25short
-        T_meas_c25r10
-        T_meas_c25r250
-        T_meas_cold
-        T_meas_hot
-        T_meas_r25
-        T_meas_r100
-        T_meas_ant
+        T_meas_c12r36(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_c12r27(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_c12r69(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_c12r91(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_c25open(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_c25short(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_c25r10(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_c25r250(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_cold(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_hot(1,:) double {mustBeReal,mustBePositive} = 330
+        T_meas_r25(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_r100(1,:) double {mustBeReal,mustBePositive} = 300
+        T_meas_ant(1,:) double {mustBeReal,mustBePositive} = 285
+        T_meas_c2(1,:) double {mustBeReal,mustBePositive} = 295   % 2-m cable nominal temperature
+        T_meas_c10(1,:) double {mustBeReal,mustBePositive} = 295   % 10-m cable nominal temperature
+        T_meas_ms1(1,:) double {mustBeReal,mustBePositive} = 295   % ms1 nominal temperature
 
         PSD_meas_c12r36
         PSD_meas_c12r27
@@ -364,6 +367,20 @@ classdef REACHcal
         Ghot(1,:) double
         Gr25(1,:) double
         Gr100(1,:) double
+
+        % Temperature models (from radiometer paper)
+        Tc12r36(1,:) double
+        Tc12r27(1,:) double
+        Tc12r69(1,:) double
+        Tc12r91(1,:) double
+        Tc25open(1,:) double
+        Tc25short(1,:) double
+        Tc25r10(1,:) double
+        Tc25r250(1,:) double
+        Tcold(1,:) double
+        Thot(1,:) double
+        Tr25(1,:) double
+        Tr100(1,:) double
 
 
     end
@@ -868,6 +885,54 @@ classdef REACHcal
             Gr100 = obj.calcSourceGain('r100');
         end
 
+        function Tc12r36 = get.Tc12r36(obj)
+            Tc12r36 = obj.calcSourceTemp('c12r36');
+        end
+
+        function Tc12r27 = get.Tc12r27(obj)
+            Tc12r27 = obj.calcSourceTemp('c12r27');
+        end
+
+        function Tc12r69 = get.Tc12r69(obj)
+            Tc12r69 = obj.calcSourceTemp('c12r69');
+        end
+
+        function Tc12r91 = get.Tc12r91(obj)
+            Tc12r91 = obj.calcSourceTemp('c12r91');
+        end
+
+        function Tc25open = get.Tc25open(obj)
+            Tc25open = obj.calcSourceTemp('c25open');
+        end
+
+        function Tc25short = get.Tc25short(obj)
+            Tc25short = obj.calcSourceTemp('c25short');
+        end
+
+        function Tc25r10 = get.Tc25r10(obj)
+            Tc25r10 = obj.calcSourceTemp('c25r10');
+        end
+
+        function Tc25r250 = get.Tc25r250(obj)
+            Tc25r250 = obj.calcSourceTemp('c25r250');
+        end
+        
+        function Tcold = get.Tcold(obj)
+            Tcold = obj.calcSourceTemp('cold');
+        end
+        
+        function Thot = get.Thot(obj)
+            Thot = obj.calcSourceTemp('hot');
+        end
+        
+        function Tr25 = get.Tr25(obj)
+            Tr25 = obj.calcSourceTemp('r25');
+        end
+        
+        function Tr100 = get.Tr100(obj)
+            Tr100 = obj.calcSourceTemp('r100');
+        end
+
         function errFuncHandle = get.errFuncHandle(obj)
             switch obj.errorFuncType
                 case {'dBmax','dBmean','dBnorm'}
@@ -881,63 +946,50 @@ classdef REACHcal
         
         function err_source_c12r36 = get.err_source_c12r36(obj)
             err_source_c12r36 = obj.errFuncHandle(obj,obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
-%             err_source_c12r36 = obj.err_dB(obj.S11_meas_c12r36,obj.Sc12r36.network.getS.d11);
         end
 
         function err_source_c12r27 = get.err_source_c12r27(obj)
             err_source_c12r27 = obj.errFuncHandle(obj,obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
-%             err_source_c12r27 = obj.err_dB(obj.S11_meas_c12r27,obj.Sc12r27.network.getS.d11);
         end
 
         function err_source_c12r69 = get.err_source_c12r69(obj)
             err_source_c12r69 = obj.errFuncHandle(obj,obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
-%             err_source_c12r69 = obj.err_dB(obj.S11_meas_c12r69,obj.Sc12r69.network.getS.d11);
         end
 
         function err_source_c12r91 = get.err_source_c12r91(obj)
             err_source_c12r91 = obj.errFuncHandle(obj,obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
-%             err_source_c12r91 = obj.err_dB(obj.S11_meas_c12r91,obj.Sc12r91.network.getS.d11);
         end
 
         function err_source_c25open = get.err_source_c25open(obj)
             err_source_c25open = obj.errFuncHandle(obj,obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
-%             err_source_c25open = obj.err_dB(obj.S11_meas_c25open,obj.Sc25open.network.getS.d11);
         end
 
         function err_source_c25short = get.err_source_c25short(obj)
             err_source_c25short = obj.errFuncHandle(obj,obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
-%             err_source_c25short = obj.err_dB(obj.S11_meas_c25short,obj.Sc25short.network.getS.d11);
         end
 
         function err_source_c25r10 = get.err_source_c25r10(obj)
-%             err_source_c25r10 = obj.errRIA(obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
-%             err_source_c25r10 = obj.err_dB(obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
             err_source_c25r10 = obj.errFuncHandle(obj,obj.S11_meas_c25r10,obj.Sc25r10.network.getS.d11);
         end
 
         function err_source_c25r250 = get.err_source_c25r250(obj)
             err_source_c25r250 = obj.errFuncHandle(obj,obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
-%             err_source_c25r250 = obj.err_dB(obj.S11_meas_c25r250,obj.Sc25r250.network.getS.d11);
         end
 
         function err_source_cold = get.err_source_cold(obj)
             err_source_cold = obj.errFuncHandle(obj,obj.S11_meas_cold,obj.Scold.network.getS.d11);
-%             err_source_cold = obj.err_dB(obj.S11_meas_cold,obj.Scold.network.getS.d11);
         end
 
         function err_source_hot = get.err_source_hot(obj)
             err_source_hot = obj.errFuncHandle(obj,obj.S11_meas_hot,obj.Shot.network.getS.d11);
-%             err_source_hot = obj.err_dB(obj.S11_meas_hot,obj.Shot.network.getS.d11);
         end
 
         function err_source_r25 = get.err_source_r25(obj)
             err_source_r25 = obj.errFuncHandle(obj,obj.S11_meas_r25,obj.Sr25.network.getS.d11);
-%             err_source_r25 = obj.err_dB(obj.S11_meas_r25,obj.Sr25.network.getS.d11);
         end
 
         function err_source_r100 = get.err_source_r100(obj)
             err_source_r100 = obj.errFuncHandle(obj,obj.S11_meas_r100,obj.Sr100.network.getS.d11);
-%             err_source_r100 = obj.err_dB(obj.S11_meas_r100,obj.Sr100.network.getS.d11);
         end
 
         function err_sourceLab_c12r36 = get.err_sourceLab_c12r36(obj)
@@ -1838,6 +1890,30 @@ classdef REACHcal
             end
         end
 
+        function plotAllTemperatures(obj,color)
+            % plotAllTemperatures plots all the source temperatures at the reference plain
+
+            if nargin < 2 || isempty(color), color = 'k'; end
+
+            for ii = 1:length(obj.sourceNames)-1
+                subplot(3,4,ii)
+                grid on, hold on
+
+                [~,Tr,Tcab] = obj.calcSourceTemp(obj.sourceNames{ii});
+
+                y = obj.(['T',obj.sourceNames{ii}]);
+                plot(obj.freq,y,color), grid on, hold on
+                xlabel('Frequency (MHz)')
+                ylabel('Source Temperature (K)')
+                title(obj.sourceNames{ii})
+
+                yline(Tr,'r')
+                yline(Tcab,'b')
+
+                if ii == 1, legend('T_{source}','T_r','T_{cab}','Location','Best'); end
+            end
+        end
+
         function plotAllParameters(obj,style)
             % PLOTALLPARAMETERS plots the full set of normalised model parameters
 
@@ -2075,31 +2151,7 @@ classdef REACHcal
         function G = calcSourceGain(obj,sourceName)
             % CALCSOURCEGAIN calculates the transducer gain of the specified source
 
-            if strncmp(sourceName,'c12',3)
-                cableName = 'c12';
-                loadName = sourceName(4:end);
-            elseif strncmp(sourceName,'c25',3)
-                cableName = 'c25';
-                loadName = sourceName(4:end);
-                switch loadName
-                    case 'open'
-                        loadName = 'rOpen';
-                    case 'short'
-                        loadName = 'rShort';
-                    otherwise
-                        % Do nothing;
-                end
-            else
-                cableName = 'No cable';
-                switch sourceName
-                    case 'cold'
-                        loadName = 'rCold';
-                    case 'hot'
-                        loadName = 'rHot';
-                    otherwise
-                        loadName = sourceName;
-                end
-            end
+            [cableName,loadName] = REACHcal.splitSourceName(sourceName);
 
             switch cableName
                 case 'c12'
@@ -2136,9 +2188,60 @@ classdef REACHcal
             % String it all up
             G = abs(S21).^2.*(1 - abs(Gam_R).^2)./(abs(1 - S11.*Gam_R).^2.*(1 - abs(Gam_S).^2));
         end
+
+        function [T,Tr,Tcab] = calcSourceTemp(obj,sourceName)
+            % CALCSOURCETEMP calculates the effective temperature of a specified source at the reference plane
+
+            [cableName] = REACHcal.splitSourceName(sourceName);
+
+            switch cableName
+                case 'c12'
+                    Tcab = obj.T_meas_c2;
+                case 'c25'
+                    Tcab = obj.T_meas_c10;
+                otherwise
+                    Tcab = obj.T_meas_ms1;
+            end
+
+            G = obj.(['G',sourceName]);
+            Tr = obj.(['T_meas_',sourceName]);
+            T = G.*Tr + (1 - G).*Tcab;  
+        end
+
+        
     end
 
-    methods (Static = true)
+    methods (Static = true, Access = private)
+
+        function [cableName,loadName] = splitSourceName(sourceName)
+            % SPLITSOURCENAME splits the source name into a cableName and loadName
+
+            if strncmp(sourceName,'c12',3)
+                cableName = 'c12';
+                loadName = sourceName(4:end);
+            elseif strncmp(sourceName,'c25',3)
+                cableName = 'c25';
+                loadName = sourceName(4:end);
+                switch loadName
+                    case 'open'
+                        loadName = 'rOpen';
+                    case 'short'
+                        loadName = 'rShort';
+                    otherwise
+                        % Do nothing;
+                end
+            else
+                cableName = 'No cable';
+                switch sourceName
+                    case 'cold'
+                        loadName = 'rCold';
+                    case 'hot'
+                        loadName = 'rHot';
+                    otherwise
+                        loadName = sourceName;
+                end
+            end
+        end
 
 
     end

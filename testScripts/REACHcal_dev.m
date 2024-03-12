@@ -6,6 +6,9 @@ clear all
 dataPth = 'c:\Users\ddv\OneDrive - Stellenbosch University\Navorsing\REACH\Calibration\2023_12_11_10min-int_full-meas\14_32\';
 R = REACHcal(dataPth);
 
+
+% R = REACHcal;
+
 return
 
 %% Do the MTS fits with lab sources
