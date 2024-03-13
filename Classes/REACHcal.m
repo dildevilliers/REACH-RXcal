@@ -3,7 +3,7 @@ classdef REACHcal
     properties
         useMeasCableC10(1,1) logical = false
         useMeasCableC2(1,1) logical = false
-        errorFuncType(1,:) char {mustBeMember(errorFuncType,{'dBmax','dBmean','dBnorm','RIA'})} = 'dBmean'
+        errorFuncType(1,:) char {mustBeMember(errorFuncType,{'dBmax','dBmean','dBnorm','RIA','absS11dB'})} = 'absS11dB'
     end
 
     properties (SetAccess = private)
@@ -284,6 +284,8 @@ classdef REACHcal
     end
 
     properties (Dependent = true)
+        optErrElements
+
         freq(1,:) double
         r36(1,1) struct
         r27(1,1) struct
@@ -446,7 +448,7 @@ classdef REACHcal
     end
 
     properties (Constant = true)
-        sourceNames = {'cold','hot','r25','r100','c12r27','c12r36','c12r69','c12r91','c25open','c25short','c25r10','c25r250','ant'}
+        sourceNames = {'c12r36','c12r27','c12r69','c12r91','c25open','c25short','c25r10','c25r250','cold','hot','r25','r100','ant'}
         freqUnit = 'MHz'
 
         rVarNames = {'C1','L1','C2','R'};
@@ -455,7 +457,7 @@ classdef REACHcal
         adaptVarNames = {'C1','L1','C2'};
 
         optVectElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','sr_ms1j2','c2','c10','la'};
-        optErrElements = {'c12r36','c12r27','c12r69','c12r91','c25open','c25short','c25r10','c25r250','cold','hot','r25','r100'};
+%         optErrElements = {'c12r36','c12r27','c12r69','c12r91','c25open','c25short','c25r10','c25r250','cold','hot','r25','r100'};
 
         outputElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','sr_ms1j2','c2','c10'};
 
@@ -563,6 +565,10 @@ classdef REACHcal
         end
 
         % Dependent getters
+        function optErrElements = get.optErrElements(obj)
+            optErrElements = obj.sourceNames(1:end-1);
+        end
+
         function freq = get.freq(obj)
             freq = linspace(obj.fmin,obj.fmax,obj.Nf);
         end
@@ -939,6 +945,8 @@ classdef REACHcal
                     errFuncHandle = @err_dB;
                 case {'RIA'}
                     errFuncHandle = @errRIA;
+                case {'absS11dB'}
+                    errFuncHandle = @err_absS11dB;
                 otherwise
                     error('I should not be here')
             end
@@ -1590,15 +1598,20 @@ classdef REACHcal
             obj.optTypeFlag = 1;
 
             parNom = obj.optStruct.vals;  
-            errNom = struct('max',cell(1,Nerr),'mean',cell(1,Nerr),'norm',cell(1,Nerr));
+%             errNom = struct('max',cell(1,Nerr),'mean',cell(1,Nerr),'norm',cell(1,Nerr));
+            errNom = nan(1,Nerr);
+            Tnom = nan(obj.Nf,Nerr);
             for ii = 1:Nerr
                 errNom(1,ii) = obj.(['err_source_',obj.optErrElements{ii}]);
+                Tnom(:,ii) = obj.(['T',obj.optErrElements{ii}]);
             end
             errFuncNom = obj.errFunc(obj.optStruct.vals);
             h = waitbar(0,'Calculating parameter sweep...');
             count = 0;
-            errVals = struct('max',cell(Npar,Nsweep,Nerr),'mean',cell(Npar,Nsweep,Nerr),'norm',cell(Npar,Nsweep,Nerr));
+%             errVals = struct('max',cell(Npar,Nsweep,Nerr),'mean',cell(Npar,Nsweep,Nerr),'norm',cell(Npar,Nsweep,Nerr));
+            [errVals,Tdelta] = deal(nan(Npar,Nsweep,Nerr));
             errFuncVals = nan(Npar,Nsweep);
+            Tvals = nan(Npar,Nsweep,Nerr,obj.Nf);
             for aa = 1:Npar
                 count = count + 1;
                 waitbar(aa/Npar,h)
@@ -1611,6 +1624,8 @@ classdef REACHcal
                     obj.([el,'_vals'])(obj.optStruct.parameterIndex(aa)) = parVals(bb);
                     for cc = 1:Nerr
                         errVals(aa,bb,cc) = obj.(['err_source_',obj.optErrElements{cc}]);
+                        Tvals(aa,bb,cc,:) = obj.(['T',obj.optErrElements{cc}]);
+                        Tdelta(aa,bb,cc) = max(abs(Tnom(:,cc) - squeeze(Tvals(aa,bb,cc,:))));
                     end
                     
                     errFuncVals(aa,bb) = obj.errFunc(obj.optStruct.vals);
@@ -1633,25 +1648,43 @@ classdef REACHcal
                     plot(repmat(1:Npar,Nsweep,1),errFuncVals.','b.-')
                     title(['Error source: obj.errFunc'])
                 else
-                    errMax = reshape([errVals(:,:,errPlot).max],size(errVals,1),size(errVals,2));
-                    errMean = reshape([errVals(:,:,errPlot).mean],size(errVals,1),size(errVals,2));
-                    errNorm = reshape([errVals(:,:,errPlot).norm],size(errVals,1),size(errVals,2));
+%                     errMax = reshape([errVals(:,:,errPlot).max],size(errVals,1),size(errVals,2));
+%                     errMean = reshape([errVals(:,:,errPlot).mean],size(errVals,1),size(errVals,2));
+%                     errNorm = reshape([errVals(:,:,errPlot).norm],size(errVals,1),size(errVals,2));
+                    
+%                     pMax = yline(errNom(errPlot).max,'b');
+%                     pMean = yline(errNom(errPlot).mean,'r');
+%                     pNorm = yline(errNom(errPlot).norm,'m');
+%                     plot(repmat(1:Npar,Nsweep,1),errMax.','b.-')
+%                     plot(repmat(1:Npar,Nsweep,1),errMean.','r.-')
+%                     plot(repmat(1:Npar,Nsweep,1),errNorm.','m.-')
 
-                    pMax = yline(errNom(errPlot).max,'b');
-                    pMean = yline(errNom(errPlot).mean,'r');
-                    pNorm = yline(errNom(errPlot).norm,'m');
-                    plot(repmat(1:Npar,Nsweep,1),errMax.','b.-')
-                    plot(repmat(1:Npar,Nsweep,1),errMean.','r.-')
-                    plot(repmat(1:Npar,Nsweep,1),errNorm.','m.-')
+                    subplot(2,1,1)
+                    err = reshape([errVals(:,:,errPlot)],size(errVals,1),size(errVals,2));
+                    p = yline(errNom(errPlot),'b');
+                    plot(repmat(1:Npar,Nsweep,1),err.','b.-')
                     title(['Error source: ',obj.optErrElements{errPlot}])
+                    subplot(2,1,2)
+                    Tscale = 1000;
+                    T = reshape([Tdelta(:,:,errPlot)],size(errVals,1),size(errVals,2)).*Tscale;
+                    t = yline(Tnom(errPlot).*Tscale,'b');
+                    plot(repmat(1:Npar,Nsweep,1),T.','b.-')
+                    ylabel('T_\Delta (mK)')
                 end
-                xtickangle(90);
-                xticks(1:length(obj.optStruct.parameterNames));
-                xticklabels(labels)
-                xlim([0,length(obj.optStruct.parameterNames)]+0.5)
-                xlineVals = find(obj.optStruct.parameterIndex == 1)-0.5;
-                xline(xlineVals,'k--',strrep(obj.optVectElements,'_','\_'),'LabelOrientation','horizontal')
-                legend([pMax,pMean,pNorm],{'Max','Mean','Norm'})
+                for ss = 1:2
+                    if errPlot <= Nerr
+                        subplot(2,1,ss)
+                    elseif ss == 2
+                        break;
+                    end
+                    xtickangle(90);
+                    xticks(1:length(obj.optStruct.parameterNames));
+                    xticklabels(labels)
+                    xlim([0,length(obj.optStruct.parameterNames)]+0.5)
+                    xlineVals = find(obj.optStruct.parameterIndex == 1)-0.5;
+                    xline(xlineVals,'k--',strrep(obj.optVectElements,'_','\_'),'LabelOrientation','horizontal')
+                    %                 legend([pMax,pMean,pNorm],{'Max','Mean','Norm'})
+                end
             end
             
             delete(h);
@@ -2000,6 +2033,25 @@ classdef REACHcal
                 otherwise
                     error('I should not be here')
             end
+            err = dB20(err);
+        end
+
+        function err = err_absS11dB(obj,y_meas,y_model)
+            % ERR_ABSS11DB provides the difference in magnitude error in dB
+            
+            dist = abs(abs(y_meas(:)) - abs(y_model(:)));
+            
+%             switch obj.errorFuncType
+%                 case {'dBmax'}
+%                     err = max(dist);
+%                 case {'dBmean'}
+%                     err = mean(dist);
+%                 case {'dBnorm'}
+%                     err = vecnorm(dist)./obj.Nf;
+%                 otherwise
+%                     error('I should not be here')
+%             end
+            err = max(dist);
             err = dB20(err);
         end
 
