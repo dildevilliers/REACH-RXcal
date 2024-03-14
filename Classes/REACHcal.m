@@ -3,7 +3,9 @@ classdef REACHcal
     properties
         useMeasCableC10(1,1) logical = false
         useMeasCableC2(1,1) logical = false
-        errorFuncType(1,:) char {mustBeMember(errorFuncType,{'dBmax','dBmean','dBnorm','RIA','absS11dB'})} = 'absS11dB'
+        errorFuncType(1,:) char {mustBeMember(errorFuncType,{'RIA','magDistance','complexDistance'})} = 'complexDistance' 
+        errorFuncNorm(1,:) char {mustBeMember(errorFuncNorm,{'max','mean','norm'})} = 'max'
+        errorFuncScale(1,:) char {mustBeMember(errorFuncScale,{'lin','dB'})} = 'dB'
     end
 
     properties (SetAccess = private)
@@ -93,14 +95,14 @@ classdef REACHcal
         % Cables
         c2_vals(1,8) double {mustBeReal} = [48.8417 1.9818 0 1.4930 -0.0019 0.0078 0 0.4591];
         c2_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1,1,1,1,1,1,1];
-        c2_max(1,8) double {mustBeReal} = [52,2.1,0.1,1.6,0.01, 0.01,0.1,2];
-        c2_min(1,8) double {mustBeReal} = [48,1.9,-0.1,1.4,-0.01,0,-0.1,0];
+        c2_max(1,8) double {mustBeReal} = [52,2.1,0.1,1.6,0.003, 0.01,0.1,2];
+        c2_min(1,8) double {mustBeReal} = [48,1.9,-0.1,1.4,-0.003,0,-0.1,0];
         c2_optFlag(1,8) logical = [1,1,0,1,1,1,0,1];
 
         c10_vals(1,8) double {mustBeReal} = [48.9522 9.9592  0 1.4265 -0.0013 0.0065 0  0.4742];
         c10_unitScales(1,8) double {mustBeReal,mustBePositive} = [1,1,1,1,1,1,1,1];
-        c10_max(1,8) double {mustBeReal} = [52,10.1,0.1,1.6,0.01,0.01,0.1,2];
-        c10_min(1,8) double {mustBeReal} = [48,9.9,-0.1,1.4,-0.01,0,-0.1,0];
+        c10_max(1,8) double {mustBeReal} = [52,10.1,0.1,1.6,0.003,0.01,0.1,2];
+        c10_min(1,8) double {mustBeReal} = [48,9.9,-0.1,1.4,-0.003,0,-0.1,0];
         c10_optFlag(1,8) logical = [1,1,0,1,1,1,0,1];
 
         % Mechanical switches
@@ -394,6 +396,8 @@ classdef REACHcal
 
         % Error function handle
         errFuncHandle
+        errFuncNormHandle
+        errFuncScaleHandle
 
         % Full source errors
         err_source_c12r36
@@ -443,6 +447,8 @@ classdef REACHcal
         err_c2
         err_c10
         err_mts
+
+        
 
 
     end
@@ -941,12 +947,36 @@ classdef REACHcal
 
         function errFuncHandle = get.errFuncHandle(obj)
             switch obj.errorFuncType
-                case {'dBmax','dBmean','dBnorm'}
-                    errFuncHandle = @err_dB;
+                case {'complexDistance'}
+                    errFuncHandle = @err_complexDistance;
                 case {'RIA'}
-                    errFuncHandle = @errRIA;
-                case {'absS11dB'}
-                    errFuncHandle = @err_absS11dB;
+                    errFuncHandle = @err_RIA;
+                case {'magDistance'}
+                    errFuncHandle = @err_magDistance;
+                otherwise
+                    error('I should not be here')
+            end
+        end
+
+        function errFuncNormHandle = get.errFuncNormHandle(obj)
+            switch obj.errorFuncNorm
+                case {'max'}
+                    errFuncNormHandle = @max;
+                case {'mean'}
+                    errFuncNormHandle = @mean;
+                case {'norm'}
+                    errFuncNormHandle = @(x) vecnorm(x)./obj.Nf;
+                otherwise
+                    error('I should not be here')
+            end
+        end
+
+        function errFuncScaleHandle = get.errFuncScaleHandle(obj)
+            switch obj.errorFuncScale
+                case 'lin'
+                    errFuncScaleHandle = @(x) x;
+                case 'dB'
+                    errFuncScaleHandle = @dB20;
                 otherwise
                     error('I should not be here')
             end
@@ -1587,7 +1617,7 @@ classdef REACHcal
         function [] = paramSweep(obj)
             % PARAMSWEEP does a 1D parameters sweep on all the parameters
 
-            Nsweep = 2;
+            Nsweep = 11;
             Nerr = length(obj.optErrElements);
             Npar = length(obj.optStruct.parameterNames);
 
@@ -1598,18 +1628,18 @@ classdef REACHcal
             obj.optTypeFlag = 1;
 
             parNom = obj.optStruct.vals;  
-%             errNom = struct('max',cell(1,Nerr),'mean',cell(1,Nerr),'norm',cell(1,Nerr));
-            errNom = nan(1,Nerr);
+            [errNomMag,errNomComplex] = deal(nan(1,Nerr));
             Tnom = nan(obj.Nf,Nerr);
             for ii = 1:Nerr
-                errNom(1,ii) = obj.(['err_source_',obj.optErrElements{ii}]);
+                errNomMag(1,ii) = obj.err_magDistance(obj.(['S11_meas_',obj.optErrElements{ii}]),obj.(['S',obj.optErrElements{ii}]).network.getS.d11);
+                errNomComplex(1,ii) = obj.err_complexDistance(obj.(['S11_meas_',obj.optErrElements{ii}]),obj.(['S',obj.optErrElements{ii}]).network.getS.d11);
+%                 errNomMag(1,ii) = obj.(['err_source_',obj.optErrElements{ii}]);
                 Tnom(:,ii) = obj.(['T',obj.optErrElements{ii}]);
             end
             errFuncNom = obj.errFunc(obj.optStruct.vals);
             h = waitbar(0,'Calculating parameter sweep...');
             count = 0;
-%             errVals = struct('max',cell(Npar,Nsweep,Nerr),'mean',cell(Npar,Nsweep,Nerr),'norm',cell(Npar,Nsweep,Nerr));
-            [errVals,Tdelta] = deal(nan(Npar,Nsweep,Nerr));
+            [errMagVals,errComplexVals,Tdelta] = deal(nan(Npar,Nsweep,Nerr));
             errFuncVals = nan(Npar,Nsweep);
             Tvals = nan(Npar,Nsweep,Nerr,obj.Nf);
             for aa = 1:Npar
@@ -1623,8 +1653,11 @@ classdef REACHcal
                 for bb = 1:Nsweep
                     obj.([el,'_vals'])(obj.optStruct.parameterIndex(aa)) = parVals(bb);
                     for cc = 1:Nerr
-                        errVals(aa,bb,cc) = obj.(['err_source_',obj.optErrElements{cc}]);
-                        Tvals(aa,bb,cc,:) = obj.(['T',obj.optErrElements{cc}]);
+                        optEl = obj.optErrElements{cc};
+%                         errMagVals(aa,bb,cc) = obj.(['err_source_',optEl]);
+                        errMagVals(aa,bb,cc) = obj.err_magDistance(obj.(['S11_meas_',optEl]),obj.(['S',optEl]).network.getS.d11);
+                        errComplexVals(aa,bb,cc) = obj.err_complexDistance(obj.(['S11_meas_',optEl]),obj.(['S',optEl]).network.getS.d11);
+                        Tvals(aa,bb,cc,:) = obj.(['T',optEl]);
                         Tdelta(aa,bb,cc) = max(abs(Tnom(:,cc) - squeeze(Tvals(aa,bb,cc,:))));
                     end
                     
@@ -1660,14 +1693,21 @@ classdef REACHcal
 %                     plot(repmat(1:Npar,Nsweep,1),errNorm.','m.-')
 
                     subplot(2,1,1)
-                    err = reshape([errVals(:,:,errPlot)],size(errVals,1),size(errVals,2));
-                    p = yline(errNom(errPlot),'b');
-                    plot(repmat(1:Npar,Nsweep,1),err.','b.-')
+                    grid on, hold on
+%                     err = reshape([errMagVals(:,:,errPlot)],size(errMagVals,1),size(errMagVals,2));
+                    errM = reshape([errMagVals(:,:,errPlot)],Npar,Nsweep);
+                    pM = yline(errNomMag(errPlot),'b');
+                    plot(repmat(1:Npar,Nsweep,1),errM.','b.-')
+                    errC = reshape([errComplexVals(:,:,errPlot)],Npar,Nsweep);
+                    pC = yline(errNomComplex(errPlot),'r');
+                    plot(repmat(1:Npar,Nsweep,1),errC.','r.-')
                     title(['Error source: ',obj.optErrElements{errPlot}])
                     subplot(2,1,2)
+                    grid on, hold on
                     Tscale = 1000;
-                    T = reshape([Tdelta(:,:,errPlot)],size(errVals,1),size(errVals,2)).*Tscale;
-                    t = yline(Tnom(errPlot).*Tscale,'b');
+%                     T = reshape([Tdelta(:,:,errPlot)],size(errMagVals,1),size(errMagVals,2)).*Tscale;
+                    T = reshape([Tdelta(:,:,errPlot)],Npar,Nsweep).*Tscale;
+%                     t = yline(Tnom(errPlot).*Tscale,'b');
                     plot(repmat(1:Npar,Nsweep,1),T.','b.-')
                     ylabel('T_\Delta (mK)')
                 end
@@ -1683,7 +1723,7 @@ classdef REACHcal
                     xlim([0,length(obj.optStruct.parameterNames)]+0.5)
                     xlineVals = find(obj.optStruct.parameterIndex == 1)-0.5;
                     xline(xlineVals,'k--',strrep(obj.optVectElements,'_','\_'),'LabelOrientation','horizontal')
-                    %                 legend([pMax,pMean,pNorm],{'Max','Mean','Norm'})
+                    legend([pM,pC],{'Magnitude','Complex Distance'})
                 end
             end
             
@@ -1847,7 +1887,13 @@ classdef REACHcal
             if ~iscell(style), style = {style,style}; end
             if plotFlag == 3, style = {'r','k'}; end
 
-            errUnit = '';
+            switch obj.errorFuncScale
+                case 'dB'
+                    errUnit = ' (dB)';
+                case 'lin'
+                    errUnit = '';
+            end
+
             if strncmp(obj.errorFuncType,'dB',2), errUnit = ' dB'; end
 
             for ii = 1:length(obj.sourceNames)
@@ -2009,50 +2055,41 @@ classdef REACHcal
     methods (Access = private)
 
         % Fitting error functions
-        function err = errRIA(obj,S11meas,S11model)
+        function err = err_RIA(obj,S11meas,S11model)
             % ERRRIA combines the real-imag and absolute parts of the difference error
 
             w = obj.optW_RIA./norm(obj.optW_RIA,1);
-            err_ri = sqrt(sum(abs(S11meas(:) - S11model(:)).^2));
-            err_a = sqrt(sum(abs(dB20(S11meas(:)) - dB20(S11model(:))).^2));
-            err = w*[err_ri;err_a]./obj.Nf;
+
+            scaleHandle = @(x) x;
+            if strcmp(obj.errorFuncScale,'dB')
+                scaleHandle = obj.errFuncScaleHandle;
+                obj.errorFuncScale = 'lin';
+            end
+
+            err_complex = obj.errFuncNormHandle(obj.err_complexDistance(S11meas,S11model));
+            err_mag = obj.errFuncNormHandle(obj.err_magDistance(S11meas,S11model));
+            err = scaleHandle(w*[err_complex;err_mag]);
+
+%             err_ri = sqrt(sum(abs(S11meas(:) - S11model(:)).^2));
+%             err_a = sqrt(sum(abs(dB20(S11meas(:)) - dB20(S11model(:))).^2));
+%             
+%             err = w*[err_ri;err_a]./obj.Nf;
         end
 
-        function err = err_dB(obj,y_meas,y_model)
-            % ERR_DB provides the complex difference-based error in dB
+        function err = err_complexDistance(obj,y_meas,y_model)
+            % err_complexDistance_dB provides the complex difference-based error in dB
             
             dist = abs(y_meas(:) - y_model(:));
-            
-            switch obj.errorFuncType
-                case {'dBmax'}
-                    err = max(dist);
-                case {'dBmean'}
-                    err = mean(dist);
-                case {'dBnorm'}
-                    err = vecnorm(dist)./obj.Nf;
-                otherwise
-                    error('I should not be here')
-            end
-            err = dB20(err);
+            err = obj.errFuncNormHandle(dist);
+            err = obj.errFuncScaleHandle(err);
         end
 
-        function err = err_absS11dB(obj,y_meas,y_model)
-            % ERR_ABSS11DB provides the difference in magnitude error in dB
+        function err = err_magDistance(obj,y_meas,y_model)
+            % err_absS11dB provides the difference in magnitude error in dB
             
             dist = abs(abs(y_meas(:)) - abs(y_model(:)));
-            
-%             switch obj.errorFuncType
-%                 case {'dBmax'}
-%                     err = max(dist);
-%                 case {'dBmean'}
-%                     err = mean(dist);
-%                 case {'dBnorm'}
-%                     err = vecnorm(dist)./obj.Nf;
-%                 otherwise
-%                     error('I should not be here')
-%             end
-            err = max(dist);
-            err = dB20(err);
+            err = obj.errFuncNormHandle(dist);
+            err = obj.errFuncScaleHandle(err);
         end
 
         % Element construction
