@@ -1,19 +1,12 @@
-classdef TwoPort
+classdef TwoPort < Network
+    % TWOPORT is a 2-port Network
 
     properties
         
     end
 
     properties (SetAccess = private)
-        type(1,:) char {mustBeMember(type,{'S','ABCD','Y'})} = 'S'
 
-        freq(1,:) double % in fUnit
-        fUnit(1,:) char {mustBeMember(fUnit,{'Hz','kHz','MHz','GHz','THz'})} = 'GHz' % Frequency unit 
-        
-        data(2,2,:) double  % port parameter data matrix
-
-        Zport1(1,:) = 50  % Port 1 impedances
-        Zport2(1,:) = 50  % Port 2 impedances
     end
 
     properties (SetAccess = private, Hidden = true)
@@ -21,15 +14,10 @@ classdef TwoPort
     end
 
     properties (Dependent = true)
-        Nf   % Number of frequencies
-        
+        Zport2
     end
 
     properties (Dependent = true, Hidden = true)
-        nameMat
-        fScale              % Scaling factor from fUnit to Hz
-        freqHz
-        d11
         d12
         d21
         d22
@@ -43,62 +31,24 @@ classdef TwoPort
         function obj = TwoPort(data,freqGHz,type,Zport1,Zport2)
             % TWOPORT class constructor method.
 
+            obj.Nports = 2;
+            obj.Zport = ones(obj.Nports,1).*obj.Zport(1,1);
+
             if nargin > 0 && ~isempty(data), obj.data = data; end
             if nargin > 1 && ~isempty(freqGHz), obj.freq = freqGHz; end
             if nargin > 2 && ~isempty(type), obj.type = type; end
-            if nargin > 3 && ~isempty(Zport1), obj.Zport1 = Zport1; end
-            if nargin > 4 && ~isempty(Zport2), obj.Zport2 = Zport2; end
+            if nargin > 3 && ~isempty(Zport1), obj.Zport(1,:) = Zport1; end
+            if nargin > 4 && ~isempty(Zport2), obj.Zport(2,:) = Zport2; end
             
 
             assert(size(obj.data,3) == obj.Nf,'Third dimension of data must have the same number of elements as freq')
             assert(numel(obj.Zport1) == 1 || numel(obj.Zport1) == obj.Nf,'Zport1 must have the same number of elements as freq')
             assert(numel(obj.Zport2) == 1 || numel(obj.Zport2) == obj.Nf,'Zport2 must have the same number of elements as freq')
 
+            
         end
 
         % Dependent getters
-        function nameMat = get.nameMat(obj)
-            switch obj.type
-                case 'S'
-                    nameMat = {'S_{11}','S_{12}';'S_{21}','S_{22}'};
-                case 'ABCD'
-                    nameMat = {'A','B';'C','D'};
-                otherwise
-                    error('I should not be here...')
-
-            end
-        end
-
-        function fScale = get.fScale(obj)
-            switch lower(obj.fUnit)
-                case 'thz'
-                    fScale = 1e12;
-                case 'ghz'
-                    fScale = 1e9;
-                case 'mhz'
-                    fScale = 1e6;
-                case 'khz'
-                    fScale = 1e3;
-                case 'hz'
-                    fScale = 1e0;
-                otherwise
-                    error('I should not be here...')
-            end
-
-        end
-
-        function Nf = get.Nf(obj)
-            Nf = numel(obj.freq);
-        end
-
-        function freqHz = get.freqHz(obj)
-            freqHz = obj.freq.*obj.fScale;
-        end
-
-        function d11 = get.d11(obj)
-            d11 = squeeze(obj.data(1,1,:));
-        end
-
         function d12 = get.d12(obj)
             d12 = squeeze(obj.data(1,2,:));
         end
@@ -111,9 +61,13 @@ classdef TwoPort
             d22 = squeeze(obj.data(2,2,:));
         end
 
+        function Zport2 = get.Zport2(obj)
+            Zport2 = obj.Zport(2,:);
+        end
+
         % Circuit solver
         function obj = cascade(objIn)
-            % CASCADE calculates the cascades circuit of the input array
+            % CASCADE calculates the cascaded circuit of the input array
 
             obj = objIn(1);
             typeIn = obj.type;
@@ -122,7 +76,6 @@ classdef TwoPort
                 for ii = 2:length(objIn)
                     obj0 = getABCD(objIn(ii));
                     if ~strcmp(obj.fUnit,obj0.fUnit), obj0 = obj0.freqChangeUnit(obj.fUnit); end
-%                     assert(isequal(obj.freq,obj0.freq),'Frequencies do not match')
                     tol = min(obj.freq).*1e-9;
                     assert(max(abs(obj.freq - obj0.freq)) < tol,'Frequencies do not match')
                     obj.data = pagemtimes(obj.data,obj0.data);
@@ -131,30 +84,6 @@ classdef TwoPort
             end
             transFun = str2func(['get',typeIn]);
             obj = transFun(obj);
-        end
-
-        % Frequency manipulation
-        function obj = freqChangeUnit(obj,fUnit)
-            % FREQCHANGEUNIT changes the frequency unit to fUnit
-
-            freqHz_ = obj.freq.*obj.fScale;
-            obj.fUnit = fUnit;
-            obj.freq = freqHz_./obj.fScale;
-        end
-
-        function obj = freqInterp(obj,freqInterp,interpMethod)
-            % FREQINTERP interpolates on the frequency axis
-            %
-            % Inputs:
-            % freqInterp - vector of frequencies where the data must be interpolated (in Hz)
-            % interpMethod - interpolation method (interp1 standards)
-
-            Di(1,1,:) = interp1(obj.freq.*obj.fScale,obj.d11,freqInterp,interpMethod);
-            Di(1,2,:) = interp1(obj.freq.*obj.fScale,obj.d12,freqInterp,interpMethod);
-            Di(2,1,:) = interp1(obj.freq.*obj.fScale,obj.d21,freqInterp,interpMethod);
-            Di(2,2,:) = interp1(obj.freq.*obj.fScale,obj.d22,freqInterp,interpMethod);
-            obj.freq = freqInterp./obj.fScale;
-            obj.data = Di;
         end
 
         % Transformations between types
@@ -208,8 +137,8 @@ classdef TwoPort
                         error('I should not be here...')
                 end
                 obj.type = 'S';
-                obj.Zport1 = Z1;
-                obj.Zport2 = Z2;
+                obj.Zport(1) = Z1;
+                obj.Zport(2) = Z2;
             end
         end
 
@@ -304,6 +233,9 @@ classdef TwoPort
             % N is the number of ports. If N = 1, the .s1p output as seen from port 1 will be written. 
             %   Here it is assumed that Zport2 is the load connected to the network.
             % Default is N = 2 for the full .s2p file
+            % TODO: Fix this for arrays of Zport
+
+            assert(numel(obj.Zport1) == 1 && numel(obj.Zport2) == 1,'Not implemented yet for variable impedance')
 
             if nargin < 2 || isempty(pathName), pathName = 'temp.s2p'; end
             if nargin < 3 || isempty(N), N = 2; end
@@ -358,46 +290,6 @@ classdef TwoPort
         end
 
         % Plotting
-        function plot11dB(obj,style)
-            % PLOT11dB plots the 11 parameter in dB
-
-            if nargin < 2 || isempty(style), style = 'k'; end
-
-            plot(obj.freq,dB20(obj.d11),style), grid on, hold on
-            xlabel(['Frequency (',obj.fUnit,')'])
-            ylabel(['|',obj.nameMat{1,1}, '| (dB)'])
-        end
-
-        function plot11real(obj,style)
-            % PLOT11real plots the 11 parameter real part
-
-            if nargin < 2 || isempty(style), style = 'k'; end
-
-            plot(obj.freq,real(obj.d11),style), grid on, hold on
-            xlabel(['Frequency (',obj.fUnit,')'])
-            ylabel(['real(',obj.nameMat{1,1},')'])
-        end
-
-        function plot11imag(obj,style)
-            % PLOT11real plots the 11 parameter imaginary part
-
-            if nargin < 2 || isempty(style), style = 'k'; end
-
-            plot(obj.freq,imag(obj.d11),style), grid on, hold on
-            xlabel(['Frequency (',obj.fUnit,')'])
-            ylabel(['imag(',obj.nameMat{1,1},')'])
-        end
-
-        function plot11RI(obj,style)
-            % PLOT11RI plots the 11 parameter on the complex plane
-
-            if nargin < 2 || isempty(style), style = 'k'; end
-
-            plot(real(obj.d11),imag(obj.d11),style), grid on, hold on
-            xlabel(['real(',obj.nameMat{1,1}, ')'])
-            ylabel(['imag(',obj.nameMat{1,1}, ')'])
-        end
-
         function plot21dB(obj,style)
             % PLOT21dB plots the 21 parameter in dB
 
