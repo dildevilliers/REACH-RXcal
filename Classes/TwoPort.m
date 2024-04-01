@@ -66,24 +66,9 @@ classdef TwoPort < Network
         end
 
         % Circuit solver
-        function obj = cascade(objIn)
+        function obj = cascade(obj)
             % CASCADE calculates the cascaded circuit of the input array
-
-            obj = objIn(1);
-            typeIn = obj.type;
-            if length(objIn) > 1
-                obj = obj.getABCD;
-                for ii = 2:length(objIn)
-                    obj0 = getABCD(objIn(ii));
-                    if ~strcmp(obj.fUnit,obj0.fUnit), obj0 = obj0.freqChangeUnit(obj.fUnit); end
-                    tol = min(obj.freq).*1e-9;
-                    assert(max(abs(obj.freq - obj0.freq)) < tol,'Frequencies do not match')
-                    obj.data = pagemtimes(obj.data,obj0.data);
-                    
-                end
-            end
-            transFun = str2func(['get',typeIn]);
-            obj = transFun(obj);
+            obj = obj.connection('cascade');
         end
 
         % Transformations between types

@@ -38,4 +38,21 @@ subplot 212
 T.plot11RI('r--')
 
 
+%% 
+R1 = OnePort.R(45,freq);
+R2 = R1;
+R3 = R2;
+R4 = series([R1,R2,R3]);
 
+figure
+R4.plot11mag
+
+%%
+
+T1 = T_TX;
+R1 = OnePort.R(50,freq);
+R2 = parallel([R1,R1]);
+T2 = cascade([T1,R2.series2port]);
+
+figure
+T2.getS.plot11dB

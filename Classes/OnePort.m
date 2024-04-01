@@ -27,6 +27,35 @@ classdef OnePort < Network
 
         end
 
+        % Circuit solver
+        function obj = series2port(obj,Zport1,Zport2)
+            % SERIES2PORT returns a series connected 2-port network of the provided 1-port network
+
+            obj = obj.getZ;
+            Z1_ = 50;
+            Z2_ = 50;
+            if nargin > 1 && ~isempty(Zport1), Z1_ = Zport1; end
+            if nargin > 2 && ~isempty(Zport2), Z2_ = Zport2; end
+            d_ = ones(2,2,obj.Nf);
+            d_(1,2,:) = obj.data;
+            d_(2,1,:) = 0.*d_(2,1,:);
+            obj = TwoPort(d_,obj.freqHz./1e9,'ABCD',Z1_,Z2_);
+        end
+
+        function obj = parallel2port(obj,Zport1,Zport2)
+            % PARALLEL2PORT returns a parallel connected 2-port network of the provided 1-port network
+
+            obj = obj.getY;
+            Z1_ = 50;
+            Z2_ = 50;
+            if nargin > 1 && ~isempty(Zport1), Z1_ = Zport1; end
+            if nargin > 2 && ~isempty(Zport2), Z2_ = Zport2; end
+            d_ = ones(2,2,obj.Nf);
+            d_(2,1,:) = obj.data;
+            d_(1,2,:) = 0.*d_(1,2,:);
+            obj = TwoPort(d_,obj.freqHz./1e9,'ABCD',Z1_,Z2_);
+        end
+
         % Transformations
         function obj = getY(obj)
             % GETY returns the object of type Y-parameter
@@ -84,6 +113,39 @@ classdef OnePort < Network
         end
 
     end
+
+%     methods (Access = private)
+%         function obj = connection(objIn,connectType)
+%             % CONNECTION is the internal function to connect elements in series/parallel
+% 
+%             switch connectType
+%                 case 'parallel'
+%                     transFunc = @getY;
+%                     conFunc = @plus;
+%                 case 'series'
+%                     transFunc = @getZ;
+%                     conFunc = @plus;
+%                 otherwise
+%                     error('I should not be here')
+%             end
+% 
+%             obj = objIn(1);
+%             typeIn = obj.type;
+%             if length(objIn) > 1
+%                 obj = transFunc(obj);
+%                 for ii = 2:length(objIn)
+%                     obj0 = transFunc(objIn(ii));
+%                     if ~strcmp(obj.fUnit,obj0.fUnit), obj0 = obj0.freqChangeUnit(obj.fUnit); end
+%                     tol = min(obj.freq).*1e-9;
+%                     assert(max(abs(obj.freq - obj0.freq)) < tol,'Frequencies do not match')
+%                     obj.data = conFunc(obj.data,obj0.data);
+%                 end
+%             end
+%             transFun = str2func(['get',typeIn]);
+%             obj = transFun(obj);
+% 
+%         end
+%     end
 
     methods (Static = true)
         function obj = readTouchStone(pathNameExt, freqInterp)

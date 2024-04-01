@@ -83,6 +83,17 @@ classdef Network
             Zport1 = obj.Zport(1,:);
         end
 
+        % Circuit Solver
+        function obj = parallel(obj)
+            % PARALLEL couples all the one-ports in the input array in parallel
+            obj = obj.connection('parallel');
+        end
+
+        function obj = series(obj)
+            % SERIES couples all the one-ports in the input array in series
+            obj = obj.connection('series');
+        end
+
 
         % Frequency manipulation
         function obj = freqChangeUnit(obj,fUnit)
@@ -161,6 +172,64 @@ classdef Network
             ylabel(['imag(',obj.nameMat{1,1}, ')'])
         end
 
+    end
+
+    methods (Access = protected)
+        function obj = connection(objIn,connectType)
+            % CONNECTION is the internal function to connect elements in series/parallel/cascade
+
+            % Figure out the types of networks being connected
+            nIn = numel(objIn);
+            netTypeIn = ones(1,nIn);
+            for nn = 1:nIn
+                if isa(objIn(nn),'TwoPort'), netTypeIn(nn) = 2; end
+            end
+
+            if all(netTypeIn == 1) || all(netTypeIn == 2)
+                conType = 0;    % All the same
+            elseif netType(1) == 1 && all(netTypeIn(2:end) == 2)
+                conType = 1;    % TwoPorts, with a OnePort at port 1
+            elseif netType(nIn) == 1 && all(netTypeIn(1:end-1) == 2)
+                conType = 2;    % TwoPorts, with a OnePort at port 2
+            elseif netType(1) == 1 && netType(nIn) == 1 && all(netTypeIn(2:end-1) == 2)
+                conType = 3;    % TwoPorts, with a OnePort at ports 1 and 2
+            else
+                error('Unknown connection configuration. All the elements must be the same object, or the first and/or last element can be a OnePort, while the rest are TwoPorts.');
+            end
+              
+%             keyboard
+
+            switch connectType
+                case 'parallel'
+                    transFunc = @getY;
+                    conFunc = @plus;
+                case 'series'
+                    transFunc = @getZ;
+                    conFunc = @plus;
+                case 'cascade'
+                    assert(all(netTypeIn == 2),'Can only cascade TwoPorts');
+                    transFunc = @getABCD;
+                    conFunc = @pagemtimes;
+                otherwise
+                    error('I should not be here')
+            end
+
+            obj = objIn(1);
+            typeIn = obj.type;
+            if length(objIn) > 1
+                obj = transFunc(obj);
+                for ii = 2:length(objIn)
+                    obj0 = transFunc(objIn(ii));
+                    if ~strcmp(obj.fUnit,obj0.fUnit), obj0 = obj0.freqChangeUnit(obj.fUnit); end
+                    tol = min(obj.freq).*1e-9;
+                    assert(max(abs(obj.freq - obj0.freq)) < tol,'Frequencies do not match')
+                    obj.data = conFunc(obj.data,obj0.data);
+                end
+            end
+            transFun = str2func(['get',typeIn]);
+            obj = transFun(obj);
+
+        end
     end
 
 
