@@ -192,6 +192,8 @@ classdef TwoPort < Network
                 case 'Y'
                     return;
                     % Do nothing
+                case 'Z'
+                    obj.data = pageinv(obj.data);
                 case 'ABCD'
                     A = obj.d11;
                     B = obj.d12;
@@ -229,6 +231,8 @@ classdef TwoPort < Network
                 case 'Z'
                     return;
                     % Do nothing
+                case 'Y'
+                    obj.data = pageinv(obj.data);
                 case 'ABCD'
                     A = obj.d11;
                     B = obj.d12;
