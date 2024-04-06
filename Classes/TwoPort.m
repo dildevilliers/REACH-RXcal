@@ -118,6 +118,17 @@ classdef TwoPort < Network
                         obj.data(1,2,:) = (-2.*Y12.*sqrt(real(Z1).*real(Z2)))./den;
                         obj.data(2,1,:) = (-2.*Y21.*sqrt(real(Z1).*real(Z2)))./den;
                         obj.data(2,2,:) = ((1 + Y11.*Z1).*(1 - Y22.*conj(Z2)) + Y12.*Y21.*Z1.*conj(Z2))./den;
+                    case 'Z'
+                        Z11 = obj.d11;
+                        Z12 = obj.d12;
+                        Z21 = obj.d21;
+                        Z22 = obj.d22;
+
+                        den = (Z11 + Z1).*(Z22 + Z2) - Z12.*Z21;
+                        obj.data(1,1,:) = ((Z11 - conj(Z1)).*(Z22 + Z2) - Z12.*Z21)./den;
+                        obj.data(1,2,:) = (2.*Z12.*sqrt(real(Z1).*real(Z2)))./den;
+                        obj.data(2,1,:) = (2.*Z21.*sqrt(real(Z1).*real(Z2)))./den;
+                        obj.data(2,2,:) =  ((Z11 + Z1).*(Z22 - conj(Z2)) - Z12.*Z21)./den;
                     otherwise
                         error('I should not be here...')
                 end
@@ -158,6 +169,16 @@ classdef TwoPort < Network
                     obj.data(1,2,:) = -1./Y21;
                     obj.data(2,1,:) = (Y12.*Y21 - Y11.*Y22)./Y21;
                     obj.data(2,2,:) = -Y11./Y21;
+                case 'Z'
+                    Z11 = obj.d11;
+                    Z12 = obj.d12;
+                    Z21 = obj.d21;
+                    Z22 = obj.d22;
+
+                    obj.data(1,1,:) = Z11./Z21;
+                    obj.data(1,2,:) = (Z11.*Z22 - Z12.*Z21)./Z21;
+                    obj.data(2,1,:) = 1./Z21;
+                    obj.data(2,2,:) = Z22./Z21;
                 otherwise
                     error('I should not be here...')
             end
@@ -199,6 +220,43 @@ classdef TwoPort < Network
                     error('I should not be here...')
             end
             obj.type = 'Y';
+        end
+
+        function obj = getZ(obj)
+            % GETZ returns the object of type Z-parameter
+
+            switch obj.type
+                case 'Z'
+                    return;
+                    % Do nothing
+                case 'ABCD'
+                    A = obj.d11;
+                    B = obj.d12;
+                    C = obj.d21;
+                    D = obj.d22;
+
+                    obj.data(1,1,:) = A./C;
+                    obj.data(1,2,:) = (A.*D - B.*C)./C;
+                    obj.data(2,1,:) = 1./C;
+                    obj.data(2,2,:) = D./C;
+                case 'S'
+                    S11 = obj.d11;
+                    S12 = obj.d12;
+                    S21 = obj.d21;
+                    S22 = obj.d22;
+
+                    Z1 = obj.Zport1(:);
+                    Z2 = obj.Zport2(:);
+
+                    den = (1 - S11).*(1 - S22) - S12.*S21;
+                    obj.data(1,1,:) = ((conj(Z1) + S11.*Z1).*(1 - S22) + S12.*S21.*Z1)./den;
+                    obj.data(1,2,:) = (2.*S12.*sqrt(real(Z1).*real(Z2)))./den;
+                    obj.data(2,1,:) = (2.*S21.*sqrt(real(Z1).*real(Z2)))./den;
+                    obj.data(2,2,:) = ((1 - S11).*(conj(Z2) + S22.*Z2) + S12.*S21.*Z2)./den;
+                otherwise
+                    error('I should not be here...')
+            end
+            obj.type = 'Z';
         end
 
         function obj = inv(obj)
