@@ -212,5 +212,42 @@ classdef OnePort < Network
             Zr(1,1,:) = ones(1,numel(f)).*R;
             obj = OnePort(Zr,1e-9.*f,'Z',Zport1);
         end
+
+        function obj = TlineLoad(ZL,Z0,L,f,eps_r,Zport1)
+            % function obj = TlineLoad(ZL,Z0,L,f,eps_r)
+            % Loaded lossless transmission line OnePort object
+            %
+            % Inputs:
+            % ZL - load impedance in Ohm (can, in general, be function of frequency)
+            % Z0 - characteristic impedance in Ohm (can, in general, be function of frequency)
+            % L - Length in [m]
+            % f - frequency in Hz
+            % eps_r - relative permittivity (can, in general, be function of frequency) [1]
+            
+            f = f(:).';
+            Nf = length(f);
+            
+            if nargin < 5 || isempty(eps_r), eps_r = 1; end
+            if nargin < 6 || isempty(Zport1), Zport1 = 50; end
+            
+            eps_r = eps_r(:).';
+            
+            if numel(eps_r) > 1, assert(numel(eps_r) == Nf,'eps_r must have the same number of elements as f'); end
+            
+            c0 = 299792458;
+            
+            beta = 2*pi.*f./c0.*sqrt(eps_r);
+            
+            bL = beta.*L;
+            tanbL = tan(bL);
+            if ZL == 0
+                Zin(1,1,:) = 1i.*Z0.*tanbL;
+            elseif isinf(ZL)
+                Zin(1,1,:) = -1i.*Z0./tanbL;
+            else
+                Zin(1,1,:) = Z0.*(ZL + 1i.*tanbL)./(Z0 + 1i.*tanbL);
+            end
+            obj = OnePort(Zin,1e-9.*f,'Z',Zport1);
+        end
     end
 end

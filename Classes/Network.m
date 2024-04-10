@@ -184,20 +184,7 @@ classdef Network
             for nn = 1:nIn
                 if isa(objIn(nn),'TwoPort'), netTypeIn(nn) = 2; end
             end
-
-            if all(netTypeIn == 1) || all(netTypeIn == 2)
-                conType = 0;    % All the same
-            elseif netType(1) == 1 && all(netTypeIn(2:end) == 2)
-                conType = 1;    % TwoPorts, with a OnePort at port 1
-            elseif netType(nIn) == 1 && all(netTypeIn(1:end-1) == 2)
-                conType = 2;    % TwoPorts, with a OnePort at port 2
-            elseif netType(1) == 1 && netType(nIn) == 1 && all(netTypeIn(2:end-1) == 2)
-                conType = 3;    % TwoPorts, with a OnePort at ports 1 and 2
-            else
-                error('Unknown connection configuration. All the elements must be the same object, or the first and/or last element can be a OnePort, while the rest are TwoPorts.');
-            end
-              
-%             keyboard
+            assert(all(netTypeIn == 1) || all(netTypeIn == 2),'All networks in the array must be of the same type, either OnePort or TwoPort')
 
             switch connectType
                 case 'parallel'

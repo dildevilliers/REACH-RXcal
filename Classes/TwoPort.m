@@ -91,8 +91,8 @@ classdef TwoPort < Network
             elseif strcmp(obj.type,'S')
                 % Change impedance levels
                 objABCD = obj.getABCD;
-                objABCD.Zport1 = Z1;
-                objABCD.Zport2 = Z2;
+                objABCD.Zport(1) = Z1;
+                objABCD.Zport(2) = Z2;
                 obj = objABCD.getS;
             else
                 switch obj.type
@@ -344,7 +344,7 @@ classdef TwoPort < Network
 
             plot(obj.freq,dB20(obj.d21),style), grid on, hold on
             xlabel(['Frequency (',obj.fUnit,')'])
-            ylabel([obj.nameMat{2,1}, '(dB)'])
+            ylabel(['|',obj.nameMat{2,1}, '| (dB)'])
         end
 
         function plot21phase(obj,style)
@@ -354,7 +354,7 @@ classdef TwoPort < Network
 
             plot(obj.freq,rad2deg(angle((obj.d21))),style), grid on, hold on
             xlabel(['Frequency (',obj.fUnit,')'])
-            ylabel([obj.nameMat{2,1}, '(dB)'])
+            ylabel([obj.nameMat{2,1}, ' (deg)'])
         end
 
         function plot21RI(obj,style)
