@@ -521,6 +521,53 @@ classdef TwoPort < Network
             obj = TwoPort(T,1e-9.*f(:).','ABCD',Zport1,Zport2);
         end
 
+        function obj = CoaxLine(Di,Do,L,f,eps_r,tan_delta,R_prime,Zport1,Zport2)
+            % function obj = CoaxLine(Di,Do,L,f,eps_r,tan_delta,R_prime,Zport1,Zport2)
+            % Coaxial line (physical dimensions) TwoPort object
+            %
+            % Inputs:
+            % Di - inner diameter in [m] 
+            % Do - outer diameter in [m]
+            % L - Length in [m]
+            % f - frequency in Hz
+            % eps_r - relative permittivity (can, in general, be function of frequency) [1]
+            % tan_delta - loss tangent (can, in general, be function of frequency) [0]
+            % R_prime - surface resistance per unit length in Ohm/m (can, in general, be function of frequency) [0]
+            % Zport1 - Port 1 impedance (can generally be function of frequency)
+            % Zport2 - Port 2 impedance (can generally be function of frequency)
+            %
+            % Uses the LCRG model in Pozar
+
+            if nargin < 5 || isempty(eps_r), eps_r = 1; end
+            if nargin < 6 || isempty(tan_delta), tan_delta = 0; end
+            if nargin < 7 || isempty(R_prime), R_prime = 0; end
+            if nargin < 8 || isempty(Zport1), Zport1 = 50; end
+            if nargin < 9 || isempty(Zport2), Zport2 = 50; end
+
+            eps = Network.eps0.*eps_r.*(1 - 1j.*tan_delta);
+            ep = real(eps);
+            epp = -imag(eps);
+
+            w = 2.*pi.*f;
+
+            ln_D = log(Do./Di);
+            L_ = Network.mu0./(2.*pi).*ln_D;
+            C_ = 2.*pi.*ep./ln_D;
+            R_ = R_prime./(2.*pi).*(2./Di + 2./Do);
+            G_ = 2.*pi.*w.*epp./ln_D;
+            RL = R_ + 1i.*w.*L_;
+            GC = G_ + 1i.*w.*C_;
+            Z0 = sqrt(RL./GC);
+            gamma = sqrt(RL.*GC);
+
+            gL = gamma.*L;
+            T(1,1,:) = cosh(gL);
+            T(1,2,:) = Z0.*sinh(gL);
+            T(2,1,:) = 1./Z0.*sinh(gL);
+            T(2,2,:) = T(1,1,:);
+            obj = TwoPort(T,1e-9.*f(:).','ABCD',Zport1,Zport2);
+        end
+
     end
 
 end

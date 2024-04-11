@@ -27,6 +27,13 @@ classdef Network
         d11         % Data of the (1,1) port - used a lot so make explicit
     end
 
+    properties (Constant = true, Hidden = true)
+        c0 = 299792458
+        eps0 = 8.854187817e-12
+        mu0 = 1.256637061435917e-06
+        eta0 = 3.767303134749689e+02
+    end
+
     methods
         
         % Dependent getters
