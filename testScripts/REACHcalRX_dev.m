@@ -4,7 +4,8 @@ clear all
 
 %% Input script setup
 % dataPth = 'c:\Users\ddv\OneDrive - Stellenbosch University\Navorsing\REACH\Calibration\2023_12_11_10min-int_full-meas\14_32\';
-dataPth = 'c:\Users\ddv\OneDrive - Stellenbosch University\Navorsing\REACH\20240926_AnnualMeeting\InitDevdata_REACHcalRX\';
+% dataPth = 'c:\Users\ddv\OneDrive - Stellenbosch University\Navorsing\REACH\20240926_AnnualMeeting\InitDevdata_REACHcalRX\';
+dataPth = 'c:\Users\ddv\OneDrive - Stellenbosch University\Navorsing\REACH\20240926_AnnualMeeting\InitDevdata_REACHcalRX\fold_v0\';
 R = REACHcalRX(dataPth);
 R.plotAllS11
 

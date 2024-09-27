@@ -245,7 +245,8 @@ classdef REACHcalRX
         optTypeFlag(1,1) double {mustBeInteger,mustBeNonnegative} = 1   % Set to 1 for standard VNA measured targets; 2 for the lab measured sources; 3 to only do the MTS and sr_mtsj1 elements from lab sources 
                                                                             
 
-        folderFormat(1,1) double {mustBeInteger,mustBePositive} = 2         %  1 for the folder tree, 2 for the flat native structure
+        folderFormat(1,1) double {mustBeInteger,mustBeNonnegative} = 0         %  0 for the new version of the hdf5 file with everything indside, 1 for the folder tree, 2 for the flat native structure
+        H5dataInfo(1,:)   % H5 file information
     end
 
     properties (Dependent = true)
@@ -432,6 +433,8 @@ classdef REACHcalRX
         outputElements = {'r36','r27','r69','r91','rOpen','rShort','r10','r250','rCold','rHot','r25','r100','ms1','ms3','ms4','mts','sr_mtsj1','sr_mtsj2','sr_ms1j2','c2','c10'};
 
         validFieldsInputStruct = {'vals','unitScales','max','min','optFlag'};
+
+        h5Name = 'reach_observation.hdf5';
     end
 
     methods
@@ -440,7 +443,7 @@ classdef REACHcalRX
 
             % Handle inputs
             parseobj = inputParser;
-            parseobj.FunctionName = 'REACHcal';
+            parseobj.FunctionName = 'REACHcalRX';
 
             p = mfilename("fullpath");
             if nargin < 1 || isempty(dataPath)
@@ -455,7 +458,7 @@ classdef REACHcalRX
             obj.dataPathLabSources = [fileparts(p),'\..\data\lab_sources\'];
 
             % Name-value pairs
-            typeValidation_elementStruct = @(x) validateattributes(x,{'struct'},{},'REACHcal','inputStruct');
+            typeValidation_elementStruct = @(x) validateattributes(x,{'struct'},{},'REACHcalRX','inputStruct');
 
             for ii = 1:length(obj.optVectElements)
                 elName = obj.optVectElements{ii};
@@ -491,12 +494,25 @@ classdef REACHcalRX
 
 
             % Read the data
-            % Get the folder format - default is 2 so only change if needed
+            
             % First the lab data
 %             obj = obj.readLabData;
 
+            % Get the folder format - default is 0 
+            if isfile([obj.dataPath,obj.h5Name])
+                obj.H5dataInfo = h5info([obj.dataPath,obj.h5Name]);
+                Datasets = obj.H5dataInfo.Groups.Datasets;
+                if ~strcmp('ant_s1p',{Datasets.Name})
+                    obj.folderFormat = 2;
+                end
+            elseif isfolder([obj.dataPath,'ant'])
+                obj.folderFormat = 1;
+            else
+                error('Unknown folder format')
+            end
+            keyboard
 
-            if isfolder([obj.dataPath,'ant']), obj.folderFormat = 1; end
+%             if isfolder([obj.dataPath,'ant']), obj.folderFormat = 1; end
             obj = obj.readS11data;
             if obj.folderFormat == 1
                 obj = obj.readTempData;
@@ -1206,11 +1222,25 @@ classdef REACHcalRX
             if nargin < 3 || isempty(interpFlag), interpFlag = true; end
 
             assert(ismember(sourceName,obj.sourceNames),'Unknown source name - check REACHcal.sourceNames')
-            pthRead = obj.dataPath;
-            if obj.folderFormat == 1, pthRead = [pthRead,sourceName,'\']; end
+
+            if obj.folderFormat == 0
+                dataS11 = h5read([obj.dataPath,obj.h5Name],['/observation_data/',[sourceName,'_s1p']]);
+                attS11 = h5readatt([obj.dataPath,obj.h5Name],['/observation_data/',[sourceName,'_s1p']],'format');
+                freq = dataS11(:,1);
+                if contains(upper(attS11),'RI')
+                    S11 = dataS11(:,2) + 1i.*dataS11(:,3);
+                else
+                    error('Only RI S11 reading implemented at present')
+                end
+            else
+                pthRead = obj.dataPath;
+                if obj.folderFormat == 1, pthRead = [pthRead,sourceName,'\']; end
+
+                [S11,freq] = touchread([pthRead,sourceName,'.s1p']);
+                S11 = squeeze(S11(1,1,:));
+            end
+
             
-            [S11,freq] = touchread([pthRead,sourceName,'.s1p']);
-            S11 = squeeze(S11(1,1,:));
             if interpFlag
                 S11 = interp1(freq,S11,obj.freqHz,'linear');
                 freq = obj.freqHz;
