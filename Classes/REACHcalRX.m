@@ -247,6 +247,7 @@ classdef REACHcalRX
 
         folderFormat(1,1) double {mustBeInteger,mustBeNonnegative} = 0         %  0 for the new version of the hdf5 file with everything indside, 1 for the folder tree, 2 for the flat native structure
         H5dataInfo(1,:)   % H5 file information
+        t0(1,1) double  = inf  % FIrst timestamp
     end
 
     properties (Dependent = true)
@@ -510,13 +511,13 @@ classdef REACHcalRX
             else
                 error('Unknown folder format')
             end
-            keyboard
-
-%             if isfolder([obj.dataPath,'ant']), obj.folderFormat = 1; end
+            
             obj = obj.readS11data;
-            if obj.folderFormat == 1
-                obj = obj.readTempData;
+            
+            if obj.folderFormat < 2
                 obj = obj.readPSDdata;
+                keyboard
+                obj = obj.readTempData;
             end
 
 %             % Read the MS3 data - only for the active through paths
@@ -1268,51 +1269,72 @@ classdef REACHcalRX
             % READPSDDATA read the set of PSD measurements
 
             for ii = 1:length(obj.sourceNames)
-                obj.(['PSD_meas_',obj.sourceNames{ii}]) = obj.readSourcePSD(obj.sourceNames{ii});
+                [obj.(['PSD_meas_',obj.sourceNames{ii}]),t0_] = obj.readSourcePSD(obj.sourceNames{ii});
+                if t0_ < obj.t0, obj.t0 = t0_; end
             end
         end
 
-        function PSDstruct = readSourcePSD(obj,sourceName)
+        function [PSDstruct,t0_] = readSourcePSD(obj,sourceName)
             % READSOURCEPSD reads the PSD data into the structure format
 
             assert(ismember(sourceName,obj.sourceNames),'Unknown source name - check REACHcal.sourceNames')
-
-            fileNames = {'load','noise','source'};
-
-            for ii = 1:length(fileNames)
-                fid = fopen([obj.dataPath,sourceName,'\psd_',fileNames{ii},'.txt'], 'r');
-                S = fscanf(fid, '%c');
-                fclose(fid);
-
-                % Get all end-of-line indexes
-                in2 = strfind(S,char([10]));
-
-                % Get timestamp
-                timeStr = '# Timestamp:';
-                in1 = strfind(S,timeStr);
-                ind = find(in2>in1); ind = ind(1);
-                ln = S(in1+length(timeStr):in2(ind));
-                ts = sscanf(ln,'%f');
-                % Get frequencies
-                freqStr = '# Frequencies:';
-                in1 = strfind(S,freqStr);
-                ind = find(in2>in1); ind = ind(1);
-                ln = S(in1+length(freqStr):in2(ind));
-                frequency = double(split(string(ln),',')).';
-                frequency = frequency(frequency >= 50);
-                % Get PSD values
-                ln = S(in2(ind)+1:in2(end));
-                PSD = double(split(string(ln),',')).';
-
-                PSDstruct.(['timestamp_',fileNames{ii}]) = ts;
-                PSDstruct.(['PSD_',fileNames{ii}]) = PSD;
-                PSDstruct.(['freq_',fileNames{ii}]) = frequency;
+            PSDstruct = [];
+            % Always read from the hdf5 file 
+            calNames = {'','_load','_ns'};
+            t0_ = inf;
+            for ss = 1:(length(calNames))
+                
+                readName = [sourceName,calNames{ss}];
+                if any(strncmp(readName,{obj.H5dataInfo.Groups(1).Datasets.Name},numel(readName)))
+                    PSDstruct.([readName,'_spectra']) = h5read([obj.dataPath,obj.h5Name],['/observation_data/',[readName,'_spectra']]);
+                    PSDstruct.([readName,'_timestamps']) = h5read([obj.dataPath,obj.h5Name],['/observation_data/',[readName,'_timestamps']]);
+                    % Get the first timestamp of this measurement
+                    ts = PSDstruct.([readName,'_timestamps']);
+                    tmin = min(ts(1,:));
+                    if tmin < t0_, t0_ = tmin; end
+                else
+                    % Data not found - don't read it
+                end
             end
-            assert(all(PSDstruct.freq_noise == PSDstruct.freq_source) && all(PSDstruct.freq_source == PSDstruct.freq_load),'Frequencies not consistant in PSDs')
-            PSDstruct.freq = PSDstruct.freq_noise;
-            for ii = 1:length(fileNames)
-                PSDstruct = rmfield(PSDstruct,['freq_',fileNames{ii}]);
-            end
+
+
+%             fileNames = {'load','noise','source'};
+% 
+%             for ii = 1:length(fileNames)
+%                 fid = fopen([obj.dataPath,sourceName,'\psd_',fileNames{ii},'.txt'], 'r');
+%                 S = fscanf(fid, '%c');
+%                 fclose(fid);
+% 
+%                 % Get all end-of-line indexes
+%                 in2 = strfind(S,char([10]));
+% 
+%                 % Get timestamp
+%                 timeStr = '# Timestamp:';
+%                 in1 = strfind(S,timeStr);
+%                 ind = find(in2>in1); ind = ind(1);
+%                 ln = S(in1+length(timeStr):in2(ind));
+%                 ts = sscanf(ln,'%f');
+%                 % Get frequencies
+%                 freqStr = '# Frequencies:';
+%                 in1 = strfind(S,freqStr);
+%                 ind = find(in2>in1); ind = ind(1);
+%                 ln = S(in1+length(freqStr):in2(ind));
+%                 frequency = double(split(string(ln),',')).';
+%                 frequency = frequency(frequency >= 50);
+%                 % Get PSD values
+%                 ln = S(in2(ind)+1:in2(end));
+%                 PSD = double(split(string(ln),',')).';
+% 
+%                 PSDstruct.(['timestamp_',fileNames{ii}]) = ts;
+%                 PSDstruct.(['PSD_',fileNames{ii}]) = PSD;
+%                 PSDstruct.(['freq_',fileNames{ii}]) = frequency;
+%             end
+% 
+%             assert(all(PSDstruct.freq_noise == PSDstruct.freq_source) && all(PSDstruct.freq_source == PSDstruct.freq_load),'Frequencies not consistant in PSDs')
+%             PSDstruct.freq = PSDstruct.freq_noise;
+%             for ii = 1:length(fileNames)
+%                 PSDstruct = rmfield(PSDstruct,['freq_',fileNames{ii}]);
+%             end
         end
 
         % Optimization
