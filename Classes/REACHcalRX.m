@@ -178,22 +178,40 @@ classdef REACHcalRX
         S11_meas_r100
         S11_meas_ant
 
-        T_meas_c2r36(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_c2r27(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_c2r69(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_c2r91(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_c10open(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_c10short(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_c10r10(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_c10r250(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_cold(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_hot(1,:) double {mustBeReal,mustBePositive} = 330
-        T_meas_r25(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_r100(1,:) double {mustBeReal,mustBePositive} = 300
-        T_meas_ant(1,:) double {mustBeReal,mustBePositive} = 285
-        T_meas_c2(1,:) double {mustBeReal,mustBePositive} = 295   % 2-m cable nominal temperature
-        T_meas_c10(1,:) double {mustBeReal,mustBePositive} = 295   % 10-m cable nominal temperature
-        T_meas_ms1(1,:) double {mustBeReal,mustBePositive} = 295   % ms1 nominal temperature
+%         T_meas_c2r36(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_c2r27(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_c2r69(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_c2r91(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_c10open(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_c10short(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_c10r10(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_c10r250(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_cold(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_hot(1,:) double {mustBeReal,mustBePositive} = 330
+%         T_meas_r25(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_r100(1,:) double {mustBeReal,mustBePositive} = 300
+%         T_meas_ant(1,:) double {mustBeReal,mustBePositive} = 285
+%         T_meas_c2(1,:) double {mustBeReal,mustBePositive} = 295   % 2-m cable nominal temperature
+%         T_meas_c10(1,:) double {mustBeReal,mustBePositive} = 295   % 10-m cable nominal temperature
+%         T_meas_ms1(1,:) double {mustBeReal,mustBePositive} = 295   % ms1 nominal temperature
+
+        T_meas_c2r36
+        T_meas_c2r27
+        T_meas_c2r69
+        T_meas_c2r91
+        T_meas_c10open
+        T_meas_c10short
+        T_meas_c10r10
+        T_meas_c10r250
+        T_meas_cold
+        T_meas_hot
+        T_meas_r25
+        T_meas_r100
+        T_meas_ant
+        T_meas_RX   % Probe 5 temperature
+        T_meas_LNA  
+        T_meas_timestamps
+            
 
         PSD_meas_c2r36
         PSD_meas_c2r27
@@ -208,6 +226,7 @@ classdef REACHcalRX
         PSD_meas_r25
         PSD_meas_r100
         PSD_meas_ant
+        PSD_freq
 
         % Lab (fixed) measurements
 %         S11_lab_c2r36
@@ -244,7 +263,7 @@ classdef REACHcalRX
         optW(1,:) double {mustBeNonnegative} = [1 1 1 1 1 1 1 1 1 1 1 1]
         optTypeFlag(1,1) double {mustBeInteger,mustBeNonnegative} = 1   % Set to 1 for standard VNA measured targets; 2 for the lab measured sources; 3 to only do the MTS and sr_mtsj1 elements from lab sources 
                                                                             
-
+        % H5 file book keeping
         folderFormat(1,1) double {mustBeInteger,mustBeNonnegative} = 0         %  0 for the new version of the hdf5 file with everything indside, 1 for the folder tree, 2 for the flat native structure
         H5dataInfo(1,:)   % H5 file information
         t0(1,1) double  = inf  % FIrst timestamp
@@ -436,6 +455,8 @@ classdef REACHcalRX
         validFieldsInputStruct = {'vals','unitScales','max','min','optFlag'};
 
         h5Name = 'reach_observation.hdf5';
+
+        spectrometerFreqRange = [0,200];
     end
 
     methods
@@ -514,9 +535,8 @@ classdef REACHcalRX
             
             obj = obj.readS11data;
             
-            if obj.folderFormat < 2
+            if obj.folderFormat == 0
                 obj = obj.readPSDdata;
-                keyboard
                 obj = obj.readTempData;
             end
 
@@ -1251,34 +1271,71 @@ classdef REACHcalRX
         function obj = readTempData(obj)
             % READTEMPDATA reads the temperature data
 
-            for ii = 1:length(obj.sourceNames)
-                if obj.folderFormat == 1
-                    pthRead = [obj.dataPath,obj.sourceNames{ii},'\'];
-                    fid = fopen([pthRead,'\temperature.txt'], 'r');
-                    T = fscanf(fid, '%f');
-                    fclose(fid);
-                    obj.(['T_meas_',obj.sourceNames{ii}]) = T;
-                else
-                    error('not implemented yet')
+            % Get the probe location information
+            a_ = {obj.H5dataInfo.Groups.Attributes};
+            tempNames = {a_{3}.Name};
+            tempCells_ = {a_{3}.Value};
+            tempCells = tempCells_{strcmp('receiver_temperature_probe_locations',tempNames)};
 
+            % Read full temperature matrix
+            tempMat = h5read([obj.dataPath,obj.h5Name],['/observation_metadata/','temperatures']);
+            tempTimestamps_ = h5read([obj.dataPath,obj.h5Name],['/observation_metadata/','temperature_timestamps']);
+            obj.T_meas_timestamps = fliplr(tempTimestamps_(:).');
+
+            % Define the text mapping in hard code here - update if the hdf5 gets changed (should crash though)...
+            for ii = 1:length(obj.sourceNames)
+                if strncmp(obj.sourceNames{ii},'c2',2)   % short cable
+                    indProbe = contains(tempCells,'12.5M_CABLE','IgnoreCase',0);
+                elseif strncmp(obj.sourceNames{ii},'c10',3)   % long cable
+                    indProbe = contains(tempCells,'24M_CABLE','IgnoreCase',0);
+                elseif strncmp(obj.sourceNames{ii},'cold',4)   
+                    indProbe = contains(tempCells,'50_ohm_cold','IgnoreCase',0);
+                elseif strncmp(obj.sourceNames{ii},'hot',3)   
+                    indProbe = contains(tempCells,'thermal_source','IgnoreCase',0);
+                elseif strncmp(obj.sourceNames{ii},'r25',3) || strncmp(obj.sourceNames{ii},'r100',4)  
+                    indProbe = contains(tempCells,'25_OHM','IgnoreCase',0);
+                elseif strncmp(obj.sourceNames{ii},'ant',3)
+                    indProbe = contains(tempCells,'ANTENNA','IgnoreCase',0);
                 end
+
+                obj.(['T_meas_',obj.sourceNames{ii}]) = fliplr(tempMat(indProbe,:));
             end
+
+            obj.T_meas_RX = fliplr(tempMat(contains(tempCells,'None','IgnoreCase',0),:));
+            obj.T_meas_LNA = fliplr(tempMat(contains(tempCells,'LNA','IgnoreCase',0),:));
+            
+
+
+%             for ii = 1:length(obj.sourceNames)
+%                 if obj.folderFormat == 1
+%                     pthRead = [obj.dataPath,obj.sourceNames{ii},'\'];
+%                     fid = fopen([pthRead,'\temperature.txt'], 'r');
+%                     T = fscanf(fid, '%f');
+%                     fclose(fid);
+%                     obj.(['T_meas_',obj.sourceNames{ii}]) = T;
+%                 else
+%                     error('not implemented yet')
+% 
+%                 end
+%             end
         end
 
         function obj = readPSDdata(obj)
             % READPSDDATA read the set of PSD measurements
 
             for ii = 1:length(obj.sourceNames)
-                [obj.(['PSD_meas_',obj.sourceNames{ii}]),t0_] = obj.readSourcePSD(obj.sourceNames{ii});
+                [obj.(['PSD_meas_',obj.sourceNames{ii}]),t0_,freq_] = obj.readSourcePSD(obj.sourceNames{ii});
                 if t0_ < obj.t0, obj.t0 = t0_; end
+                if isempty(obj.PSD_freq) && ~isempty(freq_), obj.PSD_freq = freq_; end
             end
         end
 
-        function [PSDstruct,t0_] = readSourcePSD(obj,sourceName)
+        function [PSDstruct,t0_,freq_] = readSourcePSD(obj,sourceName)
             % READSOURCEPSD reads the PSD data into the structure format
 
             assert(ismember(sourceName,obj.sourceNames),'Unknown source name - check REACHcal.sourceNames')
             PSDstruct = [];
+            freq_ = [];
             % Always read from the hdf5 file 
             calNames = {'','_load','_ns'};
             t0_ = inf;
@@ -1292,6 +1349,10 @@ classdef REACHcalRX
                     ts = PSDstruct.([readName,'_timestamps']);
                     tmin = min(ts(1,:));
                     if tmin < t0_, t0_ = tmin; end
+                    if isempty(freq_)
+                        freq_ = linspace(obj.spectrometerFreqRange(1),obj.spectrometerFreqRange(2),size(PSDstruct.([readName,'_spectra']),1));
+                    end
+
                 else
                     % Data not found - don't read it
                 end
@@ -1570,40 +1631,40 @@ classdef REACHcalRX
             err = max(err_);    
         end
 
-        function obj = fitMS3(obj)
-            % FITMS3 is a component-level function to fit the MS3 model
+%         function obj = fitMS3(obj)
+%             % FITMS3 is a component-level function to fit the MS3 model
+% 
+%             X0 = obj.ms3_vals;
+%             LB = obj.ms3_min;
+%             UB = obj.ms3_max;
+%             options = optimoptions('fmincon','display','iter','MaxIterations',1000);
+%             optVals = fmincon(@(x) errFuncMS3(obj,x),X0,[],[],[],[],LB,UB,[],options);
+%             [~,obj] = errFuncMS3(obj,optVals);
+% 
+%             function [err, obj] = errFuncMS3(obj,x)
+%                 obj.ms3_vals = x;
+%                 err = obj.err_ms3;
+%             end
+%         end
 
-            X0 = obj.ms3_vals;
-            LB = obj.ms3_min;
-            UB = obj.ms3_max;
-            options = optimoptions('fmincon','display','iter','MaxIterations',1000);
-            optVals = fmincon(@(x) errFuncMS3(obj,x),X0,[],[],[],[],LB,UB,[],options);
-            [~,obj] = errFuncMS3(obj,optVals);
-
-            function [err, obj] = errFuncMS3(obj,x)
-                obj.ms3_vals = x;
-                err = obj.err_ms3;
-            end
-        end
-
-        function obj = fitCables(obj,cableName)
-            % FITCABLES is a component-level function to fit the cable models
-
-            if nargin < 2, cableName = 'c2'; end
-
-            X0 = obj.([cableName,'_vals']);
-            LB = obj.([cableName,'_min']);
-            UB = obj.([cableName,'_max']);
-            F = obj.([cableName,'_optFlag']);
-            options = optimoptions('fmincon','display','none','MaxIterations',1000);
-            optVals = fmincon(@(x) errFuncCable(obj,x,cableName,F),X0(F),[],[],[],[],LB(F),UB(F),[],options);
-            [~,obj] = errFuncCable(obj,optVals,cableName,F);
-
-            function [err, obj] = errFuncCable(obj,x,cableName,F)
-                obj.([cableName,'_vals'])(F) = x;
-                err = obj.(['err_',cableName]);
-            end
-        end
+%         function obj = fitCables(obj,cableName)
+%             % FITCABLES is a component-level function to fit the cable models
+% 
+%             if nargin < 2, cableName = 'c2'; end
+% 
+%             X0 = obj.([cableName,'_vals']);
+%             LB = obj.([cableName,'_min']);
+%             UB = obj.([cableName,'_max']);
+%             F = obj.([cableName,'_optFlag']);
+%             options = optimoptions('fmincon','display','none','MaxIterations',1000);
+%             optVals = fmincon(@(x) errFuncCable(obj,x,cableName,F),X0(F),[],[],[],[],LB(F),UB(F),[],options);
+%             [~,obj] = errFuncCable(obj,optVals,cableName,F);
+% 
+%             function [err, obj] = errFuncCable(obj,x,cableName,F)
+%                 obj.([cableName,'_vals'])(F) = x;
+%                 err = obj.(['err_',cableName]);
+%             end
+%         end
 
         function obj = fitMTS(obj)
             % FITMTS is a component-level function to fit the MTS and sr_mtsj1 models from lab measured data
@@ -1878,17 +1939,45 @@ classdef REACHcalRX
         function plotAllPSD(obj)
             % PLOTALLPSD plots all the PSDs
 
+            plotInd = obj.PSD_freq >= min(obj.freq) & obj.PSD_freq <= max(obj.freq);
+            freqPlot = obj.PSD_freq(plotInd);
             for ii = 1:length(obj.sourceNames)
-                measStruct = obj.(['PSD_meas_',obj.sourceNames{ii}]);
                 subplot(4,4,ii)
                 grid on, hold on
-                plot(measStruct.freq,measStruct.PSD_source)
-                plot(measStruct.freq,measStruct.PSD_load)
-                plot(measStruct.freq,measStruct.PSD_noise)
-                xlabel('Frequency (MHz)')
-                ylabel('Power (linear)')
-                title([obj.sourceNames{ii},'; T = ',num2str(obj.(['T_meas_',obj.sourceNames{ii}])), ' K'])
-                if ii == 1, legend('Source','Load','Noise'); end
+
+                measStruct = obj.(['PSD_meas_',obj.sourceNames{ii}]);
+                       
+                calNames = {'','_load','_ns'};
+                
+                for ss = 1:(length(calNames))
+                    calText = [obj.sourceNames{ii},calNames{ss},'_spectra'];
+                    if contains(calText,fields(measStruct))
+                        specPlot = measStruct.(calText);
+                        specPlot = mean(specPlot,2);   % Integrate over all time
+                        plot(freqPlot(:),specPlot(plotInd)), grid on, hold on
+                    end
+                    xlabel('Frequency (MHz)')
+                    ylabel('Power (linear)')
+%                     title([obj.sourceNames{ii},'; T = ',num2str(obj.(['T_meas_',obj.sourceNames{ii}])), ' K'])
+                    title([obj.sourceNames{ii}])
+                    if ii == 1, legend('Source','Load','Noise'); end
+                    
+                end
+
+%                 sP = measStruct.([obj.sourceNames{ii},'_spectra']);
+%                 
+%                 lP = measStruct.([obj.sourceNames{ii},'_load_spectra']);
+%                 
+%                 nP = measStruct.([obj.sourceNames{ii},'_ns_spectra']);
+% 
+%                 
+%                 plot(freqPlot,measStruct.PSD_source)
+%                 plot(freqPlot,measStruct.PSD_load)
+%                 plot(freqPlot,measStruct.PSD_noise)
+%                 xlabel('Frequency (MHz)')
+%                 ylabel('Power (linear)')
+%                 title([obj.sourceNames{ii},'; T = ',num2str(obj.(['T_meas_',obj.sourceNames{ii}])), ' K'])
+%                 if ii == 1, legend('Source','Load','Noise'); end
             end
         end
 
