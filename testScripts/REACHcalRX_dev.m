@@ -8,6 +8,11 @@ clear all
 dataPth = 'c:\Users\ddv\OneDrive - Stellenbosch University\Navorsing\REACH\20240926_AnnualMeeting\InitDevdata_REACHcalRX\fold_v0\';
 R = REACHcalRX(dataPth);
 R.plotAllS11
+figure
+R.plotAllPSD
+R = R.getCalDataStruct;
+
+R = R.calcCalibration;
 
 % R = REACHcal;
 

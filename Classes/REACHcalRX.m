@@ -18,6 +18,8 @@ classdef REACHcalRX
         fmin(1,1) double = 50  % in MHz
         fmax(1,1) double = 200 % in MHz
 
+        useCalFreq(1,1) logical = false   % This is only set to 1 when we are using the calibration (clipped spectrometer) frequencies. Other wise we use the definitions above
+
         % Resistors
         r36_vals(1,4) double {mustBeReal,mustBeNonnegative} = [4.0065   18.8989    5.7711   36.7437];
         r36_unitScales(1,4) double {mustBeReal,mustBePositive} = [1e-12,1e-9,1e-12,1];
@@ -177,6 +179,7 @@ classdef REACHcalRX
         S11_meas_r25
         S11_meas_r100
         S11_meas_ant
+        S11_meas_lna
 
 %         T_meas_c2r36(1,:) double {mustBeReal,mustBePositive} = 300
 %         T_meas_c2r27(1,:) double {mustBeReal,mustBePositive} = 300
@@ -228,6 +231,8 @@ classdef REACHcalRX
         PSD_meas_ant
         PSD_freq
 
+        calDataStruct  % Calibration information structure
+
         % Lab (fixed) measurements
 %         S11_lab_c2r36
 %         S11_lab_c2r27
@@ -267,6 +272,7 @@ classdef REACHcalRX
         folderFormat(1,1) double {mustBeInteger,mustBeNonnegative} = 0         %  0 for the new version of the hdf5 file with everything indside, 1 for the folder tree, 2 for the flat native structure
         H5dataInfo(1,:)   % H5 file information
         t0(1,1) double  = inf  % FIrst timestamp
+
     end
 
     properties (Dependent = true)
@@ -375,6 +381,7 @@ classdef REACHcalRX
 
     properties (Dependent = true, Hidden = true)
         freqHz
+        PSDfreqInd(1,:) logical
 
         optStruct
 
@@ -457,6 +464,8 @@ classdef REACHcalRX
         h5Name = 'reach_observation.hdf5';
 
         spectrometerFreqRange = [0,200];
+        freqCalMin = 50;
+        freqCalMax = 150;
     end
 
     methods
@@ -577,11 +586,19 @@ classdef REACHcalRX
         end
 
         function freq = get.freq(obj)
-            freq = linspace(obj.fmin,obj.fmax,obj.Nf);
+            if obj.useCalFreq
+                freq = obj.calDataStruct.freqCal;
+            else
+                freq = linspace(obj.fmin,obj.fmax,obj.Nf);
+            end
         end
 
         function freqHz = get.freqHz(obj)
             freqHz = obj.freq.*1e6;
+        end
+
+        function PSDfreqInd = get.PSDfreqInd(obj)
+            PSDfreqInd = obj.PSD_freq >= min(obj.freq) & obj.PSD_freq <= max(obj.freq);
         end
 
         function r36 = get.r36(obj)
@@ -1234,6 +1251,7 @@ classdef REACHcalRX
             for ii = 1:length(obj.sourceNames)
                 obj.(['S11_meas_',obj.sourceNames{ii}]) = obj.readSourceS11(obj.sourceNames{ii});
             end
+            obj.S11_meas_lna = obj.readSourceS11('lna');
         end
         
         function [S11,freq] = readSourceS11(obj,sourceName,interpFlag)
@@ -1242,7 +1260,7 @@ classdef REACHcalRX
 
             if nargin < 3 || isempty(interpFlag), interpFlag = true; end
 
-            assert(ismember(sourceName,obj.sourceNames),'Unknown source name - check REACHcal.sourceNames')
+            assert(ismember(sourceName,obj.sourceNames) || strcmp(sourceName,'lna'),'Unknown source name - check REACHcal.sourceNames')
 
             if obj.folderFormat == 0
                 dataS11 = h5read([obj.dataPath,obj.h5Name],['/observation_data/',[sourceName,'_s1p']]);
@@ -1301,7 +1319,7 @@ classdef REACHcalRX
                 obj.(['T_meas_',obj.sourceNames{ii}]) = fliplr(tempMat(indProbe,:));
             end
 
-            obj.T_meas_RX = fliplr(tempMat(contains(tempCells,'None','IgnoreCase',0),:));
+            obj.T_meas_RX = fliplr(tempMat(contains(tempCells,'''NA'': None','IgnoreCase',0),:));
             obj.T_meas_LNA = fliplr(tempMat(contains(tempCells,'LNA','IgnoreCase',0),:));
             
 
@@ -1809,6 +1827,137 @@ classdef REACHcalRX
             
         end
 
+        % Calibration
+        function obj = getCalDataStruct(obj)
+            % Method to integrate and pack all the raw data into a format that can be easily used for calibration
+
+            
+            calSources = {'c2r36','c2r27','c2r69','c2r91','c10open','c10short','c10r10','c10r250','r25','r100','cold','hot'};
+            calNames = {'','_load','_ns'};
+
+            psdInd = obj.PSD_freq >= obj.freqCalMin & obj.PSD_freq <= obj.freqCalMax;
+            obj.calDataStruct.freqCal = obj.PSD_freq(psdInd);
+
+            % Handle the LNA S11 measurement and de-embedding of the MTS and sr cable
+            LNA = OnePort(reshape(obj.S11_meas_lna,1,1,[]),obj.freq./1e3,'S');
+            LNA = LNA.freqChangeUnit('MHz');
+            obj.useCalFreq = true;  % Get the calibration frequencies for the rest
+            LNA = LNA.freqInterp(obj.freqHz,'linear');
+            LNAref = getOnePort(inv(cascade([obj.sr_mtsj1.network,obj.mts.network])),LNA);
+            LNAref = LNAref.getS;
+            obj.calDataStruct.Gamma_rec = LNAref.d11.';
+            
+            for ii = 1:length(calSources)
+                PSDstruct = obj.(['PSD_meas_',calSources{ii}]);
+                tempVect = obj.(['T_meas_',calSources{ii}]);
+
+                for jj = 1:length(calNames)
+                    timestamps_ = PSDstruct.([calSources{ii},calNames{jj},'_timestamps']);
+                    % Find all temperature recordings during the observation
+                    idxT = obj.T_meas_timestamps < max(timestamps_(1,:)) & obj.T_meas_timestamps > min(timestamps_(1,:));
+                    % Find the closest one if there are no temperature recordings during the observation
+                    if sum(idxT) == 0, [~,idxT] = min(abs(obj.T_meas_timestamps - mean(timestamps_(1,:)))); end
+                    tempVal = mean(tempVect(idxT));
+                    tempStd = std(tempVect(idxT));
+
+                    % Clip and integrate the PSDs
+                    PSD_ = PSDstruct.([calSources{ii},calNames{jj},'_spectra']);
+                    PSD = mean(PSD_(psdInd,:),2).';
+
+                    % Save in the correct names
+                    switch jj
+                        case 1
+                            T_s_std = tempStd;
+                            T_s = tempVal;
+                            P_s = PSD;
+                        case 2
+                            T_L_std = tempStd;
+                            T_L = tempVal;
+                            P_L = PSD;
+                        case 3
+                            T_NS_std = tempStd;
+                            T_NS = tempVal;
+                            P_NS = PSD;
+                    end
+                end
+                
+                % Get reflection coefficients at the reference plane
+                Rs = obj.(['R',calSources{ii}]);
+                Gamma_s = Rs.network.d11.';
+
+                % Calulate and store all the reference plane temperature spectra
+                % Assume the reference plane temperature is the same as MS1 for lack of better option
+                T_cab = T_L;
+                T_source = T_s;
+                G_av = obj.(['G',calSources{ii}]).';
+                T_eff = G_av.*T_source + (1 - G_av).*T_cab;
+
+                % Save the structure for the current source
+                obj.calDataStruct.(calSources{ii}) = struct('T_s_std',T_s_std,'T_s',T_s,'P_s',P_s,...
+                    'T_L_std',T_L_std,'T_L',T_L,'P_L',P_L,...
+                    'T_NS_std',T_NS_std,'T_NS',T_NS,'P_NS',P_NS,...
+                    'Gamma_s',Gamma_s,...
+                    'G_av',G_av,'T_eff',T_eff);
+            end
+
+            obj.useCalFreq = false;
+        end
+
+        function obj = calcCalibration(obj)
+            % Method to calculate the actual calibration
+
+            calSources = {'c2r36','c2r27','c2r69','c2r91','c10open','c10short','c10r10','c10r250','r25','r100'};  % Exclude cold and hot here - use as references?
+            calSources([5:8]) = [];
+
+            T = zeros(numel(calSources),1,numel(obj.calDataStruct.freqCal));
+            X = zeros(numel(calSources),5,numel(obj.calDataStruct.freqCal));
+
+            for ii = 1:numel(calSources)
+                calData = obj.calDataStruct.(calSources{ii});
+                
+                IminGs2 = 1 - abs(calData.Gamma_s).^2;
+                IminGsGrec = 1 - calData.Gamma_s.*obj.calDataStruct.Gamma_rec;      
+                sqrtIminGrec2 = sqrt(1 - abs(obj.calDataStruct.Gamma_rec).^2);
+                P_fact = (calData.P_s - calData.P_L)./(calData.P_NS - calData.P_L);
+
+                X_unc = -abs(calData.Gamma_s).^2./IminGs2;
+                X_cs_fact = abs(IminGsGrec).^2./(IminGs2.*sqrtIminGrec2);
+                X_cos = -real(calData.Gamma_s./IminGsGrec).*X_cs_fact;
+                X_sin = -imag(calData.Gamma_s./IminGsGrec).*X_cs_fact;
+                X_NS = P_fact.*abs(IminGsGrec).^2./IminGs2;
+                X_L = abs(IminGsGrec).^2./IminGs2;
+
+                T_s = calData.T_eff;
+
+                T(ii,1,:) = T_s;
+                X(ii,1,:) = X_unc;
+                X(ii,2,:) = X_cos;
+                X(ii,3,:) = X_sin;
+                X(ii,4,:) = X_NS;
+                X(ii,5,:) = X_L;
+
+%                 plot((P_fact))
+                
+
+            end
+            % Calculate the noise wave matrix entries for all calibration sources
+
+            [THETA,RCONDA] = pagemldivide(X,T);
+            T_unc = squeeze(THETA(1,1,:));
+            T_cos = squeeze(THETA(2,1,:));
+            T_sin = squeeze(THETA(3,1,:));
+            T_NS = squeeze(THETA(4,1,:));
+            T_L = squeeze(THETA(5,1,:));
+
+            plot(obj.calDataStruct.freqCal,T_unc), hold on, grid on
+            plot(obj.calDataStruct.freqCal,T_cos), hold on, grid on
+            plot(obj.calDataStruct.freqCal,T_sin), hold on, grid on
+            plot(obj.calDataStruct.freqCal,T_NS), hold on, grid on
+            plot(obj.calDataStruct.freqCal,T_L), hold on, grid on
+            figure, plot(obj.calDataStruct.freqCal,squeeze(RCONDA)), grid on
+            keyboard
+        end
+
         % Output
         function writeTouchStone(obj,path)
             % writeTouchStone writes the different element models to touchstone files in the folder: path
@@ -1939,8 +2088,7 @@ classdef REACHcalRX
         function plotAllPSD(obj)
             % PLOTALLPSD plots all the PSDs
 
-            plotInd = obj.PSD_freq >= min(obj.freq) & obj.PSD_freq <= max(obj.freq);
-            freqPlot = obj.PSD_freq(plotInd);
+            freqPlot = obj.PSD_freq(obj.PSDfreqInd);
             for ii = 1:length(obj.sourceNames)
                 subplot(4,4,ii)
                 grid on, hold on
@@ -1954,7 +2102,7 @@ classdef REACHcalRX
                     if contains(calText,fields(measStruct))
                         specPlot = measStruct.(calText);
                         specPlot = mean(specPlot,2);   % Integrate over all time
-                        plot(freqPlot(:),specPlot(plotInd)), grid on, hold on
+                        plot(freqPlot(:),specPlot(obj.PSDfreqInd)), grid on, hold on
                     end
                     xlabel('Frequency (MHz)')
                     ylabel('Power (linear)')
@@ -2011,6 +2159,8 @@ classdef REACHcalRX
                     eV = obj.(['err_source_',obj.sourceNames{ii}]);
                     title([obj.sourceNames{ii},'; ',obj.errorFuncType,':err = ',num2str(eV), errUnit]); 
                     Smod = obj.(['S',obj.sourceNames{ii}]);
+                else
+                    title('Antenna')
                 end
                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11dB(style{1}); end
                 if plotFlag > 1, plot(obj.freq,dB20(measVals),style{2}); end
@@ -2025,6 +2175,22 @@ classdef REACHcalRX
                 if mod(plotFlag,2) ~= 0 && ii < length(obj.sourceNames), Smod.network.getS.plot11imag(style{1}); end
                 if plotFlag > 1, plot(obj.freq,imag(measVals),style{2}); end
                 xlabel('')
+            end
+
+            if ~isempty(obj.S11_meas_lna)
+                measVals = obj.S11_meas_lna;
+                row1 = floor((ii)/4);
+                col1 = mod((ii),4);
+                subplot(8,8,(2*row1*8 + [1:2] + 2*col1))
+                grid on, hold on
+                title('LNA')
+                plot(obj.freq,dB20(measVals),style{2})
+                subplot(8,8,((2*row1+1)*8 + 1 + 2*col1))
+                grid on, hold on
+                plot(obj.freq,real(measVals),style{2})
+                subplot(8,8,((2*row1+1)*8 + 2 + 2*col1))
+                grid on, hold on
+                plot(obj.freq,imag(measVals),style{2})
             end
 
         end
@@ -2074,6 +2240,33 @@ classdef REACHcalRX
             end
         end
 
+        function plotAllTemperatureProbes(obj)
+
+            t_plot = (obj.T_meas_timestamps - obj.t0)./60;
+            for ii = 1:length(obj.sourceNames)+2
+                subplot(4,4,ii)
+                grid on, hold on
+                
+                if ii <= length(obj.sourceNames)
+                    tempVect = obj.(['T_meas_',obj.sourceNames{ii}]);
+                    titText = obj.sourceNames{ii};
+                elseif ii == length(obj.sourceNames)+1
+                    tempVect = obj.('T_meas_RX');
+                    titText = 'RX';
+                else
+                    tempVect = obj.('T_meas_LNA');
+                    titText = 'LNA';
+                end
+
+
+                plot(t_plot,tempVect)
+                xlabel('Observation time (min)')
+                ylabel('Temperature (K)')
+                title(titText)
+            end
+            
+        end
+
         function plotAllTemperatures(obj,color)
             % plotAllTemperatures plots all the source temperatures at the reference plain
 
@@ -2096,6 +2289,7 @@ classdef REACHcalRX
 
                 if ii == 1, legend('T_{source}','T_r','T_{cab}','Location','Best'); end
             end
+
         end
 
         function plotAllParameters(obj,style)
@@ -2345,13 +2539,13 @@ classdef REACHcalRX
         function G = calcSourceGain(obj,sourceName)
             % CALCSOURCEGAIN calculates the transducer gain of the specified source
 
-            [cableName,loadName] = REACHcal.splitSourceName(sourceName);
+            [cableName,loadName] = REACHcalRX.splitSourceName(sourceName);
 
             switch cableName
-                case 'c12'
+                case 'c2'
                     c = obj.c2.network;
                     loadMS = obj.ms3.network;
-                case 'c25'
+                case 'c10'
                     c = obj.c10.network;
                     loadMS = obj.ms4.network;
                 otherwise
@@ -2386,12 +2580,12 @@ classdef REACHcalRX
         function [T,Tr,Tcab] = calcSourceTemp(obj,sourceName)
             % CALCSOURCETEMP calculates the effective temperature of a specified source at the reference plane
 
-            [cableName] = REACHcal.splitSourceName(sourceName);
+            [cableName] = REACHcalRX.splitSourceName(sourceName);
 
             switch cableName
-                case 'c12'
+                case 'c2'
                     Tcab = obj.T_meas_c2;
-                case 'c25'
+                case 'c10'
                     Tcab = obj.T_meas_c10;
                 otherwise
                     Tcab = obj.T_meas_ms1;
@@ -2410,11 +2604,11 @@ classdef REACHcalRX
         function [cableName,loadName] = splitSourceName(sourceName)
             % SPLITSOURCENAME splits the source name into a cableName and loadName
 
-            if strncmp(sourceName,'c12',3)
-                cableName = 'c12';
-                loadName = sourceName(4:end);
-            elseif strncmp(sourceName,'c25',3)
-                cableName = 'c25';
+            if strncmp(sourceName,'c2',2)
+                cableName = 'c2';
+                loadName = sourceName(3:end);
+            elseif strncmp(sourceName,'c10',3)
+                cableName = 'c10';
                 loadName = sourceName(4:end);
                 switch loadName
                     case 'open'
